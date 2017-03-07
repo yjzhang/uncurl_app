@@ -76,10 +76,10 @@ def state_estimation_file(user_id, filename):
 
 def state_estimation_thread(data, k, user_id):
     """
-    Uses a greenlet to estimate stuff...
+    Uses a new process to do state estimation
     """
-    # TODO: setting iters to very low for debugging purposes
-    M, W = uncurl.poisson_estimate_state(data, k, max_iters=1, inner_max_iters=1, disp=False)
+    # if debugging, set max_iters to 1, inner_max_iters to 1... should be in config
+    M, W = uncurl.poisson_estimate_state(data, k, max_iters=10, inner_max_iters=400, disp=False)
     path = os.path.join('/tmp/', user_id)
     os.mkdir(path)
     np.savetxt(os.path.join(path, 'm.txt'), M)
