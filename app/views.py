@@ -21,7 +21,6 @@ def cluster_input():
     if 'textarea' in request.form:
         string_data = request.form['textarea'].split('\n')
         output_filename = ''.join(chr(random.randint(0,25)+ord('a') for i in range(10))) + '.txt'
-        print 'string_data: ', string_data
     elif 'fileinput' in request.files:
         f = request.files['fileinput']
         string_data = f.readlines()
@@ -31,7 +30,6 @@ def cluster_input():
     k = int(request.form['k'])
     line1 = string_data[0].split()
     data = np.zeros((len(string_data), len(line1)))
-    print data.shape
     for i, line in enumerate(string_data):
         #print line
         data[i,:] = np.fromstring(line, sep='\t')
