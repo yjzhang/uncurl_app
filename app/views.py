@@ -2,7 +2,7 @@ from multiprocessing import Process
 import os
 import random
 
-from flask import render_template, request, redirect, send_from_directory
+from flask import render_template, request, redirect, send_from_directory, url_for
 from werkzeug import secure_filename
 
 import numpy as np
@@ -57,7 +57,7 @@ def state_estimation_input():
     user_id = ''.join(chr(random.randint(0,25)+ord('a')) for i in range(10))
     P = Process(target=state_estimation_thread, args=(data, k, user_id))
     P.start()
-    return redirect('/state_estimation/results/'+user_id)
+    return redirect(url_for('state_estimation_result', user_id=user_id))
 
 @app.route('/state_estimation/results/<user_id>')
 def state_estimation_result(user_id):
@@ -78,7 +78,8 @@ def state_estimation_thread(data, k, user_id):
     """
     Uses a greenlet to estimate stuff...
     """
-    M, W = uncurl.poisson_estimate_state(data, k, disp=False)
+    # TODO: setting iters to very low for debugging purposes
+    M, W = uncurl.poisson_estimate_state(data, k, max_iters=1, inner_max_iters=1, disp=False)
     path = os.path.join('/tmp/', user_id)
     os.mkdir(path)
     np.savetxt(os.path.join(path, 'm.txt'), M)
