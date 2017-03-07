@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container container-main" role="main">
+    <h4>Poisson Clustering</h4>
+
+    <div>Paste the data in as a tab-separated file, where each row is a gene and each column is a cell.
+    </div>
+
+    <form action="cluster/input" method="POST">
+        <div class="form-group">
+            <textarea cols=80 rows=15 id="textarea"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="k">Number of classes (k):</label>
+            <input type=number id="k"></input>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-default">Submit Data</button>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

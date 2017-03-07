@@ -1,0 +1,39 @@
+<!--Base template - contains headers - uses bootstrap -->
+{% extends "bootstrap/base.html" %}
+
+{% block title %}UNCURL{% endblock %}
+
+{% block head %}
+{{super()}}
+{% endblock %}
+
+
+{% block navbar %}
+<div class="navbar navbar-default">
+    <div class="container=fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../">UNCURL Main Page</a>
+        </div>
+
+        <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="cluster">Clustering</a></li>
+                <li><a href="dim_reduce">Dimensionality Reduction</a></li>
+                <li><a href="state_estimation">State Estimation</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+Content goes here
+
+{% endblock %}
