@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container container-main" role="main">
+    <h4>Results for query id {{ user_id }}</h4>
+    {% if has_result %}
+    Results are available:
+    <p>
+        <a href="{{ user_id }}/m.txt">Centers</a>
+    </p>
+    <p>
+        <a href="{{ user_id }}/w.txt">Weights</a>
+    </p>
+    {% else %}
+    Results not yet available. Will refresh every 60 seconds.
+
+    <script>
+        setTimeout(function(){
+           window.location.reload(1);
+        }, 60000);
+    </script>
+    {% endif %}
+
+</div>
+
+{% endblock %}

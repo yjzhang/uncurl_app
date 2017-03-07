@@ -2,9 +2,43 @@
 
 {% block content %}
 <div class="container container-main" role="main">
-    <h4>UNCURL</h4>
+    <h3>State Estimation</h3>
 
-    Description goes here
+    <div>
+        <p>
+        Paste or upload a tab- or space-separated file where each row is a gene and each column is a cell. In the output, the first line will contain the cluster assignments for each cell as integers, while in the following lines, each line contains the mean for all the clusters for one gene.
+        </p>
+        <p><a href={{ url_for('static', filename='scde_k2.txt') }}>Example file</a></p>
+    </div>
+
+    <h4>Method Details</h4>
+
+    <div>
+        The Poisson Convex Mixture Model is used to estimate the state...
+    </div>
+
+
+    <form action="state_estimation/input" method="post" enctype=multipart/form-data>
+
+        <div class="form-group">
+            <label for="textarea">Paste the data in as a tab-separated file, where each row is a gene and each column is a cell.</label>
+            <textarea cols=80 rows=15 id="textarea"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="fileinput">Alternatively, upload a text file in the same format.</label>
+            <input type="file" id="fileinput" name="fileinput"></input>
+        </div>
+ 
+        <div class="form-group">
+            <label for="k">Number of states (k):</label>
+            <input type=number id="k" name="k" value=2></input>
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-default">Submit Data</button>
+        </div>
+    </form>
 
 </div>
 {% endblock %}
