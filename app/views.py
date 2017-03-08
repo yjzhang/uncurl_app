@@ -1,8 +1,8 @@
 from multiprocessing import Process
 import os
-import random
+import uuid
 
-from flask import render_template, request, redirect, send_from_directory, url_for
+from flask import Markup, render_template, request, redirect, send_from_directory, url_for
 from werkzeug import secure_filename
 
 import numpy as np
@@ -10,11 +10,13 @@ import uncurl
 
 from app import app
 
+import vis
+
 def load_input_data():
     string_data = ''
     if 'textarea' in request.form:
         string_data = request.form['textarea'].split('\n')
-        output_filename = ''.join(chr(random.randint(0,25)+ord('a')) for i in range(10)) + '.txt'
+        output_filename = str(uuid.uuid4()) + '.txt'
     elif 'fileinput' in request.files:
         f = request.files['fileinput']
         string_data = f.readlines()
@@ -54,7 +56,7 @@ def state_estimation():
 @app.route('/state_estimation/input', methods=['POST'])
 def state_estimation_input():
     data, k, output_filename = load_input_data()
-    user_id = ''.join(chr(random.randint(0,25)+ord('a')) for i in range(10))
+    user_id = str(uuid.uuid4())
     P = Process(target=state_estimation_thread, args=(data, k, user_id))
     P.start()
     return redirect(url_for('state_estimation_result', user_id=user_id))
@@ -63,8 +65,14 @@ def state_estimation_input():
 def state_estimation_result(user_id):
     # TODO: check if results have been completed...
     if os.path.isdir(os.path.join('/tmp/', user_id)):
+        try:
+            visualization = open(os.path.join('/tmp/', user_id, 'vis_state_estimation.html')).read()
+        except:
+            visualization = ''
+        visualization = Markup(visualization)
         return render_template('state_estimation_user.html',
-                user_id=user_id, has_result=True)
+                user_id=user_id, has_result=True,
+                visualization=visualization)
     else:
         return render_template('state_estimation_user.html',
                 user_id=user_id, has_result=False)
@@ -84,3 +92,4 @@ def state_estimation_thread(data, k, user_id):
     os.mkdir(path)
     np.savetxt(os.path.join(path, 'm.txt'), M)
     np.savetxt(os.path.join(path, 'w.txt'), W)
+    vis.vis_state_estimation(data, M, W, user_id)

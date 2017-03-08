@@ -1,5 +1,18 @@
 {% extends "base.html" %}
 
+{% block head %}
+{{super()}}
+<link
+href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.4.min.css"
+rel="stylesheet" type="text/css">
+<link
+href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.4.min.css"
+rel="stylesheet" type="text/css">
+
+<script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.4.min.js"></script>
+<script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.4.min.js"></script>
+{% endblock %}
+
 {% block content %}
 
 <div class="container container-main" role="main">
@@ -12,6 +25,11 @@
     <p>
         <a href="{{ user_id }}/w.txt">Weights</a>
     </p>
+
+    <h5>Visualization</h5>
+    {{ visualization }}
+
+    <p>TODO: show colors</p>
     {% else %}
     Results not yet available. Will refresh every 60 seconds.
 
