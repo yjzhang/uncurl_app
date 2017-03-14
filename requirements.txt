@@ -1,2 +1,5 @@
+bokeh
+flask
+flask_bootstrap
 numpy
 scipy

@@ -2,44 +2,57 @@
 
 {% block content %}
 <div class="container container-main" role="main">
-    <h3>Poisson Clustering</h3>
+    <h3>Lineage Estimation</h3>
 
     <div>
         <p>
-        Upload or paste a tab- or space-separated file where each row is a gene and each column is a cell. In the output, the first line will contain the cluster assignments for each cell as integers, while in the following lines, each line contains the mean for all the clusters for one gene.
+        There are several possible data sources for lineage estimation. The lineage estimation process can either take in single-cell gene expression data, or take the result
         </p>
-        <h4>Sample Data</h4>
         <p><a href={{ url_for('static', filename='scde_k2.txt') }}>Example file: real data, k=2</a></p>
         <p><a href={{ url_for('static', filename='SynMouseESprog_1000.txt') }}>Example file: synthetic data, k=3</a></p>
+
     </div>
 
     <h4>Method Details</h4>
 
     <div>
-        The algorithm uses Poisson hard clustering with kmeans++ initialization.
+        Lineage estimation performs
     </div>
-    <p></p>
 
     <h4>Data Input</h4>
 
 
-    <form action="cluster/input" method="post" enctype=multipart/form-data>
+    <form action="lineage/input" method="post" enctype=multipart/form-data>
 
+        <div class="form-group">
+            <label for="useridinput">Enter a user id from a state estimation.</label>
+            <input type="text" id="useridinput" name="useridinput"></input>
+        </div>
+
+        <div class="form-group">
+            <label for="fileinput">Upload the data in as a tab-separated text file, where each row is a gene and each column is a cell.</label>
+            <input type="file" id="mfileinput" name="mfileinput"></input>
+        </div>
+
+        <div class="form-group">
+            <label for="fileinput">Upload the data in as a tab-separated text file, where each row is a gene and each column is a cell.</label>
+            <input type="file" id="wfileinput" name="wfileinput"></input>
+        </div>
         <div class="form-group">
             <label for="fileinput">Upload the data in as a tab-separated text file, where each row is a gene and each column is a cell.</label>
             <input type="file" id="fileinput" name="fileinput"></input>
         </div>
  
         <div class="form-group">
-            <label for="k">Number of classes (k):</label>
+            <label for="k">Number of states (k):</label>
             <input type=number id="k" name="k" value=2></input>
         </div>
 
+        <!--
         <div class="form-group">
             <button type="submit" class="btn btn-default">Submit Data</button>
         </div>
 
-        <!--
         <div class="form-group">
             <label for="textarea">Alternatively, paste the data in as a tab-separated file, where each row is a gene and each column is a cell.</label>
             <textarea cols=80 rows=15 id="textarea"></textarea>
@@ -49,8 +62,6 @@
             <button type="submit" class="btn btn-default">Submit Data</button>
         </div>
         -->
-
-
 
     </form>
 

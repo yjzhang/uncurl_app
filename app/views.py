@@ -22,7 +22,7 @@ def load_input_data():
         string_data = f.readlines()
         output_filename = secure_filename(f.filename)
     else:
-        return 'error: no file provided'
+        return
     k = int(request.form['k'])
     line1 = string_data[0].split()
     data = np.zeros((len(string_data), len(line1)))
@@ -41,7 +41,10 @@ def cluster():
 
 @app.route('/cluster/input', methods=['POST'])
 def cluster_input():
-    data, k, output_filename = load_input_data()
+    try:
+        data, k, output_filename = load_input_data()
+    except:
+        return error('Error: no file found', 400)
     assignments, centers = uncurl.poisson_cluster(data, k)
     with  open(os.path.join('/tmp/', output_filename), 'w') as output_file:
         np.savetxt(output_file, assignments, fmt='%1.0f', newline=' ')
@@ -93,3 +96,28 @@ def state_estimation_thread(data, k, user_id):
     np.savetxt(os.path.join(path, 'm.txt'), M)
     np.savetxt(os.path.join(path, 'w.txt'), W)
     vis.vis_state_estimation(data, M, W, user_id)
+
+@app.route('/lineage')
+def lineage():
+    return render_template('lineage.html')
+
+@app.route('/lineage/input', methods=['POST'])
+def lineage_input():
+    """
+    Note: how do we implement this? is it a view from the state estimation folder? do we have a previous
+    """
+    pass
+
+@app.route('/lineage/input/<user_id>')
+def lineage_input_user_id(user_id):
+    """
+    Lineage input from a user's perspective
+    """
+    m = np.loadtxt(os.path.join('/tmp/', user_id, 'm.txt'))
+    w = np.loadtxt(os.path.join('/tmp/', user_id, 'w.txt'))
+
+def lineage_thread(m, w, user_id):
+    pass
+
+def error(msg, code):
+    return render_template('error.html', msg=msg), code
