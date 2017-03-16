@@ -6,7 +6,7 @@
 
     <div>
         <p>
-        There are several possible data sources for lineage estimation. The lineage estimation process can either take in single-cell gene expression data, or take the result
+        There are three ways to enter data for lineage estimation. It can either directly take the result of a state estimation (using the same user id), 
         </p>
         <p><a href={{ url_for('static', filename='scde_k2.txt') }}>Example file: real data, k=2</a></p>
         <p><a href={{ url_for('static', filename='SynMouseESprog_1000.txt') }}>Example file: synthetic data, k=3</a></p>
@@ -21,31 +21,43 @@
 
     <h4>Data Input</h4>
 
-
     <form action="lineage/input" method="post" enctype=multipart/form-data>
 
         <div class="form-group">
             <label for="useridinput">Enter a user id from a state estimation.</label>
             <input type="text" id="useridinput" name="useridinput"></input>
+            <div class="form-group">
+                <button type="submit" class="btn btn-default">Submit</button>
+            </div>
         </div>
 
         <div class="form-group">
-            <label for="fileinput">Upload the data in as a tab-separated text file, where each row is a gene and each column is a cell.</label>
-            <input type="file" id="mfileinput" name="mfileinput"></input>
+            <div class="form-group">
+                <label for="fileinput">Upload the data in as a tab-separated text file, where each row is a gene and each column is a cell.</label>
+                <input type="file" id="fileinput" name="fileinput"></input>
+            </div>
+            <div class="form-group">
+                <label for="k">Number of states (k):</label>
+                <input type=number id="k" name="k" value=2></input>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-default">Submit Data</button>
+            </div>
         </div>
 
+
         <div class="form-group">
-            <label for="fileinput">Upload the data in as a tab-separated text file, where each row is a gene and each column is a cell.</label>
-            <input type="file" id="wfileinput" name="wfileinput"></input>
-        </div>
-        <div class="form-group">
-            <label for="fileinput">Upload the data in as a tab-separated text file, where each row is a gene and each column is a cell.</label>
-            <input type="file" id="fileinput" name="fileinput"></input>
-        </div>
- 
-        <div class="form-group">
-            <label for="k">Number of states (k):</label>
-            <input type=number id="k" name="k" value=2></input>
+            <div class="form-group">
+                <label for="wfileinput">Upload W as a tab-separated text file.</label>
+                <input type="file" id="wfileinput" name="wfileinput"></input>
+            </div>
+            <div class="form-group">
+                <label for="mfileinput">Upload M as a tab-separated text file.</label>
+                <input type="file" id="mfileinput" name="mfileinput"></input>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-default">Submit Data</button>
+            </div>
         </div>
 
         <!--

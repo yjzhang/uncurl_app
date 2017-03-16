@@ -58,7 +58,10 @@ def state_estimation():
 
 @app.route('/state_estimation/input', methods=['POST'])
 def state_estimation_input():
-    data, k, output_filename = load_input_data()
+    try:
+        data, k, output_filename = load_input_data()
+    except:
+        return error('Error: no file found', 400)
     user_id = str(uuid.uuid4())
     P = Process(target=state_estimation_thread, args=(data, k, user_id))
     P.start()
@@ -106,7 +109,19 @@ def lineage_input():
     """
     Note: how do we implement this? is it a view from the state estimation folder? do we have a previous
     """
-    pass
+    string_data = ''
+    if 'useridinput' in request.form:
+        user_id = request.form['useridinput']
+        # TODO: try to load m/w data, or return an error if you can't
+    elif 'fileinput' in request.files:
+        f = request.files['fileinput']
+        string_data = f.readlines()
+        output_filename = secure_filename(f.filename)
+    elif 'mfileinput' in request.files and 'wfileinput' in request.files:
+        pass
+    else:
+        return error('Missing data input', 400)
+ 
 
 @app.route('/lineage/input/<user_id>')
 def lineage_input_user_id(user_id):
@@ -115,6 +130,7 @@ def lineage_input_user_id(user_id):
     """
     m = np.loadtxt(os.path.join('/tmp/', user_id, 'm.txt'))
     w = np.loadtxt(os.path.join('/tmp/', user_id, 'w.txt'))
+    # TODO
 
 def lineage_thread(m, w, user_id):
     pass

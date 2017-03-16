@@ -2,6 +2,7 @@
 
 {% block head %}
 {{super()}}
+{% if has_result %}
 <link
 href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.4.min.css"
 rel="stylesheet" type="text/css">
@@ -11,6 +12,7 @@ rel="stylesheet" type="text/css">
 
 <script src="https://cdn.pydata.org/bokeh/release/bokeh-0.12.4.min.js"></script>
 <script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.4.min.js"></script>
+{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -19,12 +21,14 @@ rel="stylesheet" type="text/css">
     <h4>Results for query id {{ user_id }}</h4>
     {% if has_result %}
     Results are available:
+    {% block file_downloads %}
     <p>
         <a href="{{ user_id }}/m.txt">Centers</a>
     </p>
     <p>
         <a href="{{ user_id }}/w.txt">Weights</a>
     </p>
+    {% endblock %}
 
     <h5>Visualization</h5>
     {{ visualization }}
