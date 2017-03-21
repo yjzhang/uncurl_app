@@ -20,7 +20,7 @@ def vis_state_estimation(data, M, W, user_id):
     2d bokeh visualization of 2d data. Outputs an embeddable html fragment to
     /tmp/user_id/vis_state_estimation.html
     """
-    X = uncurl.dim_reduce(data, M, W, 2)
+    X = uncurl.dim_reduce(M, W, 2)
     # reduced_data is of dimensionality 2 x cells
     reduced_data = np.dot(X.T, W)
     # zero-center the data
@@ -46,3 +46,18 @@ def vis_state_estimation(data, M, W, user_id):
         f.write('\n\n')
         f.write(script)
     return script, div
+
+def vis_lineage(M, W, smoothed_data, edges, clusters, user_id):
+    """
+    2d bokeh visualization of lineage estimation output. Outputs an embeddable
+    html fragment to /tmp/user_id/vis_lineage.html
+    """
+    # TODO
+    X = uncurl.dim_reduce(M, W, 2)
+    reduced_data = np.dot(X.T, W)
+    colors = [Accent8[c] for c in clusters]
+    source = ColumnDataSource(dict(
+        x=reduced_data[0,:],
+        y=reduced_data[1,:],
+        color=colors,
+        label=clusters))

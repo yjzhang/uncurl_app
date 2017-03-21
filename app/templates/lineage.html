@@ -23,40 +23,52 @@
 
     <form action="lineage/input" method="post" enctype=multipart/form-data>
 
-        <div class="form-group">
-            <label for="useridinput">Enter a user id from a state estimation.</label>
-            <input type="text" id="useridinput" name="useridinput"></input>
-            <div class="form-group">
-                <button type="submit" class="btn btn-default">Submit</button>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="form-group">
+                    <label for="useridinput">Enter a user id from a state estimation.</label>
+                    <input type="text" id="useridinput" name="useridinput"></input>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-default">Submit</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="form-group">
-            <div class="form-group">
-                <label for="fileinput">Upload the data in as a tab-separated text file, where each row is a gene and each column is a cell.</label>
-                <input type="file" id="fileinput" name="fileinput"></input>
-            </div>
-            <div class="form-group">
-                <label for="k">Number of states (k):</label>
-                <input type=number id="k" name="k" value=2></input>
-            </div>
-            <div class="form-group">
-                <button type="submit" class="btn btn-default">Submit Data</button>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="form-group">
+                        <label for="fileinput">Upload the data in as a tab-separated text file, where each row is a gene and each column is a cell.</label>
+                        <input type="file" id="fileinput" name="fileinput"></input>
+                    </div>
+                    <div class="form-group">
+                        <label for="k">Number of states (k):</label>
+                        <input type=number id="k" name="k" value=2></input>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-default">Submit Data</button>
+                    </div>
+                </div>
             </div>
         </div>
 
 
-        <div class="form-group">
-            <div class="form-group">
-                <label for="wfileinput">Upload W as a tab-separated text file.</label>
-                <input type="file" id="wfileinput" name="wfileinput"></input>
-            </div>
-            <div class="form-group">
-                <label for="mfileinput">Upload M as a tab-separated text file.</label>
-                <input type="file" id="mfileinput" name="mfileinput"></input>
-            </div>
-            <div class="form-group">
-                <button type="submit" class="btn btn-default">Submit Data</button>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="form-group">
+                        <label for="wfileinput">Upload W as a tab-separated text file.</label>
+                        <input type="file" id="wfileinput" name="wfileinput"></input>
+                    </div>
+                    <div class="form-group">
+                        <label for="mfileinput">Upload M as a tab-separated text file.</label>
+                        <input type="file" id="mfileinput" name="mfileinput"></input>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-default">Submit Data</button>
+                    </div>
+                </div>
             </div>
         </div>
 

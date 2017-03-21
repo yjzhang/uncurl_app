@@ -13,22 +13,13 @@ from app import app
 import vis
 
 def load_input_data():
-    string_data = ''
-    if 'textarea' in request.form:
-        string_data = request.form['textarea'].split('\n')
-        output_filename = str(uuid.uuid4()) + '.txt'
-    elif 'fileinput' in request.files:
+    if 'fileinput' in request.files:
         f = request.files['fileinput']
-        string_data = f.readlines()
         output_filename = secure_filename(f.filename)
     else:
         return
     k = int(request.form['k'])
-    line1 = string_data[0].split()
-    data = np.zeros((len(string_data), len(line1)))
-    for i, line in enumerate(string_data):
-        #print line
-        data[i,:] = np.fromstring(line, sep='\t')
+    data = np.loadtxt(f)
     return data, k, output_filename
 
 @app.route('/')
@@ -46,11 +37,18 @@ def cluster_input():
     except:
         return error('Error: no file found', 400)
     assignments, centers = uncurl.poisson_cluster(data, k)
+    user_id = str(uuid.uuid4())
     with  open(os.path.join('/tmp/', output_filename), 'w') as output_file:
         np.savetxt(output_file, assignments, fmt='%1.0f', newline=' ')
         output_file.write('\n')
         np.savetxt(output_file, centers)
     return send_from_directory('/tmp/', output_filename)
+
+def cluster_thread(data, k, user_id):
+    """
+    """
+    # TODO
+    pass
 
 @app.route('/state_estimation')
 def state_estimation():
@@ -109,31 +107,75 @@ def lineage_input():
     """
     Note: how do we implement this? is it a view from the state estimation folder? do we have a previous
     """
-    string_data = ''
     if 'useridinput' in request.form:
         user_id = request.form['useridinput']
         # TODO: try to load m/w data, or return an error if you can't
+        if not os.path.exists(os.path.join('/tmp/', user_id, 'm.txt')):
+            return error('Data for user id not found', 400)
+        P = Process(target=lineage_thread, args=(None, None, None, None, user_id))
+        P.run()
+        return redirect(url_for('lineage_input_user_id', user_id=user_id))
     elif 'fileinput' in request.files:
-        f = request.files['fileinput']
-        string_data = f.readlines()
-        output_filename = secure_filename(f.filename)
+        data, k = load_input_data()
+        user_id = str(uuid.uuid4())
     elif 'mfileinput' in request.files and 'wfileinput' in request.files:
-        pass
+        m_file = request.files['mfileinput']
+        w_file = request.files['wfileinput']
+        M = np.loadtxt(m_file)
+        W = np.loadtxt(w_file)
+        user_id = str(uuid.uuid4())
+        P = Process(target=lineage_thread, args=(None, None, M, W, user_id))
+        P.run()
+        return redirect(url_for('lineage_input_user_id', user_id=user_id))
     else:
         return error('Missing data input', 400)
- 
+
+def lineage_thread(data, k, M, W, user_id):
+    """
+    Thread to do lineage calculation...
+    """
+    path = os.path.join('/tmp/', user_id)
+    if data is not None:
+        # run state estimation then lineage estimation
+        M, W = uncurl.poisson_estimate_state(data, k, max_iters=10, inner_max_iters=400, disp=False)
+        np.savetxt(os.path.join(path, 'm.txt'), M)
+        np.savetxt(os.path.join(path, 'w.txt'), W)
+        curve_params, smoothed_data, edges, clusters = uncurl.lineage(M, W)
+        # TODO: save curve params
+        vis.vis_lineage(M, W, smoothed_data, edges, clusters)
+        np.savetxt(os.path.join(path, 'smoothed_data.txt'), smoothed_data)
+    elif M is not None and W is not None:
+        # M and W provided as arguments
+        os.mkdir(path)
+        np.savetxt(os.path.join(path, 'm.txt'), M)
+        np.savetxt(os.path.join(path, 'w.txt'), W)
+        curve_params, smoothed_data, edges, clusters = uncurl.lineage(M, W)
+        vis.vis_lineage(M, W, smoothed_data, edges, clusters)
+    else:
+        # try to read M, W from user_id
+        M = np.loadtxt(os.path.join(path, 'm.txt'))
+        W = np.loadtxt(os.path.join(path, 'w.txt'))
+        curve_params, smoothed_data, edges, clusters = uncurl.lineage(M, W)
+        vis.vis_lineage(M, W, smoothed_data, edges, clusters)
 
 @app.route('/lineage/input/<user_id>')
 def lineage_input_user_id(user_id):
     """
     Lineage input from a user's perspective
     """
-    m = np.loadtxt(os.path.join('/tmp/', user_id, 'm.txt'))
-    w = np.loadtxt(os.path.join('/tmp/', user_id, 'w.txt'))
     # TODO
-
-def lineage_thread(m, w, user_id):
-    pass
+    if os.path.exists(os.path.join('/tmp/', user_id, 'edges.txt')):
+        try:
+            visualization = open(os.path.join('/tmp/', user_id, 'vis_lineage.html')).read()
+        except:
+            visualization = ''
+        visualization = Markup(visualization)
+        return render_template('lineage_user.html',
+                user_id=user_id, has_result=True,
+                visualization=visualization)
+    else:
+        return render_template('lineage_user.html',
+                user_id=user_id, has_result=False)
 
 def error(msg, code):
     return render_template('error.html', msg=msg), code
