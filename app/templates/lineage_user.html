@@ -1,5 +1,13 @@
 {% extends "state_estimation_user.html" %}
 
 {% block file_downloads %}
-
+<p>
+<a href="{{ user_id }}/m.txt">Centers</a>
+</p>
+<p>
+<a href="{{ user_id }}/w.txt">Weights</a>
+</p>
+<p>
+<a href="{{ user_id }}/smoothed_data.txt">Smoothed points</a>
+</p>
 {% endblock %}

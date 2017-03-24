@@ -141,30 +141,28 @@ def lineage_thread(data, k, M, W, user_id):
         np.savetxt(os.path.join(path, 'm.txt'), M)
         np.savetxt(os.path.join(path, 'w.txt'), W)
         curve_params, smoothed_data, edges, clusters = uncurl.lineage(M, W)
-        # TODO: save curve params
-        vis.vis_lineage(M, W, smoothed_data, edges, clusters)
-        np.savetxt(os.path.join(path, 'smoothed_data.txt'), smoothed_data)
     elif M is not None and W is not None:
         # M and W provided as arguments
         os.mkdir(path)
         np.savetxt(os.path.join(path, 'm.txt'), M)
         np.savetxt(os.path.join(path, 'w.txt'), W)
         curve_params, smoothed_data, edges, clusters = uncurl.lineage(M, W)
-        vis.vis_lineage(M, W, smoothed_data, edges, clusters)
     else:
         # try to read M, W from user_id
         M = np.loadtxt(os.path.join(path, 'm.txt'))
         W = np.loadtxt(os.path.join(path, 'w.txt'))
         curve_params, smoothed_data, edges, clusters = uncurl.lineage(M, W)
-        vis.vis_lineage(M, W, smoothed_data, edges, clusters)
+    # TODO: save curve params
+    np.savetxt(os.path.join(path, 'smoothed_data.txt'), smoothed_data)
+    vis.vis_lineage(M, W, smoothed_data, edges, clusters, user_id)
 
-@app.route('/lineage/input/<user_id>')
+@app.route('/lineage/results/<user_id>')
 def lineage_input_user_id(user_id):
     """
     Lineage input from a user's perspective
     """
     # TODO
-    if os.path.exists(os.path.join('/tmp/', user_id, 'edges.txt')):
+    if os.path.exists(os.path.join('/tmp/', user_id, 'smoothed_data.txt')):
         try:
             visualization = open(os.path.join('/tmp/', user_id, 'vis_lineage.html')).read()
         except:
@@ -176,6 +174,7 @@ def lineage_input_user_id(user_id):
     else:
         return render_template('lineage_user.html',
                 user_id=user_id, has_result=False)
+
 
 def error(msg, code):
     return render_template('error.html', msg=msg), code
