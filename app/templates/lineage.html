@@ -6,7 +6,7 @@
 
     <div>
         <p>
-        There are three ways to enter data for lineage estimation. It can either directly take the result of a state estimation (using the same user id), 
+        There are three ways to enter data for lineage estimation. It can either directly take the result of a state estimation (using the same user id), a table containing expression data, or the means and weights from state estimation. 
         </p>
         <p><a href={{ url_for('static', filename='scde_k2.txt') }}>Example file: real data, k=2</a></p>
         <p><a href={{ url_for('static', filename='SynMouseESprog_1000.txt') }}>Example file: synthetic data, k=3</a></p>
@@ -71,22 +71,6 @@
                 </div>
             </div>
         </div>
-
-        <!--
-        <div class="form-group">
-            <button type="submit" class="btn btn-default">Submit Data</button>
-        </div>
-
-        <div class="form-group">
-            <label for="textarea">Alternatively, paste the data in as a tab-separated file, where each row is a gene and each column is a cell.</label>
-            <textarea cols=80 rows=15 id="textarea"></textarea>
-        </div>
-
-        <div class="form-group">
-            <button type="submit" class="btn btn-default">Submit Data</button>
-        </div>
-        -->
-
     </form>
 
 </div>

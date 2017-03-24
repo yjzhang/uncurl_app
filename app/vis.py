@@ -89,9 +89,10 @@ def vis_lineage(M, W, smoothed_data, edges, clusters, user_id):
     f1.circle(x='x', y='y',
             color='color', fill_alpha=0.7, size=10,
             legend='label', source=source)
+    # only include the legend once
     f1.circle(x='x', y='y',
             color='color', fill_alpha=1.0, size=5,
-            legend='label', source=source_smoothed)
+            source=source_smoothed)
     # use multi_line to connect the edges
     xs = []
     ys = []

@@ -1,5 +1,6 @@
 from multiprocessing import Process
 import os
+import pickle
 import uuid
 
 from flask import Markup, render_template, request, redirect, send_from_directory, url_for
@@ -44,11 +45,15 @@ def cluster_input():
         np.savetxt(output_file, centers)
     return send_from_directory('/tmp/', output_filename)
 
-def cluster_thread(data, k, user_id):
+def cluster_thread(data, k, user_id, output_filename):
     """
+    Thread for performing the clustering operation - currently unused.
     """
-    # TODO
-    pass
+    assignments, centers = uncurl.poisson_cluster(data, k)
+    with  open(os.path.join('/tmp/', user_id, output_filename), 'w') as output_file:
+        np.savetxt(output_file, assignments, fmt='%1.0f', newline=' ')
+        output_file.write('\n')
+        np.savetxt(output_file, centers)
 
 @app.route('/state_estimation')
 def state_estimation():
@@ -109,7 +114,7 @@ def lineage_input():
     """
     if 'useridinput' in request.form:
         user_id = request.form['useridinput']
-        # TODO: try to load m/w data, or return an error if you can't
+        # Try to load m/w data, or return an error if you can't
         if not os.path.exists(os.path.join('/tmp/', user_id, 'm.txt')):
             return error('Data for user id not found', 400)
         P = Process(target=lineage_thread, args=(None, None, None, None, user_id))
@@ -154,6 +159,8 @@ def lineage_thread(data, k, M, W, user_id):
         curve_params, smoothed_data, edges, clusters = uncurl.lineage(M, W)
     # TODO: save curve params
     np.savetxt(os.path.join(path, 'smoothed_data.txt'), smoothed_data)
+    with open(os.path.join(path, 'edges.pkl'), 'w') as f:
+        pickle.dump(edges, f)
     vis.vis_lineage(M, W, smoothed_data, edges, clusters, user_id)
 
 @app.route('/lineage/results/<user_id>')
