@@ -10,13 +10,13 @@
         </p>
         <p><a href={{ url_for('static', filename='scde_k2.txt') }}>Example file: real data, k=2</a></p>
         <p><a href={{ url_for('static', filename='SynMouseESprog_1000.txt') }}>Example file: synthetic data, k=3</a></p>
-
+        <p><a href={{ url_for('static', filename='BranchedSynDat.txt') }}>Example file: branching synthetic data, k=3</a></p>
     </div>
 
     <h4>Method Details</h4>
 
     <div>
-        Lineage estimation performs
+        Lineage estimation performs a number of different things. First, it performs dimensionality reduction to reduce the data into two dimensions. Then, it fits a nonlinear curve to the reduced data.
     </div>
 
     <h4>Data Input</h4>
