@@ -73,7 +73,7 @@ def state_estimation_input():
 @app.route('/state_estimation/results/<user_id>')
 def state_estimation_result(user_id):
     # TODO: check if results have been completed...
-    if os.path.isdir(os.path.join('/tmp/', user_id)):
+    if os.path.exists(os.path.join('/tmp/', user_id, 'm.txt')):
         try:
             visualization = open(os.path.join('/tmp/', user_id, 'vis_state_estimation.html')).read()
         except:
@@ -95,10 +95,10 @@ def state_estimation_thread(data, k, user_id):
     """
     Uses a new process to do state estimation
     """
-    # if debugging, set max_iters to 1, inner_max_iters to 1... should be in config
-    M, W = uncurl.poisson_estimate_state(data, k, max_iters=10, inner_max_iters=400, disp=False)
     path = os.path.join('/tmp/', user_id)
     os.mkdir(path)
+    # if debugging, set max_iters to 1, inner_max_iters to 1... should be in config
+    M, W = uncurl.poisson_estimate_state(data, k, max_iters=10, inner_max_iters=400, disp=False)
     np.savetxt(os.path.join(path, 'm.txt'), M)
     np.savetxt(os.path.join(path, 'w.txt'), W)
     vis.vis_state_estimation(data, M, W, user_id)
@@ -112,17 +112,20 @@ def lineage_input():
     """
     Note: how do we implement this? is it a view from the state estimation folder? do we have a previous
     """
-    if 'useridinput' in request.form:
+    if 'useridinput' in request.form and request.form['useridinput']:
         user_id = request.form['useridinput']
         # Try to load m/w data, or return an error if you can't
         if not os.path.exists(os.path.join('/tmp/', user_id, 'm.txt')):
             return error('Data for user id not found', 400)
         P = Process(target=lineage_thread, args=(None, None, None, None, user_id))
-        P.run()
+        P.start()
         return redirect(url_for('lineage_input_user_id', user_id=user_id))
     elif 'fileinput' in request.files:
-        data, k = load_input_data()
+        data, k, output_filename = load_input_data()
         user_id = str(uuid.uuid4())
+        P = Process(target=lineage_thread, args=(data, k, None, None, user_id))
+        P.start()
+        return redirect(url_for('lineage_input_user_id', user_id=user_id))
     elif 'mfileinput' in request.files and 'wfileinput' in request.files:
         m_file = request.files['mfileinput']
         w_file = request.files['wfileinput']
@@ -130,7 +133,7 @@ def lineage_input():
         W = np.loadtxt(w_file)
         user_id = str(uuid.uuid4())
         P = Process(target=lineage_thread, args=(None, None, M, W, user_id))
-        P.run()
+        P.start()
         return redirect(url_for('lineage_input_user_id', user_id=user_id))
     else:
         return error('Missing data input', 400)
@@ -142,6 +145,7 @@ def lineage_thread(data, k, M, W, user_id):
     path = os.path.join('/tmp/', user_id)
     if data is not None:
         # run state estimation then lineage estimation
+        os.mkdir(path)
         M, W = uncurl.poisson_estimate_state(data, k, max_iters=10, inner_max_iters=400, disp=False)
         np.savetxt(os.path.join(path, 'm.txt'), M)
         np.savetxt(os.path.join(path, 'w.txt'), W)
