@@ -163,8 +163,10 @@ def lineage_thread(data, k, M, W, user_id):
         curve_params, smoothed_data, edges, clusters = uncurl.lineage(M, W)
     # TODO: save curve params
     np.savetxt(os.path.join(path, 'smoothed_data.txt'), smoothed_data)
-    with open(os.path.join(path, 'edges.pkl'), 'w') as f:
-        pickle.dump(edges, f)
+    with open(os.path.join(path, 'edges.txt'), 'w') as f:
+        f.write(repr(edges))
+    with open(os.path.join(path, 'clusters.txt'), 'w') as f:
+        f.write(repr(clusters))
     vis.vis_lineage(M, W, smoothed_data, edges, clusters, user_id)
 
 @app.route('/lineage/results/<user_id>')
@@ -172,7 +174,6 @@ def lineage_input_user_id(user_id):
     """
     Lineage input from a user's perspective
     """
-    # TODO
     if os.path.exists(os.path.join('/tmp/', user_id, 'smoothed_data.txt')):
         try:
             visualization = open(os.path.join('/tmp/', user_id, 'vis_lineage.html')).read()
