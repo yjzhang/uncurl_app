@@ -2,27 +2,33 @@
 
 {% block content %}
 <div class="container container-main" role="main">
-    <h3>Poisson Clustering</h3>
+    <h3>{% block title %}Poisson Clustering{% endblock %}</h3>
 
     <div>
         <p>
+        {% block instructions %}
         Upload or paste a tab- or space-separated file where each row is a gene and each column is a cell. In the output, the first line will contain the cluster assignments for each cell as integers, while in the following lines, each line contains the mean for all the clusters for one gene.
+        {% endblock %}
         </p>
         <h4>Sample Data</h4>
         <p><a href={{ url_for('static', filename='scde_k2.txt') }}>Example file: real data, k=2</a></p>
         <p><a href={{ url_for('static', filename='SynMouseESprog_1000.txt') }}>Example file: synthetic data, k=3</a></p>
+        <p><a href={{ url_for('static', filename='BranchedSynDat.txt') }}>Example file: branching synthetic data, k=3</a></p>
     </div>
 
     <h4>Method Details</h4>
 
     <div>
+        {% block method %}
         The algorithm uses Poisson hard clustering with kmeans++ initialization.
+        {% endblock %}
     </div>
     <p></p>
 
     <h4>Data Input</h4>
 
 
+    {% block input %}
     <form action="cluster/input" method="post" enctype=multipart/form-data>
 
         <div class="form-group">
@@ -50,9 +56,8 @@
         </div>
         -->
 
-
-
     </form>
+    {% endblock %}
 
 </div>
 {% endblock %}

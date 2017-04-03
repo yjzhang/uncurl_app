@@ -1,26 +1,17 @@
-{% extends "base.html" %}
+{% extends "clustering.html" %}
 
-{% block content %}
-<div class="container container-main" role="main">
-    <h3>Lineage Estimation</h3>
+{% block title %}Lineage Estimation{% endblock %}
 
-    <div>
-        <p>
-        There are three ways to enter data for lineage estimation. It can either directly take the result of a state estimation (using the same user id), a table containing expression data, or the means and weights from state estimation. 
-        </p>
-        <p><a href={{ url_for('static', filename='scde_k2.txt') }}>Example file: real data, k=2</a></p>
-        <p><a href={{ url_for('static', filename='SynMouseESprog_1000.txt') }}>Example file: synthetic data, k=3</a></p>
-        <p><a href={{ url_for('static', filename='BranchedSynDat.txt') }}>Example file: branching synthetic data, k=3</a></p>
-    </div>
+{% block instructions %}
+There are three ways to enter data for lineage estimation. It can either directly take the result of a state estimation (using the same user id), a table containing expression data, or the means and weights from state estimation. 
+{% endblock %}
 
-    <h4>Method Details</h4>
+{% block method %}
+Lineage estimation performs a number of different things. First, it performs dimensionality reduction to reduce the data into two dimensions. Then, it fits a nonlinear curve to the reduced data.
+{% endblock %}
 
-    <div>
-        Lineage estimation performs a number of different things. First, it performs dimensionality reduction to reduce the data into two dimensions. Then, it fits a nonlinear curve to the reduced data.
-    </div>
 
-    <h4>Data Input</h4>
-
+{% block input %}
     <form action="lineage/input" method="post" enctype=multipart/form-data>
 
         <div class="panel panel-default">
@@ -73,5 +64,4 @@
         </div>
     </form>
 
-</div>
-{% endblock %}
+    {% endblock %}

@@ -45,11 +45,11 @@ def cluster_input():
         np.savetxt(output_file, centers)
     return send_from_directory('/tmp/', output_filename)
 
-def cluster_thread(data, k, user_id, output_filename):
+def cluster_thread(data, k, user_id, output_filename, init=None):
     """
     Thread for performing the clustering operation - currently unused.
     """
-    assignments, centers = uncurl.poisson_cluster(data, k)
+    assignments, centers = uncurl.poisson_cluster(data, k, init)
     with  open(os.path.join('/tmp/', user_id, output_filename), 'w') as output_file:
         np.savetxt(output_file, assignments, fmt='%1.0f', newline=' ')
         output_file.write('\n')
@@ -86,8 +86,8 @@ def state_estimation_result(user_id):
         return render_template('state_estimation_user.html',
                 user_id=user_id, has_result=False)
 
-@app.route('/state_estimation/results/<user_id>/<filename>')
-def state_estimation_file(user_id, filename):
+@app.route('/<x>/results/<user_id>/<filename>')
+def state_estimation_file(x, user_id, filename):
     path = os.path.join('/tmp/', user_id)
     return send_from_directory(path, filename)
 
