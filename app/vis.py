@@ -13,11 +13,11 @@ def vis_clustering(data, assignments, centers, user_id):
     """
     Visualizes a hard-assignment clustering. Presents data in 2D.
     """
-    X = uncurl.dim_reduce(data)
+    X = uncurl.dim_reduce_data(data,2)
     colors = [Accent8[c] for c in assignments]
     source = ColumnDataSource(dict(
-        x=X[0,:],
-        y=X[1,:],
+        x=X[:,0],
+        y=X[:,1],
         color=colors,
         label=assignments))
     f1 = figure(active_scroll='wheel_zoom')
@@ -28,7 +28,7 @@ def vis_clustering(data, assignments, centers, user_id):
     f1.yaxis.axis_label = 'dim2'
     # TODO: add javascript interactions???
     script, div = components(f1)
-    with open(os.path.join('/tmp/', user_id, 'vis_state_estimation.html'), 'w') as f:
+    with open(os.path.join('/tmp/', user_id, 'vis_clustering.html'), 'w') as f:
         f.write(div)
         f.write('\n\n')
         f.write(script)

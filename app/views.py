@@ -37,23 +37,36 @@ def cluster_input():
         data, k, output_filename = load_input_data()
     except:
         return error('Error: no file found', 400)
-    assignments, centers = uncurl.poisson_cluster(data, k)
     user_id = str(uuid.uuid4())
-    with  open(os.path.join('/tmp/', output_filename), 'w') as output_file:
-        np.savetxt(output_file, assignments, fmt='%1.0f', newline=' ')
-        output_file.write('\n')
-        np.savetxt(output_file, centers)
-    return send_from_directory('/tmp/', output_filename)
+    P = Process(target=cluster_thread, args=(data, k, user_id))
+    P.start()
+    return redirect(url_for('clustering_result', user_id=user_id))
 
-def cluster_thread(data, k, user_id, output_filename, init=None):
+def cluster_thread(data, k, user_id, init=None):
     """
     Thread for performing the clustering operation - currently unused.
     """
     assignments, centers = uncurl.poisson_cluster(data, k, init)
-    with  open(os.path.join('/tmp/', user_id, output_filename), 'w') as output_file:
-        np.savetxt(output_file, assignments, fmt='%1.0f', newline=' ')
-        output_file.write('\n')
+    with  open(os.path.join('/tmp/', user_id, 'assignments.txt'), 'w') as output_file:
+        np.savetxt(output_file, assignments, fmt='%1.0f')
+    with open(os.path.join('/tmp/', user_id, 'centers.txt'), 'w') as output_file:
         np.savetxt(output_file, centers)
+    vis.vis_clustering(data, assignments, centers, user_id)
+
+@app.route('/clustering/results/<user_id>')
+def clustering_result(user_id):
+    if os.path.exists(os.path.join('/tmp/', user_id, 'centers.txt')):
+        try:
+            visualization = open(os.path.join('/tmp/', user_id, 'vis_clustering.html')).read()
+        except:
+            visualization = ''
+        visualization = Markup(visualization)
+        return render_template('clustering_user.html',
+                user_id=user_id, has_result=True,
+                visualization=visualization)
+    else:
+        return render_template('clustering_user.html',
+                user_id=user_id, has_result=False)
 
 @app.route('/state_estimation')
 def state_estimation():
@@ -187,6 +200,18 @@ def lineage_input_user_id(user_id):
         return render_template('lineage_user.html',
                 user_id=user_id, has_result=False)
 
+@app.route('/qual2quant')
+def qual2quant():
+    return render_template('qual2quant.html')
+
+@app.route('/qual2quant/input')
+def qual2quant_input():
+    pass
+    # TODO
+
+def qual2quant_thread(data, qual, user_id):
+    # TODO
+    pass
 
 def error(msg, code):
     return render_template('error.html', msg=msg), code
