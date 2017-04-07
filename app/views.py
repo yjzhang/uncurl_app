@@ -47,9 +47,14 @@ def cluster_thread(data, k, user_id, init=None):
     Thread for performing the clustering operation - currently unused.
     """
     assignments, centers = uncurl.poisson_cluster(data, k, init)
-    with  open(os.path.join('/tmp/', user_id, 'assignments.txt'), 'w') as output_file:
+    path = os.path.join('/tmp/', user_id)
+    try:
+        os.mkdir(path)
+    except:
+        pass
+    with  open(os.path.join(path, 'assignments.txt'), 'w') as output_file:
         np.savetxt(output_file, assignments, fmt='%1.0f')
-    with open(os.path.join('/tmp/', user_id, 'centers.txt'), 'w') as output_file:
+    with open(os.path.join(path, 'centers.txt'), 'w') as output_file:
         np.savetxt(output_file, centers)
     vis.vis_clustering(data, assignments, centers, user_id)
 
@@ -85,7 +90,6 @@ def state_estimation_input():
 
 @app.route('/state_estimation/results/<user_id>')
 def state_estimation_result(user_id):
-    # TODO: check if results have been completed...
     if os.path.exists(os.path.join('/tmp/', user_id, 'm.txt')):
         try:
             visualization = open(os.path.join('/tmp/', user_id, 'vis_state_estimation.html')).read()
@@ -206,12 +210,33 @@ def qual2quant():
 
 @app.route('/qual2quant/input')
 def qual2quant_input():
-    pass
-    # TODO
+    if 'fileinput' not in request.files or 'qualinput' not in request.files:
+        return error('Missing data input', 400)
+    cell_file = request.files['fileinput']
+    qual_file = request.files['qualinput']
+    cell_data = np.loadtxt(cell_file)
+    qual_data = np.loadtxt(qual_file)
+    user_id = str(uuid.uuid4())
+    P = Process(target=qual2quant_thread, args=(cell_data, qual_data, user_id))
+    P.start()
+    return redirect(url_for('qual2quant_result', user_id=user_id))
 
 def qual2quant_thread(data, qual, user_id):
-    # TODO
-    pass
+    centers = uncurl.qual2quant(data, qual)
+    path = os.path.join('/tmp/', user_id)
+    with open(os.join(path, 'qual2quant_centers.txt'), 'w') as f:
+        np.savetxt(f, centers)
+
+@app.route('/qual2quant/results/<user_id>')
+def qual2quant_result(user_id):
+    if os.path.exists(os.path.join('/tmp/', user_id, 'qual2quant_centers.txt')):
+       return render_template('qual2quant_user.html',
+                user_id=user_id, has_result=True,
+                visualization=None)
+    else:
+        return render_template('qual2quant_user.html',
+                user_id=user_id, has_result=False)
+
 
 def error(msg, code):
     return render_template('error.html', msg=msg), code

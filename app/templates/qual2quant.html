@@ -3,14 +3,16 @@
 {% block title %}Qualitative to Quantitative{% endblock %}
 
 {% block instructions %}
-There are two arguments, both of which are data matrices:
+<p>There are two arguments, both of which are data matrices:</p>
 
-Single-cell data: a gene x cell tab-separated file
+<p>Single-cell data: a gene x cell tab-separated file</p>
 
-Qualitative data;
+<p>Qualitative data: a gene x cluster tab-separated file</p>
 {% endblock %}
 
 {% block method %}
+
+The Qualitative to Quantitative framework is used to convert qualitative prior information into good initialization points for unsupervised learning algorithms. Each gene in the SCS dataset is first clustering into two clusters to obtain the means of a presumably bimodal distribution (representing ‘ON’ and ‘OFF’ states). The qualitative information is then converted to a binary matrix whose rows are genes and columns are cell types. Finally, each element in this matrix is then converted to a numeric value by replacing the zeros with the means for the ‘OFF’ state and the ones with the means of the ‘ON’ states (for each given gene). This numeric matrix is then used to initialize unsupervised learning algorithms. The qualitative information can be any kind of array data, bulk RNA-Seq data or cell type specific information that can be binarized. 
 
 {% endblock %}
 
@@ -33,16 +35,5 @@ Qualitative data;
             <button type="submit" class="btn btn-default">Submit Data</button>
         </div>
 
-
-        <!--
-        <div class="form-group">
-            <label for="textarea">Alternatively, paste the data in as a tab-separated file, where each row is a gene and each column is a cell.</label>
-            <textarea cols=80 rows=15 id="textarea"></textarea>
-        </div>
-
-        <div class="form-group">
-            <button type="submit" class="btn btn-default">Submit Data</button>
-        </div>
-        -->
     </form>
 {% endblock %}

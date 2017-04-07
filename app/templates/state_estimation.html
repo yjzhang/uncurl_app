@@ -3,11 +3,13 @@
 {% block title %}State Estimation{% endblock %}
 
 {% block instructions %}
-Paste or upload a tab- or space-separated file where each row is a gene and each column is a cell. In the output, the first line will contain the cluster assignments for each cell as integers, while in the following lines, each line contains the mean for all the clusters for one gene.
+Paste or upload a tab- or space-separated file containing single-cell RNASeq data where each row is a gene and each column is a cell. 
 {% endblock %}
 
 {% block method %}
-The Poisson Convex Mixture Model is used to estimate the state...</p>
+Cells don't have discrete jumps from one cell type to another. Instead, they have a smooth transition. Here we formalize this by assuming that the true state of a cell lies in the convex hull spanned by some extreme cell types as seen in the above figure. 
+
+This is performed using the Poisson Convex Mixture Model framework. This framework performs Non-negative Matrix Factorization (NMF) with the added assumption that the matrix being factored is the true state matrix, whose sampled version is being observed. Just multiplying the two factor matrices gives us the unsampled estimate of the true state.
 {% endblock %}
 
         
@@ -20,6 +22,12 @@ The Poisson Convex Mixture Model is used to estimate the state...</p>
             <input type="file" id="fileinput" name="fileinput"></input>
         </div>
  
+
+        <div class="form-group">
+            <label for="startinput">OPTIONAL: upload starting positions for the cell type centers, where each row is a gene and each column is a cell type.</label>
+            <input type="file" id="startinput" name="startinput"></input>
+        </div>
+
         <div class="form-group">
             <label for="k">Number of states (k):</label>
             <input type=number id="k" name="k" value=2></input>

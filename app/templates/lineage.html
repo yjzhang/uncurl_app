@@ -7,7 +7,7 @@ There are three ways to enter data for lineage estimation. It can either directl
 {% endblock %}
 
 {% block method %}
-Lineage estimation performs a number of different things. First, it performs dimensionality reduction to reduce the data into two dimensions. Then, it fits a nonlinear curve to the reduced data.
+Lineage estimation builds on top of the state estimation process. The cells which are closest to each cell type (identified from convex mixture parameters) are divided into separate sets and visualized in a two dimensional space. Each set is then fitted with a smooth curve to obtain within-cell-type lineages. These smooth curves are then joined with the closest curves, thereby completing the lineage tree construction. 
 {% endblock %}
 
 
