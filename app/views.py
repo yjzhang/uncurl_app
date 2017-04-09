@@ -19,9 +19,15 @@ def load_input_data():
         output_filename = secure_filename(f.filename)
     else:
         return
+    init_f = None
+    if 'startinput' in request.files:
+        init_f = request.files['startinput']
     k = int(request.form['k'])
     data = np.loadtxt(f)
-    return data, k, output_filename
+    init = None
+    if init_f is not None:
+        init = np.loadtxt(init_f)
+    return data, k, output_filename, init
 
 @app.route('/')
 def index():
@@ -34,41 +40,54 @@ def cluster():
 @app.route('/cluster/input', methods=['POST'])
 def cluster_input():
     try:
-        data, k, output_filename = load_input_data()
+        data, k, output_filename, init = load_input_data()
     except:
         return error('Error: no file found', 400)
     user_id = str(uuid.uuid4())
-    P = Process(target=cluster_thread, args=(data, k, user_id))
+    dist_type = request.form['disttype']
+    P = Process(target=cluster_thread, args=(data, k, user_id, init, dist_type))
     P.start()
     return redirect(url_for('clustering_result', user_id=user_id))
 
-def cluster_thread(data, k, user_id, init=None):
+def cluster_thread(data, k, user_id, init=None, dist_type='Poisson'):
     """
     Thread for performing the clustering operation - currently unused.
     """
-    assignments, centers = uncurl.poisson_cluster(data, k, init)
     path = os.path.join('/tmp/', user_id)
     try:
         os.mkdir(path)
     except:
         pass
-    with  open(os.path.join(path, 'assignments.txt'), 'w') as output_file:
+    if dist_type=='Poisson':
+        assignments, centers = uncurl.poisson_cluster(data, k, init)
+        with open(os.path.join(path, 'centers.txt'), 'w') as output_file:
+            np.savetxt(output_file, centers)
+        vis.vis_clustering(data, assignments, centers, user_id)
+    elif dist_type=='Negative binomial':
+        P, R, assignments = uncurl.nb_cluster(data, k)
+        with open(os.path.join(path, 'P.txt'), 'w') as output_file:
+            np.savetxt(output_file, P)
+        with open(os.path.join(path, 'R.txt'), 'w') as output_file:
+            np.savetxt(output_file, R)
+    with open(os.path.join(path, 'assignments.txt'), 'w') as output_file:
         np.savetxt(output_file, assignments, fmt='%1.0f')
-    with open(os.path.join(path, 'centers.txt'), 'w') as output_file:
-        np.savetxt(output_file, centers)
-    vis.vis_clustering(data, assignments, centers, user_id)
 
 @app.route('/clustering/results/<user_id>')
 def clustering_result(user_id):
-    if os.path.exists(os.path.join('/tmp/', user_id, 'centers.txt')):
+    if os.path.exists(os.path.join('/tmp/', user_id, 'assignments.txt')):
         try:
             visualization = open(os.path.join('/tmp/', user_id, 'vis_clustering.html')).read()
         except:
             visualization = ''
+        poisson = True
+        if os.path.exists(os.path.join('/tmp/', user_id, 'centers.txt')):
+            pass
+        else:
+            poisson=False
         visualization = Markup(visualization)
         return render_template('clustering_user.html',
                 user_id=user_id, has_result=True,
-                visualization=visualization)
+                visualization=visualization, poisson=poisson)
     else:
         return render_template('clustering_user.html',
                 user_id=user_id, has_result=False)
@@ -80,11 +99,11 @@ def state_estimation():
 @app.route('/state_estimation/input', methods=['POST'])
 def state_estimation_input():
     try:
-        data, k, output_filename = load_input_data()
+        data, k, output_filename, init = load_input_data()
     except:
         return error('Error: no file found', 400)
     user_id = str(uuid.uuid4())
-    P = Process(target=state_estimation_thread, args=(data, k, user_id))
+    P = Process(target=state_estimation_thread, args=(data, k, user_id, init))
     P.start()
     return redirect(url_for('state_estimation_result', user_id=user_id))
 
@@ -108,14 +127,14 @@ def state_estimation_file(x, user_id, filename):
     path = os.path.join('/tmp/', user_id)
     return send_from_directory(path, filename)
 
-def state_estimation_thread(data, k, user_id):
+def state_estimation_thread(data, k, user_id, init=None):
     """
     Uses a new process to do state estimation
     """
     path = os.path.join('/tmp/', user_id)
     os.mkdir(path)
     # if debugging, set max_iters to 1, inner_max_iters to 1... should be in config
-    M, W = uncurl.poisson_estimate_state(data, k, max_iters=10, inner_max_iters=400, disp=False)
+    M, W = uncurl.poisson_estimate_state(data, k, max_iters=10, inner_max_iters=400, disp=False, init_means=init)
     np.savetxt(os.path.join(path, 'm.txt'), M)
     np.savetxt(os.path.join(path, 'w.txt'), W)
     vis.vis_state_estimation(data, M, W, user_id)

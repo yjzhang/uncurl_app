@@ -47,12 +47,15 @@
         </div>
 
         <div class="form-group">
-            <button type="submit" class="btn btn-default">Submit Data</button>
+            <select id="disttype" name="disttype">
+                <option selected>Poisson</option>
+                <option>Negative binomial</option>
+            </select>
         </div>
 
-        <!--
-        TODO: dropdown indicating whether you want Poisson or negative binomial
-        -->
+        <div class="form-group">
+            <button type="submit" class="btn btn-default">Submit Data</button>
+        </div>
 
     </form>
     {% endblock %}

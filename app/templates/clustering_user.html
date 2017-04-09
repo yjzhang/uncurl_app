@@ -1,10 +1,22 @@
 {% extends "state_estimation_user.html" %}
 
 {% block file_downloads %}
+{% if poisson %}
 <p>
 <a href="{{ user_id }}/centers.txt">Centers</a>
 </p>
 <p>
 <a href="{{ user_id }}/assignments.txt">Assignments</a>
 </p>
+{% else %}
+<p>
+<a href="{{ user_id }}/P.txt">P</a>
+</p>
+<p>
+<a href="{{ user_id }}/R.txt">P</a>
+</p>
+<p>
+<a href="{{ user_id }}/assignments.txt">Assignments</a>
+</p>
+{% endif %}
 {% endblock %}
