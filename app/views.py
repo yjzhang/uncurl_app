@@ -17,6 +17,8 @@ def load_input_data():
     if 'fileinput' in request.files:
         f = request.files['fileinput']
         output_filename = secure_filename(f.filename)
+        if output_filename == '':
+            return
     else:
         return
     init_f = None
@@ -25,7 +27,7 @@ def load_input_data():
     k = int(request.form['k'])
     data = np.loadtxt(f)
     init = None
-    if init_f is not None:
+    if init_f is not None and init_f.filename != '':
         init = np.loadtxt(init_f)
     return data, k, output_filename, init
 
@@ -62,13 +64,14 @@ def cluster_thread(data, k, user_id, init=None, dist_type='Poisson'):
         assignments, centers = uncurl.poisson_cluster(data, k, init)
         with open(os.path.join(path, 'centers.txt'), 'w') as output_file:
             np.savetxt(output_file, centers)
-        vis.vis_clustering(data, assignments, centers, user_id)
+        vis.vis_clustering(data, assignments, user_id)
     elif dist_type=='Negative binomial':
         P, R, assignments = uncurl.nb_cluster(data, k)
         with open(os.path.join(path, 'P.txt'), 'w') as output_file:
             np.savetxt(output_file, P)
         with open(os.path.join(path, 'R.txt'), 'w') as output_file:
             np.savetxt(output_file, R)
+        vis.vis_clustering(data, assignments, user_id)
     with open(os.path.join(path, 'assignments.txt'), 'w') as output_file:
         np.savetxt(output_file, assignments, fmt='%1.0f')
 

@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container container-main" role="main">
-    <h3>{% block title %}Poisson Clustering{% endblock %}</h3>
+    <h3>{% block title %}Clustering{% endblock %}</h3>
 
     <div>
         <p>
@@ -20,7 +20,7 @@
 
     <div>
         {% block method %}
-        The algorithm uses Poisson hard clustering with kmeans++ initialization.
+        This algorithm can perform either Poisson or Negative Binomial clustering.
         {% endblock %}
     </div>
     <p></p>
@@ -47,6 +47,7 @@
         </div>
 
         <div class="form-group">
+            <label for="disttype">Distribution type:</label>
             <select id="disttype" name="disttype">
                 <option selected>Poisson</option>
                 <option>Negative binomial</option>

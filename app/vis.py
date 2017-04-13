@@ -9,7 +9,7 @@ import numpy as np
 
 import uncurl
 
-def vis_clustering(data, assignments, centers, user_id):
+def vis_clustering(data, assignments, user_id):
     """
     Visualizes a hard-assignment clustering. Presents data in 2D.
     """
