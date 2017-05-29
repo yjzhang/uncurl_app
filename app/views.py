@@ -66,11 +66,18 @@ def cluster_thread(data, k, user_id, init=None, dist_type='Poisson'):
             np.savetxt(output_file, centers)
         vis.vis_clustering(data, assignments, user_id)
     elif dist_type=='Negative binomial':
-        P, R, assignments = uncurl.nb_cluster(data, k)
+        assignments, P, R = uncurl.nb_cluster(data, k)
         with open(os.path.join(path, 'P.txt'), 'w') as output_file:
             np.savetxt(output_file, P)
         with open(os.path.join(path, 'R.txt'), 'w') as output_file:
             np.savetxt(output_file, R)
+        vis.vis_clustering(data, assignments, user_id)
+    elif dist_type=='Zero-inflated Poisson':
+        assignments, L, M = uncurl.zip_cluster(data, k)
+        with open(os.path.join(path, 'L.txt'), 'w') as output_file:
+            np.savetxt(output_file, L)
+        with open(os.path.join(path, 'M.txt'), 'w') as output_file:
+            np.savetxt(output_file, M)
         vis.vis_clustering(data, assignments, user_id)
     with open(os.path.join(path, 'assignments.txt'), 'w') as output_file:
         np.savetxt(output_file, assignments, fmt='%1.0f')
@@ -244,7 +251,7 @@ def qual2quant_input():
     return redirect(url_for('qual2quant_result', user_id=user_id))
 
 def qual2quant_thread(data, qual, user_id):
-    centers = uncurl.qual2quant(data, qual)
+    centers = uncurl.qualNorm(data, qual)
     path = os.path.join('/tmp/', user_id)
     with open(os.join(path, 'qual2quant_centers.txt'), 'w') as f:
         np.savetxt(f, centers)
