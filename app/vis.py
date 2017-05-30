@@ -43,8 +43,8 @@ def vis_state_estimation(data, M, W, user_id):
     X = uncurl.dim_reduce(M, W, 2)
     # reduced_data is of dimensionality 2 x cells
     reduced_data = np.dot(X.T, W)
-    # zero-center the data
-    reduced_data = reduced_data - reduced_data.mean(1, keepdims=True)
+    if X.shape[0]==2:
+        reduced_data = np.dot(X, W)
     np.savetxt(os.path.join('/tmp/', user_id, 'reduced_data.txt'), reduced_data)
     clusters = W.argmax(0)
     colors = [Accent8[c] for c in clusters]
@@ -74,6 +74,8 @@ def vis_lineage(M, W, smoothed_data, edges, clusters, user_id):
     """
     X = uncurl.dim_reduce(M, W, 2)
     reduced_data = np.dot(X.T, W)
+    if X.shape[0]==2:
+        reduced_data = np.dot(X, W)
     colors = [Accent8[c] for c in clusters]
     source = ColumnDataSource(dict(
         x=reduced_data[0,:],
