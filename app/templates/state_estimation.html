@@ -11,7 +11,6 @@ Cells don't have discrete jumps from one cell type to another. Instead, they hav
 
 This is performed using the Poisson Convex Mixture Model framework. This framework performs Non-negative Matrix Factorization (NMF) with the added assumption that the matrix being factored is the true state matrix, whose sampled version is being observed. Just multiplying the two factor matrices gives us the unsampled estimate of the true state.
 {% endblock %}
-
         
 
 {% block input %}
@@ -31,6 +30,13 @@ This is performed using the Poisson Convex Mixture Model framework. This framewo
         <div class="form-group">
             <label for="k">Number of states (k):</label>
             <input type=number id="k" name="k" value=2></input>
+        </div>
+        <div class="form-group">
+            <label for="disttype">Distribution type:</label>
+            <select id="disttype" name="disttype">
+                <option selected>Poisson</option>
+                <option>Negative binomial</option>
+            </select>
         </div>
 
         <div class="form-group">

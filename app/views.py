@@ -58,6 +58,7 @@ def cluster_thread(data, k, user_id, init=None, dist_type='Poisson'):
     path = os.path.join('/tmp/', user_id)
     try:
         os.mkdir(path)
+        print path
     except:
         pass
     if dist_type=='Poisson':
@@ -113,7 +114,8 @@ def state_estimation_input():
     except:
         return error('Error: no file found', 400)
     user_id = str(uuid.uuid4())
-    P = Process(target=state_estimation_thread, args=(data, k, user_id, init))
+    dist_type = request.form['disttype']
+    P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type))
     P.start()
     return redirect(url_for('state_estimation_result', user_id=user_id))
 
@@ -137,14 +139,17 @@ def state_estimation_file(x, user_id, filename):
     path = os.path.join('/tmp/', user_id)
     return send_from_directory(path, filename)
 
-def state_estimation_thread(data, k, user_id, init=None):
+def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson'):
     """
     Uses a new process to do state estimation
     """
     path = os.path.join('/tmp/', user_id)
     os.mkdir(path)
     # if debugging, set max_iters to 1, inner_max_iters to 1... should be in config
-    M, W = uncurl.poisson_estimate_state(data, k, max_iters=10, inner_max_iters=400, disp=False, init_means=init)
+    if dist_type=='Poisson':
+        M, W = uncurl.poisson_estimate_state(data, k, max_iters=5, inner_max_iters=400, disp=False, init_means=init)
+    elif dist_type=='Negative binomial':
+        M, W, R = uncurl.nb_estimate_state(data, k, max_iters=5, inner_max_iters=400, disp=False, init_means=init)
     np.savetxt(os.path.join(path, 'm.txt'), M)
     np.savetxt(os.path.join(path, 'w.txt'), W)
     vis.vis_state_estimation(data, M, W, user_id)
