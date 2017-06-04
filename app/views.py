@@ -147,9 +147,10 @@ def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson'):
     os.mkdir(path)
     # if debugging, set max_iters to 1, inner_max_iters to 1... should be in config
     if dist_type=='Poisson':
-        M, W = uncurl.poisson_estimate_state(data, k, max_iters=5, inner_max_iters=400, disp=False, init_means=init)
+        M, W, ll = uncurl.poisson_estimate_state(data, k, max_iters=5, inner_max_iters=400, disp=False, init_means=init)
     elif dist_type=='Negative binomial':
-        M, W, R = uncurl.nb_estimate_state(data, k, max_iters=5, inner_max_iters=400, disp=False, init_means=init)
+        M, W, R, ll = uncurl.nb_estimate_state(data, k, max_iters=5, inner_max_iters=400, disp=False, init_means=init)
+        np.savetxt(os.path.join(path, 'r.txt'), R)
     np.savetxt(os.path.join(path, 'm.txt'), M)
     np.savetxt(os.path.join(path, 'w.txt'), W)
     vis.vis_state_estimation(data, M, W, user_id)
@@ -197,7 +198,7 @@ def lineage_thread(data, k, M, W, user_id):
     if data is not None:
         # run state estimation then lineage estimation
         os.mkdir(path)
-        M, W = uncurl.poisson_estimate_state(data, k, max_iters=10, inner_max_iters=400, disp=False)
+        M, W, ll = uncurl.poisson_estimate_state(data, k, max_iters=10, inner_max_iters=400, disp=False)
         np.savetxt(os.path.join(path, 'm.txt'), M)
         np.savetxt(os.path.join(path, 'w.txt'), W)
         curve_params, smoothed_data, edges, clusters = uncurl.lineage(M, W)
@@ -219,6 +220,15 @@ def lineage_thread(data, k, M, W, user_id):
     with open(os.path.join(path, 'clusters.txt'), 'w') as f:
         f.write(repr(clusters))
     vis.vis_lineage(M, W, smoothed_data, edges, clusters, user_id)
+
+@app.route()
+def calc_pseudotime():
+    """
+    Responds to a call to calculate the pseudotime...
+    """
+    # TODO: add pseudotime - have something where you can select a cell and
+    # calculate pseudotime based on stuff
+    return None
 
 @app.route('/lineage/results/<user_id>')
 def lineage_input_user_id(user_id):

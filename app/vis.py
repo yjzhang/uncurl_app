@@ -60,6 +60,8 @@ def vis_state_estimation(data, M, W, user_id):
     f1.xaxis.axis_label = 'dim1'
     f1.yaxis.axis_label = 'dim2'
     # TODO: add javascript interactions???
+    # interaction: lasso select, select by cluster, select points to download
+    # 
     script, div = components(f1)
     with open(os.path.join('/tmp/', user_id, 'vis_state_estimation.html'), 'w') as f:
         f.write(div)
