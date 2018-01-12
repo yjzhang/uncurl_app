@@ -147,7 +147,7 @@ def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson'):
     os.mkdir(path)
     # if debugging, set max_iters to 1, inner_max_iters to 1... should be in config
     if dist_type=='Poisson':
-        M, W, ll = uncurl.poisson_estimate_state(data, k, max_iters=5, inner_max_iters=400, disp=False, init_means=init)
+        M, W, ll = uncurl.poisson_estimate_state(data, k, max_iters=20, inner_max_iters=100, disp=False, init_means=init)
     elif dist_type=='Negative binomial':
         M, W, R, ll = uncurl.nb_estimate_state(data, k, max_iters=5, inner_max_iters=400, disp=False, init_means=init)
         np.savetxt(os.path.join(path, 'r.txt'), R)
@@ -221,7 +221,7 @@ def lineage_thread(data, k, M, W, user_id):
         f.write(repr(clusters))
     vis.vis_lineage(M, W, smoothed_data, edges, clusters, user_id)
 
-@app.route()
+@app.route('/pseudotime')
 def calc_pseudotime():
     """
     Responds to a call to calculate the pseudotime...
