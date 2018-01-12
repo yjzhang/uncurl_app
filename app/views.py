@@ -7,6 +7,7 @@ from flask import Markup, render_template, request, redirect, send_from_director
 from werkzeug import secure_filename
 
 import numpy as np
+import scipy.io
 import uncurl
 
 from app import app
@@ -24,8 +25,13 @@ def load_input_data():
     init_f = None
     if 'startinput' in request.files:
         init_f = request.files['startinput']
+    # TODO: allow for mtx input data
     k = int(request.form['k'])
-    data = np.loadtxt(f)
+    input_type = request.form['inputtype']
+    if input_type == 'dense':
+        data = np.loadtxt(f)
+    elif input_type == 'sparse':
+        data = scipy.io.mmread(f)
     init = None
     if init_f is not None and init_f.filename != '':
         init = np.loadtxt(init_f)
@@ -115,7 +121,8 @@ def state_estimation_input():
         return error('Error: no file found', 400)
     user_id = str(uuid.uuid4())
     dist_type = request.form['disttype']
-    P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type))
+    vismethod = request.form['vismethod']
+    P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type, vismethod))
     P.start()
     return redirect(url_for('state_estimation_result', user_id=user_id))
 
@@ -139,7 +146,7 @@ def state_estimation_file(x, user_id, filename):
     path = os.path.join('/tmp/', user_id)
     return send_from_directory(path, filename)
 
-def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson'):
+def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson', vismethod='tSNE'):
     """
     Uses a new process to do state estimation
     """
@@ -147,13 +154,14 @@ def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson'):
     os.mkdir(path)
     # if debugging, set max_iters to 1, inner_max_iters to 1... should be in config
     if dist_type=='Poisson':
-        M, W, ll = uncurl.poisson_estimate_state(data, k, max_iters=20, inner_max_iters=100, disp=False, init_means=init)
+        M, W, ll = uncurl.poisson_estimate_state(data, k, max_iters=20, inner_max_iters=50, disp=False, init_means=init)
+    # TODO: add Log-Normal
     elif dist_type=='Negative binomial':
         M, W, R, ll = uncurl.nb_estimate_state(data, k, max_iters=5, inner_max_iters=400, disp=False, init_means=init)
         np.savetxt(os.path.join(path, 'r.txt'), R)
     np.savetxt(os.path.join(path, 'm.txt'), M)
     np.savetxt(os.path.join(path, 'w.txt'), W)
-    vis.vis_state_estimation(data, M, W, user_id)
+    vis.vis_state_estimation(data, M, W, user_id, vismethod)
 
 @app.route('/lineage')
 def lineage():
@@ -220,15 +228,6 @@ def lineage_thread(data, k, M, W, user_id):
     with open(os.path.join(path, 'clusters.txt'), 'w') as f:
         f.write(repr(clusters))
     vis.vis_lineage(M, W, smoothed_data, edges, clusters, user_id)
-
-@app.route('/pseudotime')
-def calc_pseudotime():
-    """
-    Responds to a call to calculate the pseudotime...
-    """
-    # TODO: add pseudotime - have something where you can select a cell and
-    # calculate pseudotime based on stuff
-    return None
 
 @app.route('/lineage/results/<user_id>')
 def lineage_input_user_id(user_id):

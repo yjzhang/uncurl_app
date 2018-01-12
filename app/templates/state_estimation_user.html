@@ -3,15 +3,18 @@
 {% block head %}
 {{super()}}
 {% if has_result %}
+<!-- TODO: parameterize the version number -->
 <link
-href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.5.min.css"
+href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.13.min.css"
 rel="stylesheet" type="text/css">
 <link
-href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.5.min.css"
+href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.13.min.css"
 rel="stylesheet" type="text/css">
 
-<script src="https://cdn.pydata.org/bokeh/release/bokeh-0.12.5.min.js"></script>
-<script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.5.min.js"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-0.12.13.min.js"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-api-0.12.13.min.js"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.13.min.js"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.13.min.js"></script>
 {% endif %}
 {% endblock %}
 

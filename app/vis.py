@@ -6,7 +6,8 @@ from bokeh.palettes import Accent8
 from bokeh.models import ColumnDataSource
 
 import numpy as np
-
+from sklearn.decomposition import PCA, TruncatedSVD
+from sklearn.manifold import TSNE
 import uncurl
 
 def vis_clustering(data, assignments, user_id):
@@ -35,16 +36,21 @@ def vis_clustering(data, assignments, user_id):
     return script, div
 
 
-def vis_state_estimation(data, M, W, user_id):
+def vis_state_estimation(data, M, W, user_id, vismethod='MDS'):
     """
     2d bokeh visualization of 2d data. Outputs an embeddable html fragment to
     /tmp/user_id/vis_state_estimation.html
     """
-    X = uncurl.dim_reduce(M, W, 2)
-    # reduced_data is of dimensionality 2 x cells
-    reduced_data = np.dot(X.T, W)
-    if X.shape[0]==2:
-        reduced_data = np.dot(X, W)
+    reduced_data = None
+    if vismethod == 'MDS':
+        reduced_data = uncurl.mds(M, W, 2)
+    elif vismethod == 'tSNE':
+        tsne = TSNE(2)
+        tsvd = TruncatedSVD(50)
+        reduced_data = tsne.fit_transform(tsvd.fit_transform(np.log(M.dot(W)).T)).T
+    elif vismethod == 'PCA':
+        pca = PCA(2)
+        reduced_data = pca.fit_transform(np.log(M.dot(W)).T).T
     np.savetxt(os.path.join('/tmp/', user_id, 'reduced_data.txt'), reduced_data)
     clusters = W.argmax(0)
     colors = [Accent8[c] for c in clusters]

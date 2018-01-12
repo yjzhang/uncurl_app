@@ -17,10 +17,18 @@ This is performed using the Poisson Convex Mixture Model framework. This framewo
     <form action="state_estimation/input" method="post" enctype=multipart/form-data>
 
         <div class="form-group">
-            <label for="fileinput">Upload a tab-separated text file, where each row is a gene and each column is a cell.</label>
+            <label for="fileinput">Upload a text file, where each row is a gene and each column is a cell.</label>
             <input type="file" id="fileinput" name="fileinput"></input>
         </div>
- 
+
+        <div class="form-group">
+            <label for="inputtype">Input type:</label>
+            <select id="inputtype" name="inputtype">
+                <option value="dense" selected>Dense matrix (space or tab-separated numbers)</option>
+                <option value="sparse">Sparse matrix (mtx)</option>
+            </select>
+        </div>
+
 
         <div class="form-group">
             <label for="startinput">OPTIONAL: upload starting positions for the cell type centers, where each row is a gene and each column is a cell type.</label>
@@ -31,11 +39,22 @@ This is performed using the Poisson Convex Mixture Model framework. This framewo
             <label for="k">Number of states (k):</label>
             <input type=number id="k" name="k" value=2></input>
         </div>
+
         <div class="form-group">
             <label for="disttype">Distribution type:</label>
             <select id="disttype" name="disttype">
                 <option selected>Poisson</option>
+                <option>Log-Normal</option>
                 <option>Negative binomial</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="vismethod">Visualization method:</label>
+            <select id="vismethod" name="vismethod">
+                <option selected>MDS</option>
+                <option>tSNE</option>
+                <option>PCA</option>
             </select>
         </div>
 
