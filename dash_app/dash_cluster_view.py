@@ -1,6 +1,7 @@
 import json
 import os, os.path
 
+
 import dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
@@ -9,21 +10,53 @@ import plotly.graph_objs as go
 
 import numpy as np
 
-app = dash.Dash(name='Cluster view', sharing=True)
-app.layout = html.Div(
-        id='app-layout',
-        children=[
-            dcc.Location(id='url', refresh=False),
-            html.Div(id='page-content', className='container')
-        ]
-    )
+def get_test_dirs(base='test'):
+    subdirectories = os.listdir(base)
+    return subdirectories
+
+def build_view_from_dirs(test_dirs, user_dirs):
+    """
+    Given a list of paths, builds a view that contains links to each
+    of the paths.
+    """
+    div = html.Div(
+            id='views',
+            children=[
+                html.Table(
+                    [html.Tr(['Test examples'])] +
+                    [html.Tr([dcc.Link(x, href='/test/{0}'.format(x)) for x in test_dirs])]
+                ),
+                html.Table(
+                    [html.Tr(['User results'])] +
+                    [html.Tr([dcc.Link(x, href='/user/{0}'.format(x)) for x in user_dirs])]
+                )
+            ]
+        )
+    return div
+
+def initialize_views():
+    try:
+        test_dirs = get_test_dirs('test')
+    except:
+        test_dirs = []
+    try:
+        user_dirs = get_test_dirs('/tmp/uncurl')
+    except:
+        user_dirs = []
+    links_table = build_view_from_dirs(test_dirs, user_dirs)
+    return links_table
+
 
 # code based on https://github.com/plotly/dash/issues/38#issuecomment-364927379
 def router(pathname, **kwargs):
     """
-    pathname is of the form <test or id>/<uuid>
+    pathname is of the form <test or user>/<uuid>
     """
+    print(pathname)
     _ = pathname.split('/')
+    print(_)
+    if len(_) < 3:
+        return initialize_views()
     resource = _[1]
     resource_id = _[2]
     if resource == 'test':
@@ -31,8 +64,9 @@ def router(pathname, **kwargs):
     else:
         return initialize(os.path.join('/tmp/uncurl', resource_id))
 
-@app.callback(Output('page-content', 'children'), [Input('url', 'pathname')])
+#@app.callback(Output('page-content', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
+    print('display_page')
     return router(pathname)
 
 def create_means_figure(dim_red, colorscale='Portland'):
@@ -132,7 +166,10 @@ def generate_cluster_view(M, dim_red, top_genes, n_genes=10):
 
 
 # TODO: dynamically generate an app given a path???
-def initialize(data_dir=None):
+def initialize(app, data_dir=None):
+    """
+    This function sets app.layout using a directory containing uncurl results.
+    """
     M = None
     W = None
     labels = None
@@ -140,6 +177,7 @@ def initialize(data_dir=None):
     mds_data = None
     top_genes = {'0': [(0,100),(1,50),(2,40)], '1': [(0,50),(1,45),(2,30)]}
     gene_names = None
+    print('initialize ' + data_dir)
     if data_dir != None:
         M = np.loadtxt(os.path.join(data_dir, 'm.txt'))
         W = np.loadtxt(os.path.join(data_dir, 'w.txt'))
@@ -154,6 +192,7 @@ def initialize(data_dir=None):
             gene_names = np.array([str(x) for x in range(len(mds_data.shape[1]))])
 
     # generate layout
+    #app.layout.children[1].children = generate_cluster_view(M, mds_means, top_genes)
     app.layout = generate_cluster_view(M, mds_means, top_genes)
 
     # create callback for clicking on clusters
@@ -200,5 +239,14 @@ def initialize(data_dir=None):
 
 
 if __name__ == '__main__':
-    initialize('../data/test1_output')
+    app = dash.Dash(name='Cluster view', sharing=True)
+    app.layout = html.Div(
+        id='app-layout',
+        children=[
+            dcc.Location(id='url', refresh=False),
+            html.Div(id='page-content', className='container')
+        ]
+    )
+
+    initialize(app, 'test/test1_output')
     app.run_server()
