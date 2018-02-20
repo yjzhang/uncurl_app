@@ -1,0 +1,26 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}UNCURL{% endblock %}
+
+{% block head %}
+{{super()}}
+{% endblock %}
+
+
+{% block content %}
+
+<table>
+    <tr><th>Test examples</th></tr>
+    {% for element in test_dirs %}
+    <tr><td><a href="test/{{ element }}">{{ element }}</a></td></tr>
+    {% endfor %}
+</table>
+
+<table>
+    <tr><th>User results</th></tr>
+    {% for element in user_dirs %}
+    <tr><td><a href="user/{{ element }}">{{ element }}</a></td></tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

@@ -21,6 +21,7 @@ def generate_uncurl_analysis(data, output_dir,
     Outputs:
         output_dir/m.txt
         output_dir/w.txt
+        output_dir/labels.txt (integer labels)
         output_dir/top_genes.txt (json of a dict mapping cluster ids to a list of (gene_id : c_score) sorted by c_score)
         output_dir/mds_means.txt (mds of the means)
         output_dir/mds_data.txt (mds projection of data)
@@ -59,6 +60,8 @@ def generate_uncurl_analysis(data, output_dir,
     m, w, ll = uncurl.run_state_estimation(data, **uncurl_kwargs)
     np.savetxt(os.path.join(output_dir, 'm.txt'), m)
     np.savetxt(os.path.join(output_dir, 'w.txt'), w)
+    labels = w.argmax(0)
+    np.savetxt(os.path.join(output_dir, 'labels.txt'), labels, fmt='%d')
     # find overexpressed genes for clusters
     top_genes = uncurl_analysis.find_overexpressed_genes(data, w.argmax(0))
     with open(os.path.join(output_dir, 'top_genes.txt'), 'w') as f:
