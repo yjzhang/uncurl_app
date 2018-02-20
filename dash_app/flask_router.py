@@ -28,11 +28,11 @@ def initialize():
     except:
         user_dirs = []
     for d in test_dirs:
-        flask.dash_apps[d] = deploy_dash_app(os.path.join('test', d),
-                '/test/'+d)
+        flask.dash_apps[d] = deploy_dash_app(
+                '/test_dash/'+d)
     for d in user_dirs:
-        flask.dash_apps[d] = deploy_dash_app(os.path.join('user', d),
-                '/user/'+d)
+        flask.dash_apps[d] = deploy_dash_app(
+                '/user_dash/'+d)
     flask.user_dirs = user_dirs
     flask.test_dirs = test_dirs
 
@@ -43,23 +43,26 @@ def index():
             user_dirs=flask.user_dirs,
             test_dirs=flask.test_dirs)
 
-def deploy_dash_app(data_dir, url):
+def deploy_dash_app(url):
     dash_app = dash.Dash(name='Cluster view', sharing=True, server=flask,
             url_base_pathname=url)
-    dash_cluster_view.initialize(dash_app, data_dir)
+    dash_cluster_view.initialize_layout(dash_app)
+    #dash_cluster_view.initialize(dash_app, data_dir)
     return dash_app
 
-#@flask.route('/user/<user_id>')
-#def route_user(user_id):
-#    test_dir = os.path.join('/tmp/uncurl', user_id)
-#    dash_app = deploy_dash_app(test_dir, '/user/'+str(user_id))
-#    return flask.redirect('/user/'+str(user_id))
+@flask.route('/user/<user_id>')
+def route_user(user_id):
+    test_dir = os.path.join('/tmp/uncurl', user_id)
+    if not flask.dash_apps[user_id].initialized:
+        dash_cluster_view.initialize(flask.dash_apps[user_id], test_dir)
+    return redirect('/user_dash/'+str(user_id))
 
-#@flask.route('/test/<test_id>')
-#def route_test(test_id):
-#    #test_dir = os.path.join('test', test_id)
-#    #dash_app = deploy_dash_app(test_dir, '/test/'+str(test_id))
-#    return flask.redirect('/test/'+str(test_id))
+@flask.route('/test/<test_id>')
+def route_test(test_id):
+    test_dir = os.path.join('test', test_id)
+    if not flask.dash_apps[test_id].initialized:
+        dash_cluster_view.initialize(flask.dash_apps[test_id], test_dir)
+    return redirect('/test_dash/'+str(test_id))
 
 initialize()
 

@@ -52,9 +52,9 @@ def router(pathname, **kwargs):
     """
     pathname is of the form <test or user>/<uuid>
     """
-    print(pathname)
+    #print(pathname)
     _ = pathname.split('/')
-    print(_)
+    #print(_)
     if len(_) < 3:
         return initialize_views()
     resource = _[1]
@@ -66,7 +66,7 @@ def router(pathname, **kwargs):
 
 #@app.callback(Output('page-content', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    print('display_page')
+    #print('display_page')
     return router(pathname)
 
 def create_means_figure(dim_red, colorscale='Portland'):
@@ -170,6 +170,7 @@ def initialize(app, data_dir=None):
     """
     This function sets app.layout using a directory containing uncurl results.
     """
+    app.initialized = True
     M = None
     W = None
     labels = None
@@ -177,7 +178,7 @@ def initialize(app, data_dir=None):
     mds_data = None
     top_genes = {'0': [(0,100),(1,50),(2,40)], '1': [(0,50),(1,45),(2,30)]}
     gene_names = None
-    print('initialize ' + data_dir)
+    #print('initialize ' + data_dir)
     if data_dir != None:
         M = np.loadtxt(os.path.join(data_dir, 'm.txt'))
         W = np.loadtxt(os.path.join(data_dir, 'w.txt'))
@@ -201,8 +202,8 @@ def initialize(app, data_dir=None):
             [Input(component_id='means', component_property='clickData')]
     )
     def update_output_div(input_value):
-        print('input value:')
-        print(input_value)
+        #print('input value:')
+        #print(input_value)
         if input_value is None:
             input_value = '0'
         else:
@@ -230,12 +231,22 @@ def initialize(app, data_dir=None):
         [Input(component_id='means-or-cell', component_property='value')]
     )
     def update_scatterplot(input_value):
-        print('update_scatterplot')
-        print(input_value)
+        #print('update_scatterplot')
+        #print(input_value)
         if input_value == 'Means':
             return create_means_figure(mds_means)
         elif input_value == 'Cells':
             return create_cells_figure(mds_data, labels)
+
+def initialize_layout(app):
+    app.initialized = False
+    app.layout = html.Div(
+        id='app-layout',
+        children=[
+            dcc.Location(id='url', refresh=False),
+            html.Div(id='page-content', className='container')
+        ]
+    )
 
 
 if __name__ == '__main__':
