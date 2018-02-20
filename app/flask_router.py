@@ -37,7 +37,7 @@ def initialize():
     app.test_dirs = test_dirs
 
 @app.route('/data')
-def index():
+def data_index():
     return render_template('list_view.html',
             user_dirs=app.user_dirs,
             test_dirs=app.test_dirs)
