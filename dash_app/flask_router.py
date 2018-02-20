@@ -28,17 +28,16 @@ def initialize():
     except:
         user_dirs = []
     for d in test_dirs:
-        flask.dash_apps[d] = deploy_dash_app(
+        flask.dash_apps[d] = deploy_dash_app(#os.path.join('test', d),
                 '/test_dash/'+d)
     for d in user_dirs:
-        flask.dash_apps[d] = deploy_dash_app(
+        flask.dash_apps[d] = deploy_dash_app(#os.path.join('user', d),
                 '/user_dash/'+d)
     flask.user_dirs = user_dirs
     flask.test_dirs = test_dirs
 
 @flask.route('/')
 def index():
-
     return render_template('list_view.html',
             user_dirs=flask.user_dirs,
             test_dirs=flask.test_dirs)
