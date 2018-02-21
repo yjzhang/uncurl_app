@@ -47,6 +47,8 @@ def generate_uncurl_analysis(data, output_dir,
         elif data_type == 'sparse':
             data = scipy.io.mmread(data)
             data = sparse.csc_matrix(data)
+    if sparse.issparse(data):
+        data = sparse.csc_matrix(data)
     if isinstance(gene_names, str):
         gene_names = np.loadtxt(gene_names, dtype=str)
     # run uncurl
