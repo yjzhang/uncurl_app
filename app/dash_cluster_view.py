@@ -10,65 +10,6 @@ import plotly.graph_objs as go
 
 import numpy as np
 
-def get_test_dirs(base='test'):
-    subdirectories = os.listdir(base)
-    return subdirectories
-
-def build_view_from_dirs(test_dirs, user_dirs):
-    """
-    Given a list of paths, builds a view that contains links to each
-    of the paths.
-    """
-    div = html.Div(
-            id='views',
-            children=[
-                html.Table(
-                    [html.Tr(['Test examples'])] +
-                    [html.Tr([dcc.Link(x, href='/test/{0}'.format(x)) for x in test_dirs])]
-                ),
-                html.Table(
-                    [html.Tr(['User results'])] +
-                    [html.Tr([dcc.Link(x, href='/user/{0}'.format(x)) for x in user_dirs])]
-                )
-            ]
-        )
-    return div
-
-def initialize_views():
-    try:
-        test_dirs = get_test_dirs('test')
-    except:
-        test_dirs = []
-    try:
-        user_dirs = get_test_dirs('/tmp/uncurl')
-    except:
-        user_dirs = []
-    links_table = build_view_from_dirs(test_dirs, user_dirs)
-    return links_table
-
-
-# code based on https://github.com/plotly/dash/issues/38#issuecomment-364927379
-def router(pathname, **kwargs):
-    """
-    pathname is of the form <test or user>/<uuid>
-    """
-    #print(pathname)
-    _ = pathname.split('/')
-    #print(_)
-    if len(_) < 3:
-        return initialize_views()
-    resource = _[1]
-    resource_id = _[2]
-    if resource == 'test':
-        return initialize(os.path.join('test', resource_id))
-    else:
-        return initialize(os.path.join('/tmp/uncurl', resource_id))
-
-#@app.callback(Output('page-content', 'children'), [Input('url', 'pathname')])
-def display_page(pathname):
-    #print('display_page')
-    return router(pathname)
-
 def create_means_figure(dim_red, colorscale='Portland'):
     """
     create a figure for displaying means
@@ -113,7 +54,7 @@ def create_cells_figure(dim_red, labels, colorscale='Portland'):
                             'colorscale': colorscale,
                         },
                     )
-                    for c in range(max(labels))
+                    for c in range(len(set(labels)))
                 ],
                 'layout': go.Layout(
                     title='Cells',
@@ -180,7 +121,6 @@ def initialize(app, data_dir=None, permalink='test'):
     gene_names = None
     #print('initialize ' + data_dir)
     if data_dir != None:
-        #M = np.loadtxt(os.path.join(data_dir, 'm.txt'))
         labels = np.loadtxt(os.path.join(data_dir, 'labels.txt')).astype(int)
         mds_means = np.loadtxt(os.path.join(data_dir, 'mds_means.txt'))
         mds_data = np.loadtxt(os.path.join(data_dir, 'mds_data.txt'))
@@ -189,7 +129,8 @@ def initialize(app, data_dir=None, permalink='test'):
         try:
             gene_names = np.loadtxt(os.path.join(data_dir, 'gene_names.txt'), dtype=str)
         except:
-            gene_names = np.array([str(x) for x in range(len(mds_data.shape[1]))])
+            M = np.loadtxt(os.path.join(data_dir, 'm.txt'))
+            gene_names = np.array(['gene ' + str(x) for x in range(M.shape[0])])
 
     # generate layout
     #app.layout.children[1].children = generate_cluster_view(M, mds_means, top_genes)

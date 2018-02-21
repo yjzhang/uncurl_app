@@ -52,6 +52,9 @@ def deploy_dash_app(url):
 @app.route('/user/<user_id>')
 def route_user(user_id):
     test_dir = os.path.join('/tmp/uncurl', user_id)
+    if user_id not in app.dash_apps:
+        app.dash_apps[user_id] = deploy_dash_app(#os.path.join('user', d),
+                '/user_dash/'+user_id)
     if not app.dash_apps[user_id].initialized:
         dash_cluster_view.initialize(app.dash_apps[user_id], test_dir,
                 '/user/'+user_id)

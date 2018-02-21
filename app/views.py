@@ -13,8 +13,10 @@ import uncurl
 from app import app
 
 import vis
+from generate_analysis import generate_uncurl_analysis
 
 def load_input_data():
+    # TODO: allow upload of gene names
     if 'fileinput' in request.files:
         f = request.files['fileinput']
         output_filename = secure_filename(f.filename)
@@ -25,7 +27,7 @@ def load_input_data():
     init_f = None
     if 'startinput' in request.files:
         init_f = request.files['startinput']
-    # TODO: allow for mtx input data
+    # allow for mtx input data
     k = int(request.form['k'])
     input_type = request.form['inputtype']
     if input_type == 'dense':
@@ -36,6 +38,11 @@ def load_input_data():
     if init_f is not None and init_f.filename != '':
         init = np.loadtxt(init_f)
     return data, k, output_filename, init
+
+def load_gene_names():
+    if 'genenames' in request.files:
+        f = request.files['genenames']
+        output_filename = secure_filename(f.filename)
 
 @app.route('/')
 def index():
@@ -61,7 +68,7 @@ def cluster_thread(data, k, user_id, init=None, dist_type='Poisson'):
     """
     Thread for performing the clustering operation - currently unused.
     """
-    path = os.path.join('/tmp/', user_id)
+    path = os.path.join('/tmp/uncurl/', user_id)
     try:
         os.mkdir(path)
         print path
@@ -91,13 +98,13 @@ def cluster_thread(data, k, user_id, init=None, dist_type='Poisson'):
 
 @app.route('/clustering/results/<user_id>')
 def clustering_result(user_id):
-    if os.path.exists(os.path.join('/tmp/', user_id, 'assignments.txt')):
+    if os.path.exists(os.path.join('/tmp/uncurl/', user_id, 'assignments.txt')):
         try:
-            visualization = open(os.path.join('/tmp/', user_id, 'vis_clustering.html')).read()
+            visualization = open(os.path.join('/tmp/uncurl/', user_id, 'vis_clustering.html')).read()
         except:
             visualization = ''
         poisson = True
-        if os.path.exists(os.path.join('/tmp/', user_id, 'centers.txt')):
+        if os.path.exists(os.path.join('/tmp/uncurl/', user_id, 'centers.txt')):
             pass
         else:
             poisson=False
@@ -128,40 +135,44 @@ def state_estimation_input():
 
 @app.route('/state_estimation/results/<user_id>')
 def state_estimation_result(user_id):
-    if os.path.exists(os.path.join('/tmp/', user_id, 'm.txt')):
-        try:
-            visualization = open(os.path.join('/tmp/', user_id, 'vis_state_estimation.html')).read()
-        except:
-            visualization = ''
-        visualization = Markup(visualization)
-        return render_template('state_estimation_user.html',
-                user_id=user_id, has_result=True,
-                visualization=visualization)
+    if os.path.exists(os.path.join('/tmp/uncurl/', user_id, 'mds_data.txt')):
+        #try:
+        #    visualization = open(os.path.join('/tmp/uncurl/', user_id, 'vis_state_estimation.html')).read()
+        #except:
+        #    visualization = ''
+        #visualization = Markup(visualization)
+        return redirect(url_for('route_user', user_id=user_id))
+        #return render_template('state_estimation_user.html',
+        #        user_id=user_id, has_result=True,
+        #        visualization=visualization)
     else:
         return render_template('state_estimation_user.html',
                 user_id=user_id, has_result=False)
 
 @app.route('/<x>/results/<user_id>/<filename>')
 def state_estimation_file(x, user_id, filename):
-    path = os.path.join('/tmp/', user_id)
+    path = os.path.join('/tmp/uncurl/', user_id)
     return send_from_directory(path, filename)
 
 def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson', vismethod='tSNE'):
     """
     Uses a new process to do state estimation
     """
-    path = os.path.join('/tmp/', user_id)
-    os.mkdir(path)
+    path = os.path.join('/tmp/uncurl/', user_id)
+    os.makedirs(path)
     # if debugging, set max_iters to 1, inner_max_iters to 1... should be in config
     if dist_type=='Poisson':
-        M, W, ll = uncurl.poisson_estimate_state(data, k, max_iters=20, inner_max_iters=50, disp=False, init_means=init)
-    # TODO: add Log-Normal
+        pass
     elif dist_type=='Negative binomial':
-        M, W, R, ll = uncurl.nb_estimate_state(data, k, max_iters=5, inner_max_iters=400, disp=False, init_means=init)
-        np.savetxt(os.path.join(path, 'r.txt'), R)
-    np.savetxt(os.path.join(path, 'm.txt'), M)
-    np.savetxt(os.path.join(path, 'w.txt'), W)
-    vis.vis_state_estimation(data, M, W, user_id, vismethod)
+        dist_type = 'nb'
+    elif dist_type == 'Log-Normal':
+        dist_type = 'lognorm'
+    uncurl_args = app.config['UNCURL_ARGS']
+    uncurl_args['dist'] = dist_type
+    uncurl_args['init_means'] = init
+    # TODO: handle vismethod - use tSNE if need be...
+    generate_uncurl_analysis(data, path, clusters=k, **uncurl_args)
+    #vis.vis_state_estimation(data, M, W, user_id, vismethod)
 
 @app.route('/lineage')
 def lineage():
@@ -175,7 +186,7 @@ def lineage_input():
     if 'useridinput' in request.form and request.form['useridinput']:
         user_id = request.form['useridinput']
         # Try to load m/w data, or return an error if you can't
-        if not os.path.exists(os.path.join('/tmp/', user_id, 'm.txt')):
+        if not os.path.exists(os.path.join('/tmp/uncurl/', user_id, 'm.txt')):
             return error('Data for user id not found', 400)
         P = Process(target=lineage_thread, args=(None, None, None, None, user_id))
         P.start()
@@ -202,7 +213,7 @@ def lineage_thread(data, k, M, W, user_id):
     """
     Thread to do lineage calculation...
     """
-    path = os.path.join('/tmp/', user_id)
+    path = os.path.join('/tmp/uncurl/', user_id)
     if data is not None:
         # run state estimation then lineage estimation
         os.mkdir(path)
@@ -234,9 +245,9 @@ def lineage_input_user_id(user_id):
     """
     Lineage input from a user's perspective
     """
-    if os.path.exists(os.path.join('/tmp/', user_id, 'smoothed_data.txt')):
+    if os.path.exists(os.path.join('/tmp/uncurl/', user_id, 'smoothed_data.txt')):
         try:
-            visualization = open(os.path.join('/tmp/', user_id, 'vis_lineage.html')).read()
+            visualization = open(os.path.join('/tmp/uncurl/', user_id, 'vis_lineage.html')).read()
         except:
             visualization = ''
         visualization = Markup(visualization)
@@ -266,13 +277,13 @@ def qual2quant_input():
 
 def qual2quant_thread(data, qual, user_id):
     centers = uncurl.qualNorm(data, qual)
-    path = os.path.join('/tmp/', user_id)
+    path = os.path.join('/tmp/uncurl/', user_id)
     with open(os.join(path, 'qual2quant_centers.txt'), 'w') as f:
         np.savetxt(f, centers)
 
 @app.route('/qual2quant/results/<user_id>')
 def qual2quant_result(user_id):
-    if os.path.exists(os.path.join('/tmp/', user_id, 'qual2quant_centers.txt')):
+    if os.path.exists(os.path.join('/tmp/uncurl/', user_id, 'qual2quant_centers.txt')):
        return render_template('qual2quant_user.html',
                 user_id=user_id, has_result=True,
                 visualization=None)

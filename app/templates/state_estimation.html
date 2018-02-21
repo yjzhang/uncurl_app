@@ -17,7 +17,7 @@ This is performed using the Poisson Convex Mixture Model framework. This framewo
     <form action="state_estimation/input" method="post" enctype=multipart/form-data>
 
         <div class="form-group">
-            <label for="fileinput">Upload a text file, where each row is a gene and each column is a cell.</label>
+            <label for="fileinput">Upload a text file formatted as a space-sparated matrix, where each row is a gene and each column is a cell. Alternatively, this could be a sparse mtx (Matrix Market) file.</label>
             <input type="file" id="fileinput" name="fileinput"></input>
         </div>
 
@@ -56,6 +56,11 @@ This is performed using the Poisson Convex Mixture Model framework. This framewo
                 <option>tSNE</option>
                 <option>PCA</option>
             </select>
+        </div>
+
+        <div class="form-group">
+            <label for="genenames">Optional: upload a list of gene names.</label>
+            <input type="file" id="genenames" name="genenames"></input>
         </div>
 
         <div class="form-group">
