@@ -1,6 +1,7 @@
 import json
 import os, os.path
 
+from flask import url_for
 
 import dash
 from dash.dependencies import Input, Output
@@ -83,12 +84,13 @@ def generate_cluster_view(dim_red, top_genes, n_genes=10):
             )
         ]),
         # view 1: graph plot
-        html.Div(dcc.Graph(id='means',
+        html.Div([dcc.Graph(id='means',
                 figure=create_means_figure(dim_red, colorscale),
-                style={'width': 700}),
-            style={'display': 'inline-block'}),
+                style={'width': 700})
+                ],
+            style={'display': 'inline-block', 'width': 750}),
         # view 2: top genes
-        html.Div(dcc.Graph(id='top-genes',
+        html.Div([dcc.Graph(id='top-genes',
             figure={
                 'data': [
                     go.Bar(
@@ -102,12 +104,14 @@ def generate_cluster_view(dim_red, top_genes, n_genes=10):
                     yaxis={'title': 'dim2'},
                 ),
                 }, style={'width': 400}),
-            style={'display': 'inline-block'}),
+            ],
+            style={'display': 'inline-block', 'width': 450}),
         ], style={'width': '100%', 'display':'inline-block'})
 
 
 # TODO: dynamically generate an app given a path???
-def initialize(app, data_dir=None, permalink='test'):
+def initialize(app, data_dir=None, permalink='test', user_id='test',
+        test_or_user='test'):
     """
     This function sets app.layout using a directory containing uncurl results.
     """
@@ -135,7 +139,14 @@ def initialize(app, data_dir=None, permalink='test'):
     # generate layout
     #app.layout.children[1].children = generate_cluster_view(M, mds_means, top_genes)
     app.layout = html.Div([
-        html.A('permalink: ' + permalink, href=permalink),
+        html.Div(html.A('permalink: ' + permalink, href=permalink)),
+        # TODO: add links to data downloads
+        html.Div(html.A('Download M', href=url_for('state_estimation_file',
+            x=test_or_user,
+            user_id=user_id, filename='m.txt'))),
+        html.Div(html.A('Download W', href=url_for('state_estimation_file',
+            x=test_or_user,
+            user_id=user_id, filename='w.txt'))),
         generate_cluster_view(mds_means, top_genes)
     ])
 
@@ -194,13 +205,6 @@ def initialize_layout(app):
 
 if __name__ == '__main__':
     app = dash.Dash(name='Cluster view', sharing=True)
-    app.layout = html.Div(
-        id='app-layout',
-        children=[
-            dcc.Location(id='url', refresh=False),
-            html.Div(id='page-content', className='container')
-        ]
-    )
 
     initialize(app, 'test/test1_output')
     app.run_server()

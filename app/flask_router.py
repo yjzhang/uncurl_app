@@ -4,7 +4,7 @@ import dash
 from flask import Flask, render_template, redirect
 from flask_bootstrap import Bootstrap
 
-import dash_cluster_view
+from . import dash_cluster_view
 
 from app import app
 
@@ -28,16 +28,19 @@ def initialize():
     except:
         user_dirs = []
     for d in test_dirs:
-        app.dash_apps[d] = deploy_dash_app(#os.path.join('test', d),
-                '/test_dash/'+d)
+        if d not in app.dash_apps:
+            app.dash_apps[d] = deploy_dash_app(#os.path.join('test', d),
+                    '/test_dash/'+d)
     for d in user_dirs:
-        app.dash_apps[d] = deploy_dash_app(#os.path.join('user', d),
-                '/user_dash/'+d)
+        if d not in app.dash_apps:
+            app.dash_apps[d] = deploy_dash_app(#os.path.join('user', d),
+                    '/user_dash/'+d)
     app.user_dirs = user_dirs
     app.test_dirs = test_dirs
 
 @app.route('/data')
 def data_index():
+    initialize()
     return render_template('list_view.html',
             user_dirs=app.user_dirs,
             test_dirs=app.test_dirs)
@@ -57,7 +60,7 @@ def route_user(user_id):
                 '/user_dash/'+user_id)
     if not app.dash_apps[user_id].initialized:
         dash_cluster_view.initialize(app.dash_apps[user_id], test_dir,
-                '/user/'+user_id)
+                '/user/'+user_id, user_id, 'user')
     return redirect('/user_dash/'+str(user_id))
 
 @app.route('/test/<test_id>')
@@ -65,7 +68,7 @@ def route_test(test_id):
     test_dir = os.path.join('test_data', test_id)
     if not app.dash_apps[test_id].initialized:
         dash_cluster_view.initialize(app.dash_apps[test_id], test_dir,
-                '/test/'+test_id)
+                '/test/'+test_id, test_id, 'test')
     return redirect('/test_dash/'+str(test_id))
 
 initialize()

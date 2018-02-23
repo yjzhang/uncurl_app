@@ -12,8 +12,8 @@ import uncurl
 
 from app import app
 
-import vis
-from generate_analysis import generate_uncurl_analysis
+from . import vis
+from .generate_analysis import generate_uncurl_analysis
 
 def load_input_data():
     # TODO: allow upload of gene names
@@ -43,6 +43,10 @@ def load_gene_names():
     if 'genenames' in request.files:
         f = request.files['genenames']
         output_filename = secure_filename(f.filename)
+    else:
+        return None
+    gene_names = np.loadtxt(f, dtype=str)
+    return gene_names
 
 @app.route('/')
 def index():
@@ -126,10 +130,11 @@ def state_estimation_input():
         data, k, output_filename, init = load_input_data()
     except:
         return error('Error: no file found', 400)
+    gene_names = load_gene_names()
     user_id = str(uuid.uuid4())
     dist_type = request.form['disttype']
     vismethod = request.form['vismethod']
-    P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type, vismethod))
+    P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type, vismethod, gene_names))
     P.start()
     return redirect(url_for('state_estimation_result', user_id=user_id))
 
@@ -151,10 +156,15 @@ def state_estimation_result(user_id):
 
 @app.route('/<x>/results/<user_id>/<filename>')
 def state_estimation_file(x, user_id, filename):
-    path = os.path.join('/tmp/uncurl/', user_id)
+    if x!='test':
+        path = os.path.join('/tmp/uncurl/', user_id)
+    else:
+        path = os.path.join('test_data', user_id)
+    print(path)
     return send_from_directory(path, filename)
 
-def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson', vismethod='tSNE'):
+def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson',
+        vismethod='tSNE', gene_names=None):
     """
     Uses a new process to do state estimation
     """
@@ -171,7 +181,8 @@ def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson', vi
     uncurl_args['dist'] = dist_type
     uncurl_args['init_means'] = init
     # TODO: handle vismethod - use tSNE if need be...
-    generate_uncurl_analysis(data, path, clusters=k, **uncurl_args)
+    generate_uncurl_analysis(data, path, clusters=k, gene_names=gene_names,
+            **uncurl_args)
     #vis.vis_state_estimation(data, M, W, user_id, vismethod)
 
 @app.route('/lineage')

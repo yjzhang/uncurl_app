@@ -13,12 +13,14 @@ def generate_uncurl_analysis(data, output_dir,
         data_type='dense',
         gene_names=None,
         gene_sub=True,
+        dim_red_option='mds',
         **uncurl_kwargs):
     """
     Performs an uncurl analysis of the data, writing the results in the given
     directory.
 
     Outputs:
+        output_dir/data.txt or output_dir/data.mtx
         output_dir/m.txt
         output_dir/w.txt
         output_dir/labels.txt (integer labels)
@@ -49,6 +51,9 @@ def generate_uncurl_analysis(data, output_dir,
             data = sparse.csc_matrix(data)
     if sparse.issparse(data):
         data = sparse.csc_matrix(data)
+        scipy.io.mmwrite(os.path.join(output_dir, 'data.mtx'), data)
+    else:
+        np.savetxt(os.path.join(output_dir, 'data.txt'), data)
     if isinstance(gene_names, str):
         gene_names = np.loadtxt(gene_names, dtype=str)
     # run uncurl
