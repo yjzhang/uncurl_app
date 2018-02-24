@@ -3,3 +3,10 @@ flask
 flask_bootstrap
 numpy
 scipy
+plotly
+dash
+dash-core-components
+dash-html-components
+dash-renderer
+uncurl-seq
+git+git://github.com/yjzhang/uncurl_analysis.git
