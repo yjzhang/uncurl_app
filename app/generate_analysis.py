@@ -29,6 +29,7 @@ def generate_uncurl_analysis(data, output_dir,
         output_dir/mds_data.txt (mds projection of data)
         output_dir/gene_subset.txt (gene subset selected by uncurl)
         output_dir/gene_names.txt (list of all gene names in data subset)
+        output_dir/entropy.txt (entropy of cell labels)
 
     Args:
         data (array or str): either a data array, or a string containing
@@ -81,3 +82,6 @@ def generate_uncurl_analysis(data, output_dir,
     np.savetxt(os.path.join(output_dir, 'mds_data.txt'), mds_data)
     if gene_names is not None:
         np.savetxt(os.path.join(output_dir, 'gene_names.txt'), gene_names, fmt='%s')
+    ent = uncurl_analysis.entropy(w)
+    np.savetxt(os.path.join(output_dir, 'entropy.txt'), ent)
+    # TODO: implement cluster similarities to bulk

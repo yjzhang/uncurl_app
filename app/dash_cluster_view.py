@@ -10,6 +10,7 @@ import dash_html_components as html
 import plotly.graph_objs as go
 
 import numpy as np
+from uncurl_analysis import enrichr_api
 
 def create_means_figure(dim_red, colorscale='Portland'):
     """
@@ -38,10 +39,17 @@ def create_means_figure(dim_red, colorscale='Portland'):
                 ),
         }
 
-def create_cells_figure(dim_red, labels, colorscale='Portland'):
+def create_cells_figure(dim_red, labels, colorscale='Portland',
+        mode='cluster',
+        gene_expression_list=None, entropy=None):
     """
     create a figure for displaying cells
     """
+    if mode == 'cluster':
+        color_values = list(range(len(set(labels))))
+    elif mode == 'entropy':
+        color_values = [entropy[labels==c] for c in set(labels)]
+    # TODO: add a colorbar for entropy mode. also add a 
     return {
                 'data': [
                     go.Scatter(
@@ -51,7 +59,7 @@ def create_cells_figure(dim_red, labels, colorscale='Portland'):
                         name='cluster ' + str(c),
                         marker={
                             'size': 10,
-                            'color': c,
+                            'color': color_values[c],
                             'colorscale': colorscale,
                         },
                     )
@@ -94,9 +102,9 @@ def create_bulk_correlation_figure(correlations, bulk_names, n_datasets=10):
     """
     Creates a figure for displaying correlations with bulk datasets
     """
-    # TODO
+    # TODO: display top n bulk correlations
 
-def generate_cluster_view(dim_red, top_genes, n_genes=10):
+def generate_cluster_view(dim_red, top_genes, n_genes=10, gene_names_list=None):
     """
     Generates a cluster view: MDS plot of means on the left, updated bar plot
     of top genes with c-scores on the right.
@@ -116,7 +124,16 @@ def generate_cluster_view(dim_red, top_genes, n_genes=10):
             ),
             dcc.Graph(id='means',
                 figure=create_means_figure(dim_red, colorscale),
-                style={'width': 700})
+                style={'width': 700, 'margin-top': 5}
+            ),
+            # TODO: dropdown to select color scheme  - color by entropy,
+            # color by selected gene expression, etc.
+            html.Div([
+                dcc.Dropdown(id='cell-color',
+                    options=[{'label': 'Color: cluster', 'value': 'cluster'},
+                             {'label': 'Color: entropy', 'value': 'entropy'}],
+                    value='cluster',)],
+                style={'width': 400, 'margin-top': 5}),
             ],
             style={'display': 'inline-block', 'width': 750, 'float':'left'}),
         # view 2: top genes
@@ -142,6 +159,24 @@ def generate_cluster_view(dim_red, top_genes, n_genes=10):
                 readOnly='true'),
             ],
             style={'display': 'inline-block', 'width': 550}),
+        # view 3: Enrichr API
+        html.Div([
+            'Call Enrichr on current top genes',
+            html.Div(
+                dcc.Dropdown(id='gene-set-library',
+                    options=[{'label': x, 'value': x}
+                        for x in enrichr_api.ENRICHR_LIBRARIES]
+                ),
+                style={'width':500},
+            ),
+            html.Button(children='Submit',
+                id='enrichr-submit'),
+            html.Table(id='enrichr-result'),
+            ],
+            style={'margin-left': 100,
+                   'margin-top': 50,
+                   'float': 'left',
+                   'display': 'inline-block'}),
         ],
         style={'width': '100%', 'display':'inline-block',
             'margin-top': 10})
@@ -160,13 +195,22 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
     # top indicates that top genes should be displayed. 'bulk' indicates
     # that bulk correlations should be displayed.
     app.bar_mode = 'top'
+    # map from strings of genes (joined by '\n') to enrichr IDs
+    app.enrichr_gene_list_ids = {}
+    # map of tuple (string, enrichr gene set library) to enrichr results
+    app.enrichr_results = {}
+    # really terrible hack to get enrichr push to only trigger on click,
+    # not on gene list update...
+    app.n_clicks_enrichr = 0
     app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/bWLwgP.css"})
+
     #M = None
     labels = None
     mds_means = np.array([[1,2,3,4],[1,2,3,4]])
     mds_data = None
     top_genes = {'0': [(0,100),(1,50),(2,40)], '1': [(0,50),(1,45),(2,30)]}
     gene_names = None
+    entropy = None
     #print('initialize ' + data_dir)
     if data_dir != None:
         labels = np.loadtxt(os.path.join(data_dir, 'labels.txt')).astype(int)
@@ -179,6 +223,13 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         except:
             M = np.loadtxt(os.path.join(data_dir, 'm.txt'))
             gene_names = np.array(['gene ' + str(x) for x in range(M.shape[0])])
+            del M
+        try:
+            entropy = np.loadtxt(os.path.join(data_dir, 'entropy.txt'))
+        except:
+            W = np.loadtxt(os.path.join(data_dir, 'w.txt'))
+            entropy = -(W*np.log2(W)).sum(0)
+            del W
 
     # generate layout
     #app.layout.children[1].children = generate_cluster_view(M, mds_means, top_genes)
@@ -228,9 +279,10 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
     # create callback for switching to cell view
     @app.callback(
             Output(component_id='means', component_property='figure'),
-            [Input(component_id='means-or-cell', component_property='value')]
+            [Input(component_id='means-or-cell', component_property='value'),
+             Input(component_id='cell-color', component_property='value')]
     )
-    def update_scatterplot(input_value):
+    def update_scatterplot(input_value, cell_color_value):
         #print('update_scatterplot')
         #print(input_value)
         if input_value == 'Means':
@@ -238,7 +290,12 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             return create_means_figure(mds_means)
         elif input_value == 'Cells':
             app.scatter_mode = 'cells'
-            return create_cells_figure(mds_data, labels)
+            if cell_color_value == 'entropy':
+                return create_cells_figure(mds_data, labels,
+                        colorscale='Viridis',
+                        mode='entropy', entropy=entropy)
+            else:
+                return create_cells_figure(mds_data, labels)
 
     # create callback for top genes list
     @app.callback(
@@ -260,6 +317,52 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         else:
             # TODO: show bulk correlations
             pass
+
+    app.last_enrichr_results = None
+    # create callback for enrichr API
+    # TODO
+    @app.callback(
+            Output(component_id='enrichr-result', component_property='children'),
+            [Input(component_id='enrichr-submit', component_property='n_clicks'),
+             Input(component_id='top-genes-view', component_property='value'),
+             Input(component_id='gene-set-library', component_property='value')]
+    )
+    def update_enrichr(n_clicks, top_genes_value, gene_set):
+        if n_clicks > app.n_clicks_enrichr:
+            app.n_clicks_enrichr = n_clicks
+            user_list_id = 0
+            if top_genes_value not in app.enrichr_gene_list_ids:
+                gene_list = top_genes_value.strip().split()
+                user_list_id = enrichr_api.enrichr_add_list(gene_list)
+                app.enrichr_gene_list_ids[top_genes_value] = user_list_id
+            else:
+                user_list_id = app.enrichr_gene_list_ids[top_genes_value]
+            results = []
+            if (top_genes_value, gene_set) in app.enrichr_results:
+                results = app.enrichr_results[(top_genes_value, gene_set)]
+            else:
+                try:
+                    results = enrichr_api.enrichr_query(user_list_id, gene_set)
+                    app.enrichr_results[(top_genes_value, gene_set)] = results
+                except:
+                    gene_list = top_genes_value.strip().split()
+                    user_list_id = enrichr_api.enrichr_add_list(gene_list)
+                    app.enrichr_gene_list_ids[top_genes_value] = user_list_id
+                    results = enrichr_api.enrichr_query(user_list_id, gene_set)
+                    app.enrichr_results[(top_genes_value, gene_set)] = results
+            # only take top 10 results (maybe have this value be variable?)
+            results = results[:10]
+            app.last_enrichr_results = [html.Tr([html.Th('gene set name'),
+                             html.Th('p-value'),
+                             html.Th('z-score'),
+                             html.Th('combined score')])] + \
+                    [html.Tr([html.Td(r[1]),
+                              html.Td(r[2]),
+                              html.Td(r[3]),
+                              html.Td(r[4])
+                              ])
+                    for r in results]
+        return app.last_enrichr_results
 
 
 def initialize_layout(app):
