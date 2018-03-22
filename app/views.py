@@ -134,7 +134,7 @@ def state_estimation_input():
     user_id = str(uuid.uuid4())
     dist_type = request.form['disttype']
     vismethod = request.form['vismethod']
-    gene_sub = request.form['genesub']
+    gene_sub = bool(int(request.form['genesub']))
     P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type, vismethod, gene_names, gene_sub))
     P.start()
     return redirect(url_for('state_estimation_result', user_id=user_id))
@@ -184,6 +184,7 @@ def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson',
     # TODO: handle vismethod - use tSNE if need be...
     # TODO: add an option for whether or not to use gene subset selection
     generate_uncurl_analysis(data, path, clusters=k, gene_names=gene_names,
+            gene_sub=gene_sub,
             dim_red_option=vismethod,
             **uncurl_args)
     #vis.vis_state_estimation(data, M, W, user_id, vismethod)

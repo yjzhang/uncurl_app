@@ -5,8 +5,8 @@ from flask_bootstrap import Bootstrap
 app = Flask(__name__)
 Bootstrap(app)
 
-# maximum file length is 20MB
-app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024
+# maximum file length is 250MB
+app.config['MAX_CONTENT_LENGTH'] = 250 * 1024 * 1024
 # default args to pass to uncurl.run_state_estimation
 app.config['UNCURL_ARGS'] = {
         'threads': 2,

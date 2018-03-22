@@ -6,7 +6,9 @@ import os
 import numpy as np
 import scipy.io
 from scipy import sparse
+from sklearn.manifold import TSNE
 import uncurl
+from uncurl.sparse_utils import symmetric_kld
 import uncurl_analysis
 from uncurl_analysis import gene_extraction
 
@@ -92,7 +94,9 @@ def generate_uncurl_analysis(data, output_dir,
         np.savetxt(os.path.join(output_dir, 'mds_data.txt'), mds_data)
     elif dim_red_option == 'tsne':
         # TODO: implement tsne
-        pass
+        tsne = TSNE(2, metric=symmetric_kld)
+        tsne_w = tsne.fit_transform(w.T)
+        np.savetxt(os.path.join(output_dir, 'mds_data.txt'), tsne_w.T)
     if gene_names is not None:
         np.savetxt(os.path.join(output_dir, 'gene_names.txt'), gene_names, fmt='%s')
     ent = uncurl_analysis.entropy(w)
