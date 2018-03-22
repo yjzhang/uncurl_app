@@ -8,6 +8,7 @@ import scipy.io
 from scipy import sparse
 import uncurl
 import uncurl_analysis
+from uncurl_analysis import gene_extraction
 
 def generate_uncurl_analysis(data, output_dir,
         data_type='dense',
@@ -74,12 +75,24 @@ def generate_uncurl_analysis(data, output_dir,
     top_genes = uncurl_analysis.find_overexpressed_genes(data, w.argmax(0))
     with open(os.path.join(output_dir, 'top_genes.txt'), 'w') as f:
         json.dump(top_genes, f)
+    # get p-values for c-scores
+    permutations = gene_extraction.generate_permutations(data, m.shape[1],
+            n_perms=100)
+    p_values = gene_extraction.c_scores_to_pvals(top_genes, permutations)
+    with open(os.path.join(output_dir, 'gene_pvals.txt'), 'w') as f:
+        json.dump(p_values, f)
     # run mds
     mds_output = uncurl.dim_reduce(m, w, 2)
     print(mds_output.shape)
     np.savetxt(os.path.join(output_dir, 'mds_means.txt'), mds_output.T)
-    mds_data = uncurl.mds(m, w, 2)
-    np.savetxt(os.path.join(output_dir, 'mds_data.txt'), mds_data)
+    # dim_red_option
+    dim_red_option = dim_red_option.lower()
+    if dim_red_option == 'mds':
+        mds_data = uncurl.mds(m, w, 2)
+        np.savetxt(os.path.join(output_dir, 'mds_data.txt'), mds_data)
+    elif dim_red_option == 'tsne':
+        # TODO: implement tsne
+        pass
     if gene_names is not None:
         np.savetxt(os.path.join(output_dir, 'gene_names.txt'), gene_names, fmt='%s')
     ent = uncurl_analysis.entropy(w)

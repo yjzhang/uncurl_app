@@ -14,7 +14,10 @@ from uncurl_analysis import enrichr_api
 
 def create_means_figure(dim_red, colorscale='Portland'):
     """
-    create a figure for displaying means
+    create a figure for displaying cluster means.
+
+    Args:
+        dim_red (array): array of shape (2, k)
     """
     return {
                 'data': [
@@ -44,12 +47,17 @@ def create_cells_figure(dim_red, labels, colorscale='Portland',
         gene_expression_list=None, entropy=None):
     """
     create a figure for displaying cells
+
+    Args:
+        dim_red (array): array of shape (2, n)
+        labels (array): 1d array of length n
     """
     if mode == 'cluster':
         color_values = list(range(len(set(labels))))
     elif mode == 'entropy':
         color_values = [entropy[labels==c] for c in set(labels)]
-    # TODO: add a colorbar for entropy mode. also add a 
+    # TODO: add a colorbar for entropy mode.
+    # also, use a different view.
     return {
                 'data': [
                     go.Scatter(
@@ -74,9 +82,15 @@ def create_cells_figure(dim_red, labels, colorscale='Portland',
         }
 
 def create_top_genes_figure(selected_top_genes, selected_gene_names,
-        cluster_name):
+        cluster_name, x_label='c-score'):
     """
     Creates a figure for displaying top genes
+
+    Args:
+        selected_top_genes (list): list of tuples (gene_id, gene_value)
+        selected_gene_names (list): list of gene names corresponding to
+                the genes in selected_top_genes.
+        cluster_name: name of the cluster from which the top genes are drawn.
     """
     if selected_top_genes is None:
         selected_top_genes = [(1,1),(2,2),(3,3)]
@@ -92,22 +106,47 @@ def create_top_genes_figure(selected_top_genes, selected_gene_names,
                 ],
                 'layout': go.Layout(
                     title='Top genes for cluster {0}'.format(cluster_name),
-                    xaxis={'title': 'c-score'},
+                    xaxis={'title': x_label},
                     yaxis={'title': 'genes'},
                 ),
         }
 
 
-def create_bulk_correlation_figure(correlations, bulk_names, n_datasets=10):
+def create_bulk_correlation_figure(correlations, bulk_names, cluster_name,
+        n_datasets=10):
     """
     Creates a figure for displaying correlations with bulk datasets
+
+    Args:
+        correlations (list): list of correlation/similarity values
+                (higher = more similarity)
+        bulk_names (list): names of the bulk datasets.
+        cluster_name (str)
+        n_datasets (int): number of bulk datasets.
     """
     # TODO: display top n bulk correlations
+    return {
+                'data': [
+                    go.Bar(
+                        y=bulk_names,
+                        x=[x[1] for x in correlations],
+                        orientation='h',
+                    )
+                ],
+                'layout': go.Layout(
+                    title='Top bulk datasets for cluster {0}'.format(cluster_name),
+                    xaxis={'title': 'similarity'},
+                    yaxis={'title': 'dataset'},
+                ),
+        }
 
-def generate_cluster_view(dim_red, top_genes, n_genes=10, gene_names_list=None):
+def generate_cluster_view(dim_red, n_genes=10, gene_names_list=None):
     """
     Generates a cluster view: MDS plot of means on the left, updated bar plot
     of top genes with c-scores on the right.
+
+    Args:
+        dim_red (array): 2d array of 2 x cells
     """
     colorscale = 'Portland'
     #if dim_red.shape[1] > 10:
@@ -138,14 +177,16 @@ def generate_cluster_view(dim_red, top_genes, n_genes=10, gene_names_list=None):
             style={'display': 'inline-block', 'width': 750, 'float':'left'}),
         # view 2: top genes
         html.Div([
-            dcc.RadioItems(
+            html.Div([
+                dcc.Dropdown(
                 id='top-or-bulk',
-                options=[{'label': 'Display top genes', 'value': 'top'},
+                options=[{'label': 'Display top genes (c-score)', 'value': 'top'},
+                         {'label': 'Display top genes (p-value)', 'value': 'pval'},
                          {'label': 'Display bulk correlations', 'value': 'bulk'}],
                 value='top',
-                labelStyle={'display': 'inline-block'},
-                style={'margin-top': -25},
-            ),
+                #labelStyle={'display': 'inline-block'},
+                )],
+                style={'margin-top': -25, 'width': 300}),
             html.Div(['Number of top genes: ', dcc.Input(
                 id='num-genes',
                 value=10,
@@ -173,13 +214,15 @@ def generate_cluster_view(dim_red, top_genes, n_genes=10, gene_names_list=None):
                 id='enrichr-submit'),
             html.Table(id='enrichr-result'),
             ],
-            style={'margin-left': 100,
+            style={
                    'margin-top': 50,
                    'float': 'left',
-                   'display': 'inline-block'}),
+                   'display': 'inline-block'
+                   }),
         ],
         style={'width': '100%', 'display':'inline-block',
-            'margin-top': 10})
+            'margin-top': 10,
+            'margin-left': 60})
 
 
 # TODO: dynamically generate an app given a path???
@@ -209,6 +252,7 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
     mds_means = np.array([[1,2,3,4],[1,2,3,4]])
     mds_data = None
     top_genes = {'0': [(0,100),(1,50),(2,40)], '1': [(0,50),(1,45),(2,30)]}
+    p_values = {'0': [(0,0.0),(1,0.1),(2,0.2)], '1': [(0,0.0),(1,0.1),(2,0.2)]}
     gene_names = None
     entropy = None
     #print('initialize ' + data_dir)
@@ -218,6 +262,11 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         mds_data = np.loadtxt(os.path.join(data_dir, 'mds_data.txt'))
         with open(os.path.join(data_dir, 'top_genes.txt')) as f:
             top_genes = json.load(f)
+        try:
+            with open(os.path.join(data_dir, 'gene_pvals.txt')) as f:
+                p_values = json.load(f)
+        except:
+            p_values = top_genes
         try:
             gene_names = np.loadtxt(os.path.join(data_dir, 'gene_names.txt'), dtype=str)
         except:
@@ -232,7 +281,7 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             del W
 
     # generate layout
-    #app.layout.children[1].children = generate_cluster_view(M, mds_means, top_genes)
+    #app.layout.children[1].children = generate_cluster_view(mds_means)
     app.layout = html.Div([
         html.Div([
             html.Div(html.A('permalink: ' + permalink, href=permalink),
@@ -247,9 +296,10 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
                 user_id=user_id, filename='w.txt')),
                 style={'width': 200})
             ],
-            style={'display':'inline-block'}
+            style={'display':'inline-block',
+                'margin-left': 60}
         ),
-        generate_cluster_view(mds_means, top_genes)
+        generate_cluster_view(mds_means)
     ])
 
     # create callback for clicking on clusters
@@ -272,6 +322,12 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
             return create_top_genes_figure(selected_top_genes,
                     selected_gene_names, input_value)
+        elif top_or_bulk == 'pval':
+            selected_top_genes = p_values[input_value][:num_genes]
+            selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
+            return create_top_genes_figure(selected_top_genes,
+                    selected_gene_names, input_value,
+                    x_label='p-value of c-score')
         else:
             # TODO: show bulk correlations
             pass
@@ -314,13 +370,16 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             selected_top_genes = top_genes[input_value][:num_genes]
             selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
             return '\n'.join(selected_gene_names)
+        elif top_or_bulk == 'pval':
+            selected_top_genes = p_values[input_value][:num_genes]
+            selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
+            return '\n'.join(selected_gene_names)
         else:
             # TODO: show bulk correlations
             pass
 
     app.last_enrichr_results = None
     # create callback for enrichr API
-    # TODO
     @app.callback(
             Output(component_id='enrichr-result', component_property='children'),
             [Input(component_id='enrichr-submit', component_property='n_clicks'),
@@ -343,13 +402,13 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             else:
                 try:
                     results = enrichr_api.enrichr_query(user_list_id, gene_set)
-                    app.enrichr_results[(top_genes_value, gene_set)] = results
+                    app.enrichr_results[(top_genes_value, gene_set)] = results[:10]
                 except:
                     gene_list = top_genes_value.strip().split()
                     user_list_id = enrichr_api.enrichr_add_list(gene_list)
                     app.enrichr_gene_list_ids[top_genes_value] = user_list_id
                     results = enrichr_api.enrichr_query(user_list_id, gene_set)
-                    app.enrichr_results[(top_genes_value, gene_set)] = results
+                    app.enrichr_results[(top_genes_value, gene_set)] = results[:10]
             # only take top 10 results (maybe have this value be variable?)
             results = results[:10]
             app.last_enrichr_results = [html.Tr([html.Th('gene set name'),
