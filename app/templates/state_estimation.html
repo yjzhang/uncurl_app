@@ -7,9 +7,9 @@ Paste or upload a tab- or space-separated file containing single-cell RNASeq dat
 {% endblock %}
 
 {% block method %}
-Cells don't have discrete jumps from one cell type to another. Instead, they have a smooth transition. Here we formalize this by assuming that the true state of a cell lies in the convex hull spanned by some extreme cell types as seen in the above figure. 
+This runs UNCURL state estimation on the given dataset, and returns an interactive visualization of the identified cell types.
 
-This is performed using the Poisson Convex Mixture Model framework. This framework performs Non-negative Matrix Factorization (NMF) with the added assumption that the matrix being factored is the true state matrix, whose sampled version is being observed. Just multiplying the two factor matrices gives us the unsampled estimate of the true state.
+For details on the method, see <a href="https://www.biorxiv.org/content/early/2018/03/01/142398">https://www.biorxiv.org/content/early/2018/03/01/142398</a>
 {% endblock %}
         
 
@@ -17,7 +17,7 @@ This is performed using the Poisson Convex Mixture Model framework. This framewo
     <form action="state_estimation/input" method="post" enctype=multipart/form-data>
 
         <div class="form-group">
-            <label for="fileinput">Upload a text file formatted as a space-sparated matrix, where each row is a gene and each column is a cell. Alternatively, this could be a sparse mtx (Matrix Market) file.</label>
+            <label for="fileinput">Upload a text file formatted as a space-sparated matrix, where each row is a gene and each column is a cell. Alternatively, this can be a sparse mtx (Matrix Market) file.</label>
             <input type="file" id="fileinput" name="fileinput"></input>
         </div>
 
@@ -50,6 +50,15 @@ This is performed using the Poisson Convex Mixture Model framework. This framewo
         </div>
 
         <div class="form-group">
+            <label for="gene-sub-1">Use gene subset selection (select 20% of genes by variance)</label>
+            <input type="radio" id="gene-sub-1" name="genesub" value=1 checked>
+            <br>
+
+            <label for="gene-sub-2">Don't gene subset selection (use all provided genes)</label>
+            <input type="radio" id="gene-sub-2" name="genesub" value=0>
+        </div>
+
+        <div class="form-group">
             <label for="vismethod">Visualization method:</label>
             <select id="vismethod" name="vismethod">
                 <option selected>MDS</option>
@@ -59,7 +68,7 @@ This is performed using the Poisson Convex Mixture Model framework. This framewo
         </div>
 
         <div class="form-group">
-            <label for="genenames">Optional: upload a list of gene names.</label>
+            <label for="genenames">Optional: upload a list of gene names, with one name on each line, corresponding to the rows in the data matrix.</label>
             <input type="file" id="genenames" name="genenames"></input>
         </div>
 
