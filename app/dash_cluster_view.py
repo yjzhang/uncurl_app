@@ -11,6 +11,7 @@ import plotly.graph_objs as go
 
 import numpy as np
 from uncurl_analysis import enrichr_api
+import generate_analysis
 
 def create_means_figure(dim_red, colorscale='Portland'):
     """
@@ -152,6 +153,7 @@ def generate_cluster_view(dim_red, n_genes=10, gene_names_list=None):
     #if dim_red.shape[1] > 10:
     #    colorscale = 'Jet'
     return html.Div([
+        dcc.Location(id='url', refresh=False),
         # view 1: graph plot
         html.Div([
             dcc.RadioItems(
@@ -173,6 +175,13 @@ def generate_cluster_view(dim_red, n_genes=10, gene_names_list=None):
                              {'label': 'Color: entropy', 'value': 'entropy'}],
                     value='cluster',)],
                 style={'width': 400, 'margin-top': 5}),
+            # split/merge clusters
+            html.Div([
+                html.Button(children='Split selected cluster', id='split'),
+                html.Button(children='Merge selected clusters', id='merge'),
+                html.Div(id='update-area'),
+                ],
+            ),
             ],
             style={'display': 'inline-block', 'width': 750, 'float':'left'}),
         # view 2: top genes
@@ -225,12 +234,13 @@ def generate_cluster_view(dim_red, n_genes=10, gene_names_list=None):
             'margin-left': 60})
 
 
-# TODO: dynamically generate an app given a path???
 def initialize(app, data_dir=None, permalink='test', user_id='test',
         test_or_user='test'):
     """
     This function sets app.layout using a directory containing uncurl results.
     """
+    # hacking the internals of dash - remove all callbacks...
+    app.callback_map = {}
     app.initialized = True
     # app variables: scatter_mode is either 'means' or 'cells'
     app.scatter_mode = 'means'
@@ -248,36 +258,36 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
     app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/bWLwgP.css"})
 
     #M = None
-    labels = None
-    mds_means = np.array([[1,2,3,4],[1,2,3,4]])
-    mds_data = None
-    top_genes = {'0': [(0,100),(1,50),(2,40)], '1': [(0,50),(1,45),(2,30)]}
-    p_values = {'0': [(0,0.0),(1,0.1),(2,0.2)], '1': [(0,0.0),(1,0.1),(2,0.2)]}
-    gene_names = None
-    entropy = None
+    app.labels = None
+    app.mds_means = np.array([[1,2,3,4],[1,2,3,4]])
+    app.mds_data = None
+    app.top_genes = {'0': [(0,100),(1,50),(2,40)], '1': [(0,50),(1,45),(2,30)]}
+    app.p_values = {'0': [(0,0.0),(1,0.1),(2,0.2)], '1': [(0,0.0),(1,0.1),(2,0.2)]}
+    app.gene_names = None
+    app.entropy = None
     #print('initialize ' + data_dir)
     if data_dir != None:
-        labels = np.loadtxt(os.path.join(data_dir, 'labels.txt')).astype(int)
-        mds_means = np.loadtxt(os.path.join(data_dir, 'mds_means.txt'))
-        mds_data = np.loadtxt(os.path.join(data_dir, 'mds_data.txt'))
+        app.labels = np.loadtxt(os.path.join(data_dir, 'labels.txt')).astype(int)
+        app.mds_means = np.loadtxt(os.path.join(data_dir, 'mds_means.txt'))
+        app.mds_data = np.loadtxt(os.path.join(data_dir, 'mds_data.txt'))
         with open(os.path.join(data_dir, 'top_genes.txt')) as f:
-            top_genes = json.load(f)
+            app.top_genes = json.load(f)
         try:
             with open(os.path.join(data_dir, 'gene_pvals.txt')) as f:
-                p_values = json.load(f)
+                app.p_values = json.load(f)
         except:
-            p_values = top_genes
+            app.p_values = app.top_genes
         try:
-            gene_names = np.loadtxt(os.path.join(data_dir, 'gene_names.txt'), dtype=str)
+            app.gene_names = np.loadtxt(os.path.join(data_dir, 'gene_names.txt'), dtype=str)
         except:
             M = np.loadtxt(os.path.join(data_dir, 'm.txt'))
-            gene_names = np.array(['gene ' + str(x) for x in range(M.shape[0])])
+            app.gene_names = np.array(['gene ' + str(x) for x in range(M.shape[0])])
             del M
         try:
-            entropy = np.loadtxt(os.path.join(data_dir, 'entropy.txt'))
+            app.entropy = np.loadtxt(os.path.join(data_dir, 'entropy.txt'))
         except:
             W = np.loadtxt(os.path.join(data_dir, 'w.txt'))
-            entropy = -(W*np.log2(W)).sum(0)
+            app.entropy = -(W*np.log2(W)).sum(0)
             del W
 
     # generate layout
@@ -299,7 +309,8 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             style={'display':'inline-block',
                 'margin-left': 60}
         ),
-        generate_cluster_view(mds_means)
+        html.Div([generate_cluster_view(app.mds_means)],
+            id='cluster-view')
     ])
 
     # create callback for clicking on clusters
@@ -318,13 +329,13 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         else:
             input_value = str(input_value['points'][0]['curveNumber'])
         if top_or_bulk == 'top':
-            selected_top_genes = top_genes[input_value][:num_genes]
-            selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
+            selected_top_genes = app.top_genes[input_value][:num_genes]
+            selected_gene_names = [app.gene_names[x[0]] for x in selected_top_genes]
             return create_top_genes_figure(selected_top_genes,
                     selected_gene_names, input_value)
         elif top_or_bulk == 'pval':
-            selected_top_genes = p_values[input_value][:num_genes]
-            selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
+            selected_top_genes = app.p_values[input_value][:num_genes]
+            selected_gene_names = [app.gene_names[x[0]] for x in selected_top_genes]
             return create_top_genes_figure(selected_top_genes,
                     selected_gene_names, input_value,
                     x_label='p-value of c-score')
@@ -343,15 +354,15 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         #print(input_value)
         if input_value == 'Means':
             app.scatter_mode = 'means'
-            return create_means_figure(mds_means)
+            return create_means_figure(app.mds_means)
         elif input_value == 'Cells':
             app.scatter_mode = 'cells'
             if cell_color_value == 'entropy':
-                return create_cells_figure(mds_data, labels,
+                return create_cells_figure(app.mds_data, app.labels,
                         colorscale='Viridis',
-                        mode='entropy', entropy=entropy)
+                        mode='entropy', entropy=app.entropy)
             else:
-                return create_cells_figure(mds_data, labels)
+                return create_cells_figure(app.mds_data, app.labels)
 
     # create callback for top genes list
     @app.callback(
@@ -367,12 +378,12 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         else:
             input_value = str(input_value['points'][0]['curveNumber'])
         if top_or_bulk == 'top':
-            selected_top_genes = top_genes[input_value][:num_genes]
-            selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
+            selected_top_genes = app.top_genes[input_value][:num_genes]
+            selected_gene_names = [app.gene_names[x[0]] for x in selected_top_genes]
             return '\n'.join(selected_gene_names)
         elif top_or_bulk == 'pval':
-            selected_top_genes = p_values[input_value][:num_genes]
-            selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
+            selected_top_genes = app.p_values[input_value][:num_genes]
+            selected_gene_names = [app.gene_names[x[0]] for x in selected_top_genes]
             return '\n'.join(selected_gene_names)
         else:
             # TODO: show bulk correlations
@@ -423,6 +434,68 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
                     for r in results]
         return app.last_enrichr_results
 
+    app.last_backend_update = None
+    app.split_clicks = 0
+    app.merge_clicks = 0
+    # there are two callbacks dealing with splitting/merging clusters;
+    # one that updates a text displaying the selected clusters,
+    # and another that actually makes the backend call to update m and w.
+    @app.callback(
+            Output('update-area', 'children'),
+            [Input('means', 'selectedData'),
+             Input('split', 'n_clicks'),
+             Input('merge', 'n_clicks')])
+    def split_or_merge_cluster(selected_points, n_click_split, n_click_merge):
+        selected_clusters = []
+        for point in selected_points['points']:
+            cluster = point['curveNumber']
+            selected_clusters.append(cluster)
+        selected_clusters = list(set(selected_clusters))
+        # split clusters
+        if n_click_split > app.split_clicks:
+            return 'Splitting selected cluster: ' + str(selected_clusters[0])
+        # merge clusters
+        elif n_click_merge > app.merge_clicks:
+            return 'Merging selected clusters: ' + ' '.join(map(str, selected_clusters))
+        return 'Selected clusters: ' + ' '.join(map(str, selected_clusters))
+
+    @app.callback(
+            Output('cluster-view', 'children'),
+            [Input('means', 'selectedData'),
+             Input('split', 'n_clicks'),
+             Input('merge', 'n_clicks')])
+    def update_all_views(selected_points, n_click_split, n_click_merge):
+        """
+        """
+        selected_clusters = []
+        for point in selected_points['points']:
+            cluster = point['curveNumber']
+            selected_clusters.append(cluster)
+        selected_clusters = list(set(selected_clusters))
+        if n_click_split > app.split_clicks:
+            app.split_clicks = n_click_split
+            generate_analysis.generate_analysis_resubmit(data_dir,
+                    'split',
+                    selected_clusters,
+                    app.gene_names,
+                    max_iters=20,
+                    inner_max_iters=50)
+            initialize(app, data_dir, permalink, user_id, test_or_user)
+            return generate_cluster_view(app.mds_means)
+        # merge clusters
+        elif n_click_merge > app.merge_clicks:
+            app.merge_clicks = n_click_merge
+            generate_analysis.generate_analysis_resubmit(data_dir,
+                    'merge',
+                    selected_clusters,
+                    app.gene_names,
+                    max_iters=20,
+                    inner_max_iters=50)
+            # TODO: redirect page?
+            initialize(app, data_dir, permalink, user_id, test_or_user)
+            return generate_cluster_view(app.mds_means)
+        else:
+            raise Exception()
 
 def initialize_layout(app):
     app.initialized = False
