@@ -93,6 +93,7 @@ def analysis_postprocessing(data, m, w, output_dir,
         json.dump(top_genes, f)
     # get p-values for c-scores using permutation test
     permutations = gene_extraction.generate_permutations(data, m.shape[1],
+            w.argmax(0),
             n_perms=100)
     p_values = gene_extraction.c_scores_to_pvals(top_genes, permutations)
     with open(os.path.join(output_dir, 'gene_pvals.txt'), 'w') as f:

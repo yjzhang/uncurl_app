@@ -447,18 +447,22 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
              Input('merge', 'n_clicks')])
     def split_or_merge_cluster(selected_points, n_click_split, n_click_merge):
         selected_clusters = []
+        cluster_counts = []
         for point in selected_points['points']:
             cluster = point['curveNumber']
             selected_clusters.append(cluster)
+            cluster_counts.append((app.labels == cluster).sum())
         selected_clusters = list(set(selected_clusters))
-        # split clusters
+        # split clusters - TODO: have some kind of progress bar?
         if n_click_split > app.split_clicks:
-            return 'Splitting selected cluster: ' + str(selected_clusters[0])
+            return 'Splitting selected cluster: ' + str(selected_clusters[0]) + '...'
         # merge clusters
         elif n_click_merge > app.merge_clicks:
-            return 'Merging selected clusters: ' + ' '.join(map(str, selected_clusters))
-        return 'Selected clusters: ' + ' '.join(map(str, selected_clusters))
+            return 'Merging selected clusters: ' + ' '.join(map(str, selected_clusters)) + '...'
+        # TODO: mention how many cells each  cluster has
+        return 'Selected clusters: ' + ' '.join(map(lambda x: '{0} ({1} cells)'.format(x[0], x[1]), zip(selected_clusters, cluster_counts)))
 
+    # callback for split/merge operations (actually performing the operations)
     @app.callback(
             Output('cluster-view', 'children'),
             [Input('means', 'selectedData'),
@@ -472,6 +476,7 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             cluster = point['curveNumber']
             selected_clusters.append(cluster)
         selected_clusters = list(set(selected_clusters))
+        # split clusters
         if n_click_split > app.split_clicks:
             app.split_clicks = n_click_split
             generate_analysis.generate_analysis_resubmit(data_dir,
@@ -491,7 +496,6 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
                     app.gene_names,
                     max_iters=20,
                     inner_max_iters=50)
-            # TODO: redirect page?
             initialize(app, data_dir, permalink, user_id, test_or_user)
             return generate_cluster_view(app.mds_means)
         else:

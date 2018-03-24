@@ -11,9 +11,11 @@
         {% endblock %}
         </p>
         <h4>Sample Data</h4>
-        <p><a href={{ url_for('static', filename='scde_k2.txt') }}>Example file: real data (Islam 2011), k=2</a></p>
-        <p><a href={{ url_for('static', filename='SynMouseESprog_1000.txt') }}>Example file: synthetic data, k=3</a></p>
-        <p><a href={{ url_for('static', filename='BranchedSynDat.txt') }}>Example file: branching synthetic data, k=3</a></p>
+        <p><a href={{ url_for('static', filename='scde_k2.txt') }}>Example dense matrix file: real data (Islam 2011), k=2</a></p>
+        <p><a href={{ url_for('static', filename='SynMouseESprog_1000.txt') }}>Example dense matrix file: synthetic data, k=3</a></p>
+        <p><a href={{ url_for('static', filename='BranchedSynDat.txt') }}>Example dense matrix file: branching synthetic data, k=3</a></p>
+        <p><a href={{ url_for('static', filename='data_400_cells.mtx') }}>Example sparse matrix file: actual data (10x pooled), 400 cells, k=8</a></p>
+        <p><a href={{ url_for('static', filename='gene_names_400.mtx') }}>Example gene names file: 10x pooled</a></p>
     </div>
 
     <h4>Method Details</h4>
