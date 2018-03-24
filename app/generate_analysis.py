@@ -104,9 +104,12 @@ def analysis_postprocessing(data, m, w, output_dir,
     np.savetxt(os.path.join(output_dir, 'mds_means.txt'), mds_output.T)
     # dim_red_option
     dim_red_option = dim_red_option.lower()
+    with open(os.path.join(output_dir, dim_red_option + '.txt'), 'w') as f:
+        f.write('')
     if dim_red_option == 'mds':
         mds_data = uncurl.mds(m, w, 2)
         np.savetxt(os.path.join(output_dir, 'mds_data.txt'), mds_data)
+
     elif dim_red_option == 'tsne':
         tsne = TSNE(2, metric=symmetric_kld)
         tsne_w = tsne.fit_transform(w.T)
@@ -126,7 +129,6 @@ def generate_analysis_resubmit(data_dir,
         split_or_merge='split',
         clusters_to_change=[],
         gene_names=None,
-        dim_red_option='mds',
         **uncurl_kwargs):
     """
     Re-runs uncurl by splitting a cluster or merging clusters.
@@ -161,5 +163,10 @@ def generate_analysis_resubmit(data_dir,
                 clusters_to_change, **uncurl_kwargs)
     np.savetxt(os.path.join(data_dir, 'm.txt'), m_new)
     np.savetxt(os.path.join(data_dir, 'w.txt'), w_new)
+    dim_red_option = 'mds'
+    if os.path.exists(os.path.join(data_dir, 'tsne.txt')):
+        dim_red_option = 'tsne'
+    elif os.path.exists(os.path.join(data_dir, 'pca.txt')):
+        dim_red_option = 'pca'
     analysis_postprocessing(data, m_new, w_new, data_dir, gene_names,
             dim_red_option)
