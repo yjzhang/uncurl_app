@@ -452,8 +452,9 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         for point in selected_points['points']:
             cluster = point['curveNumber']
             selected_clusters.append(cluster)
-            cluster_counts.append((app.labels == cluster).sum())
         selected_clusters = list(set(selected_clusters))
+        for cluster in selected_clusters:
+            cluster_counts.append((app.labels == cluster).sum())
         # split clusters - TODO: have some kind of progress bar?
         if n_click_split > app.split_clicks:
             if test_or_user == 'test':
