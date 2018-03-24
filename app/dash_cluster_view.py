@@ -235,10 +235,11 @@ def generate_cluster_view(dim_red, n_genes=10, gene_names_list=None):
 
 
 def initialize(app, data_dir=None, permalink='test', user_id='test',
-        test_or_user='test'):
+        test_or_user='test', uncurl_args={'max_iters': 20, 'threads':2}):
     """
     This function sets app.layout using a directory containing uncurl results.
     """
+    app.uncurl_args = uncurl_args
     # hacking the internals of dash - remove all callbacks...
     app.callback_map = {}
     app.initialized = True
@@ -455,11 +456,14 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         selected_clusters = list(set(selected_clusters))
         # split clusters - TODO: have some kind of progress bar?
         if n_click_split > app.split_clicks:
+            if test_or_user == 'test':
+                return 'Test datasets cannot be modified.'
             return 'Splitting selected cluster: ' + str(selected_clusters[0]) + '...'
         # merge clusters
         elif n_click_merge > app.merge_clicks:
+            if test_or_user == 'test':
+                return 'Test datasets cannot be modified.'
             return 'Merging selected clusters: ' + ' '.join(map(str, selected_clusters)) + '...'
-        # TODO: mention how many cells each  cluster has
         return 'Selected clusters: ' + ' '.join(map(lambda x: '{0} ({1} cells)'.format(x[0], x[1]), zip(selected_clusters, cluster_counts)))
 
     # callback for split/merge operations (actually performing the operations)
@@ -471,6 +475,8 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
     def update_all_views(selected_points, n_click_split, n_click_merge):
         """
         """
+        if test_or_user == 'test':
+            raise Exception('test datasets cannot be changed')
         selected_clusters = []
         for point in selected_points['points']:
             cluster = point['curveNumber']
@@ -483,8 +489,7 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
                     'split',
                     selected_clusters,
                     app.gene_names,
-                    max_iters=20,
-                    inner_max_iters=50)
+                    **app.uncurl_args)
             initialize(app, data_dir, permalink, user_id, test_or_user)
             return generate_cluster_view(app.mds_means)
         # merge clusters
@@ -494,8 +499,7 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
                     'merge',
                     selected_clusters,
                     app.gene_names,
-                    max_iters=20,
-                    inner_max_iters=50)
+                    **app.uncurl_args)
             initialize(app, data_dir, permalink, user_id, test_or_user)
             return generate_cluster_view(app.mds_means)
         else:
