@@ -55,12 +55,8 @@ def generate_uncurl_analysis(data, output_dir,
         elif data_type == 'sparse':
             data = scipy.io.mmread(data)
             data = sparse.csc_matrix(data)
-        # TODO: copy file instead of calling mmwrite
     if sparse.issparse(data):
         data = sparse.csc_matrix(data)
-        scipy.io.mmwrite(os.path.join(output_dir, 'data.mtx'), data)
-    else:
-        np.savetxt(os.path.join(output_dir, 'data.txt'), data)
     if isinstance(gene_names, str):
         gene_names = np.loadtxt(gene_names, dtype=str)
     # run uncurl

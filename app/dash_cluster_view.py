@@ -504,7 +504,7 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             initialize(app, data_dir, permalink, user_id, test_or_user)
             return generate_cluster_view(app.mds_means)
         else:
-            raise Exception()
+            raise Exception('placeholder')
 
 def initialize_layout(app):
     app.initialized = False

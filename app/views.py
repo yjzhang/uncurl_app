@@ -15,7 +15,7 @@ from app import app
 from . import vis
 from .generate_analysis import generate_uncurl_analysis
 
-def load_input_data():
+def load_input_data(path=None):
     # TODO: allow upload of gene names
     if 'fileinput' in request.files:
         f = request.files['fileinput']
@@ -31,9 +31,11 @@ def load_input_data():
     k = int(request.form['k'])
     input_type = request.form['inputtype']
     if input_type == 'dense':
-        data = np.loadtxt(f)
+        f.save(os.path.join(path, 'data.txt'))
+        data = np.loadtxt(os.path.join(path, 'data.txt'))
     elif input_type == 'sparse':
-        data = scipy.io.mmread(f)
+        f.save(os.path.join(path, 'data.mtx'))
+        data = scipy.io.mmread(os.path.join(path, 'data.mtx'))
     init = None
     if init_f is not None and init_f.filename != '':
         init = np.loadtxt(init_f)
@@ -126,16 +128,18 @@ def state_estimation():
 
 @app.route('/state_estimation/input', methods=['POST'])
 def state_estimation_input():
-    try:
-        data, k, output_filename, init = load_input_data()
-    except:
-        return error('Error: no file found', 400)
-    gene_names = load_gene_names()
     user_id = str(uuid.uuid4())
+    path = os.path.join('/tmp/uncurl/', user_id)
+    os.makedirs(path)
+    #try:
+    data, k, output_filename, init = load_input_data(path)
+    #except:
+    #    return error('Error: no file found', 400)
+    gene_names = load_gene_names()
     dist_type = request.form['disttype']
     vismethod = request.form['vismethod']
     gene_sub = bool(int(request.form['genesub']))
-    P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type, vismethod, gene_names, gene_sub))
+    P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type, vismethod, gene_names, gene_sub, path))
     P.start()
     return redirect(url_for('state_estimation_result', user_id=user_id))
 
@@ -165,12 +169,12 @@ def state_estimation_file(x, user_id, filename):
     return send_from_directory(path, filename)
 
 def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson',
-        vismethod='mds', gene_names=None, gene_sub=False):
+        vismethod='mds', gene_names=None, gene_sub=False, path=None):
     """
     Uses a new process to do state estimation
     """
-    path = os.path.join('/tmp/uncurl/', user_id)
-    os.makedirs(path)
+    if path is None:
+        path = os.path.join('/tmp/uncurl/', user_id)
     # if debugging, set max_iters to 1, inner_max_iters to 1... should be in config
     if dist_type=='Poisson':
         pass
