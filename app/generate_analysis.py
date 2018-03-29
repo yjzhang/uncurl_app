@@ -55,23 +55,24 @@ def generate_uncurl_analysis(data, output_dir,
         elif data_type == 'sparse':
             data = scipy.io.mmread(data)
             data = sparse.csc_matrix(data)
-    if sparse.issparse(data):
-        data = sparse.csc_matrix(data)
     if isinstance(gene_names, str):
         gene_names = np.loadtxt(gene_names, dtype=str)
+    if sparse.issparse(data):
+        data = sparse.csc_matrix(data)
     # run uncurl
     if gene_sub:
         genes_subset = np.array(uncurl.max_variance_genes(data))
     else:
         genes_subset = np.array(uncurl.max_variance_genes(data, 1, 1.0))
     np.savetxt(os.path.join(output_dir, 'gene_subset.txt'), genes_subset, fmt='%d')
-    data = data[genes_subset,:]
+    data_subset = data[genes_subset,:]
     if gene_names is not None:
-        gene_names = gene_names[genes_subset]
+        gene_names_subset = gene_names[genes_subset]
     print(uncurl_kwargs)
-    m, w, ll = uncurl.run_state_estimation(data, **uncurl_kwargs)
+    m, w, ll = uncurl.run_state_estimation(data_subset, **uncurl_kwargs)
     np.savetxt(os.path.join(output_dir, 'm.txt'), m)
     np.savetxt(os.path.join(output_dir, 'w.txt'), w)
+    print('uncurl done')
     analysis_postprocessing(data, m, w, output_dir, gene_names,
             dim_red_option)
 
@@ -87,6 +88,7 @@ def analysis_postprocessing(data, m, w, output_dir,
     top_genes = uncurl_analysis.find_overexpressed_genes(data, w.argmax(0))
     with open(os.path.join(output_dir, 'top_genes.txt'), 'w') as f:
         json.dump(top_genes, f)
+    print('c-scores done')
     # get p-values for c-scores using permutation test
     permutations = gene_extraction.generate_permutations(data, m.shape[1],
             w.argmax(0),
@@ -94,6 +96,7 @@ def analysis_postprocessing(data, m, w, output_dir,
     p_values = gene_extraction.c_scores_to_pvals(top_genes, permutations)
     with open(os.path.join(output_dir, 'gene_pvals.txt'), 'w') as f:
         json.dump(p_values, f)
+    print('p vals done')
     # run mds
     mds_output = uncurl.dim_reduce(m, w, 2)
     print(mds_output.shape)
@@ -116,6 +119,7 @@ def analysis_postprocessing(data, m, w, output_dir,
         np.savetxt(os.path.join(output_dir, 'mds_data.txt'), pca_w.T)
     if gene_names is not None:
         np.savetxt(os.path.join(output_dir, 'gene_names.txt'), gene_names, fmt='%s')
+    print('dimensionality reduction done')
     # entropy
     ent = uncurl_analysis.entropy(w)
     np.savetxt(os.path.join(output_dir, 'entropy.txt'), ent)

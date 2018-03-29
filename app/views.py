@@ -48,6 +48,7 @@ def load_gene_names():
     else:
         return None
     gene_names = np.loadtxt(f, dtype=str)
+    print(gene_names)
     return gene_names
 
 @app.route('/')
@@ -136,6 +137,8 @@ def state_estimation_input():
     #except:
     #    return error('Error: no file found', 400)
     gene_names = load_gene_names()
+    if len(gene_names) == 0:
+        gene_names = None
     dist_type = request.form['disttype']
     vismethod = request.form['vismethod']
     gene_sub = bool(int(request.form['genesub']))
