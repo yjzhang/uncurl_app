@@ -44,7 +44,6 @@ def load_input_data(path=None):
 def load_gene_names():
     if 'genenames' in request.files:
         f = request.files['genenames']
-        output_filename = secure_filename(f.filename)
     else:
         return None
     gene_names = np.loadtxt(f, dtype=str)
