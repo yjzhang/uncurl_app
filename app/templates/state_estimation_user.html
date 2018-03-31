@@ -2,7 +2,7 @@
 
 {% block head %}
 {{super()}}
-{% if has_result %}
+{% if has_preview %}
 <!-- TODO: parameterize the version number -->
 <link
 href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.13.min.css"
@@ -22,28 +22,62 @@ rel="stylesheet" type="text/css">
 
 <div class="container container-main" role="main">
     <h4>Results for query id {{ user_id }}</h4>
-    {% if has_result %}
-    Results are available:
-    {% block file_downloads %}
-    <p>
-        <a href="{{ user_id }}/m.txt">Centers</a>
-    </p>
-    <p>
-        <a href="{{ user_id }}/w.txt">Weights</a>
-    </p>
-    {% endblock %}
-
+    {% if has_preview %}
+    Data preview is available
     <h5>Visualization</h5>
     {{ visualization }}
+    <!-- TODO: submit revisions? -->
 
-    <p>Results</p>
+    {% if not uncurl_is_running %}
+    <form action="start" method="post" enctype="multipart/form-data">
+
+        <div class="form-group">
+            <label for="genes-frac">Fraction of genes to include</label>
+            <input type="number" id="genes-frac" name="genes-frac" value=0.2>
+            <br>
+            
+            <label for="min-reads">Minimum read count filter</label>
+            <input type="number" id="min-reads" name="min-reads" value={{ min_reads }}>
+            <br>
+
+            <label for="max-reads">Maximum read count filter</label>
+            <input type="number" id="max-reads" name="max-reads" value={{ max_reads }}>
+            <br>
+        </div>
+
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-default">Submit Data</button>
+        </div>
+
+    </form>
     {% else %}
+    Currently running uncurl. Will refresh every 60 seconds.
+
+    <script>
+        setTimeout(function(){
+           window.location.reload(1);
+        }, 60000);
+    </script>
+    {% endif %}
+
+    {% elif uncurl_is_running %}
+    <p>Results</p>
     Results not yet available. Will refresh every 60 seconds.
 
     <script>
         setTimeout(function(){
            window.location.reload(1);
         }, 60000);
+    </script>
+    {% else %}
+    <p>Data preview</p>
+    Data preview not yet available. Will refresh every 20 seconds.
+
+    <script>
+        setTimeout(function(){
+           window.location.reload(1);
+        }, 20000);
     </script>
     {% endif %}
 

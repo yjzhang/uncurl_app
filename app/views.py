@@ -1,3 +1,4 @@
+import json
 from multiprocessing import Process
 import os
 import pickle
@@ -8,15 +9,16 @@ from werkzeug import secure_filename
 
 import numpy as np
 import scipy.io
+from scipy import sparse
 import uncurl
 
 from app import app
 
 from . import vis
 from .generate_analysis import generate_uncurl_analysis
+from .data_stats import Summary
 
-def load_input_data(path=None):
-    # TODO: allow upload of gene names
+def load_upload_data(path=None):
     if 'fileinput' in request.files:
         f = request.files['fileinput']
         output_filename = secure_filename(f.filename)
@@ -39,11 +41,42 @@ def load_input_data(path=None):
     init = None
     if init_f is not None and init_f.filename != '':
         init = np.loadtxt(init_f)
+        init_f.save(os.path.join(path, 'init.txt'))
     return data, k, output_filename, init
 
-def load_gene_names():
+def save_upload_data(path):
+    """
+    Saves uploaded data to the given path.
+    """
+    if 'fileinput' in request.files:
+        f = request.files['fileinput']
+        output_filename = secure_filename(f.filename)
+        if output_filename == '':
+            return
+    else:
+        return
+    init_f = None
+    if 'startinput' in request.files:
+        init_f = request.files['startinput']
+    # allow for mtx input data
+    input_type = request.form['inputtype']
+    input_size = 0
+    if input_type == 'dense':
+        f.save(os.path.join(path, 'data.txt'))
+        input_size = os.stat(os.path.join(path, 'data.txt')).st_size
+    elif input_type == 'sparse':
+        f.save(os.path.join(path, 'data.mtx'))
+        input_size = os.stat(os.path.join(path, 'data.mtx')).st_size
+    if init_f is not None and init_f.filename != '':
+        init_f.save(os.path.join(path, 'init.txt'))
+    return input_size
+
+
+def load_gene_names(path=None):
     if 'genenames' in request.files:
         f = request.files['genenames']
+        if path is not None:
+            f.save(os.path.join(path, 'gene_names.txt'))
     else:
         return None
     gene_names = np.loadtxt(f, dtype=str)
@@ -61,7 +94,7 @@ def cluster():
 @app.route('/cluster/input', methods=['POST'])
 def cluster_input():
     try:
-        data, k, output_filename, init = load_input_data()
+        data, k, output_filename, init = load_upload_data()
     except:
         return error('Error: no file found', 400)
     user_id = str(uuid.uuid4())
@@ -131,35 +164,77 @@ def state_estimation_input():
     user_id = str(uuid.uuid4())
     path = os.path.join('/tmp/uncurl/', user_id)
     os.makedirs(path)
-    #try:
-    data, k, output_filename, init = load_input_data(path)
-    #except:
-    #    return error('Error: no file found', 400)
-    gene_names = load_gene_names()
-    if len(gene_names) == 0:
+    # save state estimation params? save request.form
+    with open(os.path.join(path, 'inputs.json'), 'w') as f:
+        f.write(json.dumps(request.form))
+    # TODO: if file is large, start a new thread. otherwise just
+    # run the thing
+    P = Process(target=state_estimation_preproc, args=(user_id, path))
+    #P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type, vismethod, gene_names, gene_sub, path))
+    P.start()
+    #state_estimation_preproc(user_id, path)
+    return redirect(url_for('state_estimation_result', user_id=user_id))
+
+@app.route('/state_estimation/results/<user_id>/start', methods=['POST'])
+def state_estimation_start(user_id):
+    """
+    Actually start the process of state estimation.
+    """
+    # TODO: get parameters???
+    path = os.path.join('/tmp/uncurl/', user_id)
+    data = os.path.join(path, 'data.mtx')
+    # get correct data names
+    if not os.path.exists(data):
+        data = os.path.join(path, 'data.txt')
+    gene_names = os.path.join(path, 'gene_names.txt')
+    if not os.path.exists(gene_names):
         gene_names = None
-    dist_type = request.form['disttype']
-    vismethod = request.form['vismethod']
-    gene_sub = bool(int(request.form['genesub']))
-    P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type, vismethod, gene_names, gene_sub, path))
+    init = os.path.join(path, 'init.txt')
+    if not os.path.exists(init):
+        init = None
+    # load json params
+    request_form = {}
+    with open(os.path.join(path, 'inputs.json')) as f:
+        request_form = json.load(f)
+    with open(os.path.join(path, 'preprocess.json')) as f:
+        preprocess = json.load(f)
+    k = int(request_form['k'])
+    dist_type = request_form['disttype']
+    vismethod = request_form['vismethod']
+    gene_sub = bool(int(request_form['genesub']))
+    P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type, vismethod, gene_names, gene_sub, path, preprocess))
     P.start()
     return redirect(url_for('state_estimation_result', user_id=user_id))
 
-@app.route('/state_estimation/results/<user_id>')
+
+@app.route('/state_estimation/results/<user_id>/')
 def state_estimation_result(user_id):
-    if os.path.exists(os.path.join('/tmp/uncurl/', user_id, 'mds_data.txt')):
+    # TODO: get summary statistics + visualization
+    path = os.path.join('/tmp/uncurl/', user_id)
+    if os.path.exists(os.path.join(path, 'mds_data.txt')):
         #try:
         #    visualization = open(os.path.join('/tmp/uncurl/', user_id, 'vis_state_estimation.html')).read()
         #except:
         #    visualization = ''
         #visualization = Markup(visualization)
         return redirect(url_for('route_user', user_id=user_id))
-        #return render_template('state_estimation_user.html',
-        #        user_id=user_id, has_result=True,
-        #        visualization=visualization)
+    elif os.path.exists(os.path.join(path, 'preprocess.json')):
+        uncurl_is_running = os.path.exists(os.path.join(path, 'submitted'))
+        with open(os.path.join(path, 'preprocess.json')) as f:
+            preprocess = json.load(f)
+        with open(os.path.join(path, 'vis_summary.html')) as f:
+            v = f.read()
+        v = Markup(v)
+        return render_template('state_estimation_user.html',
+                user_id=user_id, has_preview=True,
+                uncurl_is_running=uncurl_is_running,
+                visualization=v,
+                min_reads=preprocess['min_reads'],
+                max_reads=preprocess['max_reads'])
     else:
         return render_template('state_estimation_user.html',
-                user_id=user_id, has_result=False)
+                user_id=user_id, uncurl_is_running=False,
+                has_result=False)
 
 @app.route('/<x>/results/<user_id>/<filename>')
 def state_estimation_file(x, user_id, filename):
@@ -170,8 +245,27 @@ def state_estimation_file(x, user_id, filename):
     print(path)
     return send_from_directory(path, filename)
 
+def state_estimation_preproc(user_id, path=None):
+    """
+    Preprocessing for state estimation - generates summary statistics,
+    etc...
+    """
+    #try:
+    data, k, output_filename, init = load_upload_data(path)
+    #except:
+    #    return error('Error: no file found', 400)
+    gene_names = load_gene_names(path)
+    if len(gene_names) == 0:
+        gene_names = None
+    if path is None:
+        path = os.path.join('/tmp/uncurl/', user_id)
+    summary = Summary(data, path)
+    script, div = summary.visualize()
+    summary.preprocessing_params()
+
 def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson',
-        vismethod='mds', gene_names=None, gene_sub=False, path=None):
+        vismethod='mds', gene_names=None, gene_sub=False, path=None,
+        preprocess=None):
     """
     Uses a new process to do state estimation
     """
@@ -184,16 +278,23 @@ def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson',
         dist_type = 'nb'
     elif dist_type == 'Log-Normal':
         dist_type = 'lognorm'
+    if sparse.issparse(data):
+        data = sparse.csc_matrix(data)
     uncurl_args = app.config['UNCURL_ARGS']
     uncurl_args['dist'] = dist_type
     uncurl_args['init_means'] = init
-    # TODO: handle vismethod - use tSNE if need be...
-    # TODO: add an option for whether or not to use gene subset selection
+    min_reads = 0
+    if preprocess is not None:
+        min_reads = preprocess['min_reads']
+    max_reads = 1e10
+    if preprocess is not None:
+        max_reads = preprocess['max_reads']
     generate_uncurl_analysis(data, path, clusters=k, gene_names=gene_names,
             gene_sub=gene_sub,
             dim_red_option=vismethod,
+            min_reads=min_reads,
+            max_reads=max_reads,
             **uncurl_args)
-    #vis.vis_state_estimation(data, M, W, user_id, vismethod)
 
 @app.route('/lineage')
 def lineage():
@@ -213,7 +314,7 @@ def lineage_input():
         P.start()
         return redirect(url_for('lineage_input_user_id', user_id=user_id))
     elif 'fileinput' in request.files:
-        data, k, output_filename = load_input_data()
+        data, k, output_filename = load_upload_data()
         user_id = str(uuid.uuid4())
         P = Process(target=lineage_thread, args=(data, k, None, None, user_id))
         P.start()

@@ -19,6 +19,10 @@ def generate_uncurl_analysis(data, output_dir,
         gene_sub=True,
         dim_red_option='mds',
         bulk_data_dir=None,
+        normalize_data=False,
+        min_reads=0,
+        max_reads=1e10,
+        frac=0.2,
         **uncurl_kwargs):
     """
     Performs an uncurl analysis of the data, writing the results in the given
@@ -49,26 +53,46 @@ def generate_uncurl_analysis(data, output_dir,
         os.makedirs(output_dir)
     except:
         print('could not make output dir: {0}'.format(output_dir))
-    if isinstance(data, str):
-        if data_type == 'dense':
-            data = np.loadtxt(data)
-        elif data_type == 'sparse':
+    with open(os.path.join(output_dir, 'submitted'), 'w') as f:
+        f.write('')
+    if isinstance(data, str) or isinstance(data, unicode):
+        if data.endswith('.mtx') or data.endswith('.mtx.gz'):
             data = scipy.io.mmread(data)
             data = sparse.csc_matrix(data)
-    if isinstance(gene_names, str):
+        else:
+            try:
+                data = np.loadtxt(data)
+            except:
+                data = scipy.io.mmread(data)
+                data = sparse.csc_matrix(data)
+    if isinstance(gene_names, str) or isinstance(gene_names, unicode):
         gene_names = np.loadtxt(gene_names, dtype=str)
     if sparse.issparse(data):
         data = sparse.csc_matrix(data)
-    # run uncurl
+    # cell subset
+    read_counts = np.array(data.sum(0)).flatten()
+    cells_subset = (read_counts >= min_reads) & (read_counts <= max_reads)
+    np.savetxt(os.path.join(output_dir, 'cells_subset.txt'), cells_subset,
+            fmt='%s')
+    data = data[:, cells_subset]
+    # normalize data
+    if normalize_data:
+        data = uncurl.preprocessing.cell_normalize(data)
+        with open(os.path.join(output_dir, 'normalize_data.txt'), 'w') as f:
+            f.write('')
+    # gene subset
     if gene_sub:
-        genes_subset = np.array(uncurl.max_variance_genes(data))
+        genes_subset = np.array(uncurl.max_variance_genes(data,
+            nbins=5,
+            frac=frac))
     else:
         genes_subset = np.array(uncurl.max_variance_genes(data, 1, 1.0))
+    print(repr(genes_subset))
     np.savetxt(os.path.join(output_dir, 'gene_subset.txt'), genes_subset, fmt='%d')
     data_subset = data[genes_subset,:]
-    if gene_names is not None:
-        gene_names_subset = gene_names[genes_subset]
     print(uncurl_kwargs)
+    print(repr(data_subset))
+    # run uncurl
     m, w, ll = uncurl.run_state_estimation(data_subset, **uncurl_kwargs)
     np.savetxt(os.path.join(output_dir, 'm.txt'), m)
     np.savetxt(os.path.join(output_dir, 'w.txt'), w)
@@ -148,6 +172,14 @@ def generate_analysis_resubmit(data_dir,
         data_path = os.path.join(data_dir, 'data.mtx')
         data = scipy.io.mmread(data_path)
         data = sparse.csc_matrix(data)
+    try:
+        cells_subset = np.loadtxt(os.path.join(data_dir, 'cells_subset.txt'),
+                dtype=bool)
+        data = data[:, cells_subset]
+    except:
+        pass
+    if os.path.exists(os.path.join(data_dir, 'normalize_data.txt')):
+        data = uncurl.preprocessing.cell_normalize(data)
     genes_subset1 = np.array(uncurl.max_variance_genes(data))
     genes_subset2 = np.array(uncurl.max_variance_genes(data, 1, 1.0))
     if m_new.shape[0]==len(genes_subset1):
