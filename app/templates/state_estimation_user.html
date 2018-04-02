@@ -32,15 +32,17 @@ rel="stylesheet" type="text/css">
     <form action="start" method="post" enctype="multipart/form-data">
 
         <div class="form-group">
+            <!--
             <label for="genes-frac">Fraction of genes to include</label>
             <input type="number" id="genes-frac" name="genes-frac" value=0.2>
             <br>
+            -->
             
-            <label for="min-reads">Minimum read count filter</label>
+            <label for="min-reads">Minimum read count filter:</label>
             <input type="number" id="min-reads" name="min-reads" value={{ min_reads }}>
             <br>
 
-            <label for="max-reads">Maximum read count filter</label>
+            <label for="max-reads">Maximum read count filter:</label>
             <input type="number" id="max-reads" name="max-reads" value={{ max_reads }}>
             <br>
         </div>
