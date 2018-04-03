@@ -30,7 +30,6 @@ def load_upload_data(path=None):
     if 'startinput' in request.files:
         init_f = request.files['startinput']
     # allow for mtx input data
-    k = int(request.form['k'])
     input_type = request.form['inputtype']
     if input_type == 'dense':
         f.save(os.path.join(path, 'data.txt'))
@@ -42,7 +41,7 @@ def load_upload_data(path=None):
     if init_f is not None and init_f.filename != '':
         init = np.loadtxt(init_f)
         init_f.save(os.path.join(path, 'init.txt'))
-    return data, k, output_filename, init
+    return data, output_filename, init
 
 def save_upload_data(path):
     """
@@ -94,9 +93,10 @@ def cluster():
 @app.route('/cluster/input', methods=['POST'])
 def cluster_input():
     try:
-        data, k, output_filename, init = load_upload_data()
+        data, output_filename, init = load_upload_data()
     except:
         return error('Error: no file found', 400)
+    k = int(request.form['k'])
     user_id = str(uuid.uuid4())
     dist_type = request.form['disttype']
     P = Process(target=cluster_thread, args=(data, k, user_id, init, dist_type))
@@ -179,6 +179,9 @@ def state_estimation_input():
 def state_estimation_start(user_id):
     """
     Actually start the process of state estimation.
+
+    This saves a file called 'params.json' in /tmp/uncurl/<user_id>
+    containing all parameters used in state estimation.
     """
     # TODO: get parameters???
     path = os.path.join('/tmp/uncurl/', user_id)
@@ -193,16 +196,18 @@ def state_estimation_start(user_id):
     if not os.path.exists(init):
         init = None
     # load json params
-    request_form = {}
-    with open(os.path.join(path, 'inputs.json')) as f:
-        request_form = json.load(f)
     with open(os.path.join(path, 'preprocess.json')) as f:
         preprocess = json.load(f)
-    k = int(request_form['k'])
-    dist_type = request_form['disttype']
-    vismethod = request_form['vismethod']
-    gene_sub = bool(int(request_form['genesub']))
-    P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type, vismethod, gene_names, gene_sub, path, preprocess))
+    for key in request.form.keys():
+        preprocess[key] = request.form[key]
+    # params.json contains all input parameters to the state estimation
+    with open(os.path.join(path, 'params.json'), 'w') as f:
+        json.dump(preprocess, f)
+    k = int(preprocess['k'])
+    dist_type = preprocess['disttype']
+    vismethod = preprocess['vismethod']
+    gene_frac = float(preprocess['genes_frac'])
+    P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type, vismethod, gene_names, gene_frac, path, preprocess))
     P.start()
     return redirect(url_for('state_estimation_result', user_id=user_id))
 
@@ -230,7 +235,9 @@ def state_estimation_result(user_id):
                 uncurl_is_running=uncurl_is_running,
                 visualization=v,
                 min_reads=preprocess['min_reads'],
-                max_reads=preprocess['max_reads'])
+                max_reads=preprocess['max_reads'],
+                cells=preprocess['cells'],
+                genes=preprocess['genes'])
     else:
         return render_template('state_estimation_user.html',
                 user_id=user_id, uncurl_is_running=False,
@@ -251,7 +258,7 @@ def state_estimation_preproc(user_id, path=None):
     etc...
     """
     #try:
-    data, k, output_filename, init = load_upload_data(path)
+    data, output_filename, init = load_upload_data(path)
     #except:
     #    return error('Error: no file found', 400)
     gene_names = load_gene_names(path)
@@ -264,10 +271,22 @@ def state_estimation_preproc(user_id, path=None):
     summary.preprocessing_params()
 
 def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson',
-        vismethod='mds', gene_names=None, gene_sub=False, path=None,
+        vismethod='mds', gene_names=None, gene_frac=0.2, path=None,
         preprocess=None):
     """
-    Uses a new process to do state estimation
+    Uses a new process to do state estimation.
+
+    Args:
+        data (str or array): path to an array, or a numpy array, or a scipy sparse
+        k (int)
+        user_id (str)
+        init (array, optional): init_means- shape is (genes, k). Default: None.
+        dist_type (str, optional): one of Poisson, Negative binomial, or Log-Normal. Default: Poisson
+        vismethod (str, optional): one of mds, tsne, or pca. Default: mds
+        gene_names (str or array, optional): path to a list of gene names, or an array of gene names. Default: None
+        gene_frac (float, optional): Fraction of genes to be included. Default: 0.2
+        path (str, optional): Path where data and results are saved.
+        preprocess (dict, optional): dict containing additional parameters, like min_reads, max_reads, normalize,
     """
     if path is None:
         path = os.path.join('/tmp/uncurl/', user_id)
@@ -284,16 +303,24 @@ def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson',
     uncurl_args['dist'] = dist_type
     uncurl_args['init_means'] = init
     min_reads = 0
-    if preprocess is not None:
-        min_reads = preprocess['min_reads']
     max_reads = 1e10
+    cell_frac = 1.0
+    normalize = False
     if preprocess is not None:
-        max_reads = preprocess['max_reads']
+        min_reads = int(preprocess['min_reads'])
+        max_reads = int(preprocess['max_reads'])
+        cell_frac = float(preprocess['cell_frac'])
+        if 'normalize' in preprocess:
+            normalize = True
+    # TODO: save params as json instead of having to pass them...
     generate_uncurl_analysis(data, path, clusters=k, gene_names=gene_names,
-            gene_sub=gene_sub,
+            gene_sub=True,
             dim_red_option=vismethod,
             min_reads=min_reads,
             max_reads=max_reads,
+            frac=gene_frac,
+            cell_frac=cell_frac,
+            normalize=normalize,
             **uncurl_args)
 
 @app.route('/lineage')
@@ -314,7 +341,8 @@ def lineage_input():
         P.start()
         return redirect(url_for('lineage_input_user_id', user_id=user_id))
     elif 'fileinput' in request.files:
-        data, k, output_filename = load_upload_data()
+        data, output_filename = load_upload_data()
+        k = request.form['k']
         user_id = str(uuid.uuid4())
         P = Process(target=lineage_thread, args=(data, k, None, None, user_id))
         P.start()

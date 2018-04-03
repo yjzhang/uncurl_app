@@ -31,40 +31,8 @@ For details on the method, see <a href="https://www.biorxiv.org/content/early/20
 
 
         <div class="form-group">
-            <label for="startinput">OPTIONAL: upload starting positions for the cell type centers, where each row is a gene and each column is a cell type.</label>
+            <label for="startinput">Optional: upload starting positions for the cell type centers, where each row is a gene and each column is a cell type.</label>
             <input type="file" id="startinput" name="startinput"></input>
-        </div>
-
-        <div class="form-group">
-            <label for="k">Number of states (k):</label>
-            <input type=number id="k" name="k" value=2></input>
-        </div>
-
-        <div class="form-group">
-            <label for="disttype">Distribution type:</label>
-            <select id="disttype" name="disttype">
-                <option selected>Poisson</option>
-                <option>Log-Normal</option>
-                <option>Negative binomial</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="gene-sub-1">Use gene subset selection (select 20% of genes by variance)</label>
-            <input type="radio" id="gene-sub-1" name="genesub" value=1 checked>
-            <br>
-
-            <label for="gene-sub-2">Don't gene subset selection (use all provided genes)</label>
-            <input type="radio" id="gene-sub-2" name="genesub" value=0>
-        </div>
-
-        <div class="form-group">
-            <label for="vismethod">Visualization method:</label>
-            <select id="vismethod" name="vismethod">
-                <option selected>MDS</option>
-                <option>tSNE</option>
-                <option>PCA</option>
-            </select>
         </div>
 
         <div class="form-group">

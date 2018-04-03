@@ -42,11 +42,14 @@ class Summary(object):
         (top 10th percentile), frac (0.2), nbins (5)
         """
         sorted_read_counts = np.sort(self.cell_read_counts)
-        top_10 = int(self.cells/10)
-        preproc_params = {'min_reads': sorted_read_counts[top_10],
-                          'max_reads': sorted_read_counts[-top_10],
+        top_05 = int(self.cells/20) #5%
+        preproc_params = {'min_reads': sorted_read_counts[top_05],
+                          'max_reads': sorted_read_counts[-top_05],
                           'frac': 0.2,
                           'nbins': 5,
+                          'cells': self.cells,
+                          'genes': self.genes,
+                          'normalize': False,
                           }
         with open(os.path.join(self.path, 'preprocess.json'), 'w') as f:
             json.dump(preproc_params, f)

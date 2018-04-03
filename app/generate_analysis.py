@@ -19,10 +19,11 @@ def generate_uncurl_analysis(data, output_dir,
         gene_sub=True,
         dim_red_option='mds',
         bulk_data_dir=None,
-        normalize_data=False,
+        normalize=False,
         min_reads=0,
         max_reads=1e10,
         frac=0.2,
+        cell_frac=1.0,
         **uncurl_kwargs):
     """
     Performs an uncurl analysis of the data, writing the results in the given
@@ -76,7 +77,7 @@ def generate_uncurl_analysis(data, output_dir,
             fmt='%s')
     data = data[:, cells_subset]
     # normalize data
-    if normalize_data:
+    if normalize:
         data = uncurl.preprocessing.cell_normalize(data)
         with open(os.path.join(output_dir, 'normalize_data.txt'), 'w') as f:
             f.write('')
