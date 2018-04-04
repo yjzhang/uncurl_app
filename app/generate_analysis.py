@@ -83,14 +83,14 @@ def generate_uncurl_analysis(data, output_dir,
             f.write('')
     # gene subset
     if gene_sub:
-        genes_subset = np.array(uncurl.max_variance_genes(data,
+        gene_subset = np.array(uncurl.max_variance_genes(data,
             nbins=5,
             frac=frac))
     else:
-        genes_subset = np.array(uncurl.max_variance_genes(data, 1, 1.0))
-    print(repr(genes_subset))
-    np.savetxt(os.path.join(output_dir, 'gene_subset.txt'), genes_subset, fmt='%d')
-    data_subset = data[genes_subset,:]
+        gene_subset = np.array(uncurl.max_variance_genes(data, 1, 1.0))
+    print(repr(gene_subset))
+    np.savetxt(os.path.join(output_dir, 'gene_subset.txt'), gene_subset, fmt='%d')
+    data_subset = data[gene_subset,:]
     print(uncurl_kwargs)
     print(repr(data_subset))
     # run uncurl
@@ -99,11 +99,12 @@ def generate_uncurl_analysis(data, output_dir,
     np.savetxt(os.path.join(output_dir, 'w.txt'), w)
     print('uncurl done')
     analysis_postprocessing(data, m, w, output_dir, gene_names,
-            dim_red_option)
+            dim_red_option, cell_frac)
 
 def analysis_postprocessing(data, m, w, output_dir,
         gene_names=None,
-        dim_red_option='mds'):
+        dim_red_option='mds',
+        cell_frac=1.0):
     """
     Runs post-processing steps on the results of uncurl.
     """
@@ -130,6 +131,13 @@ def analysis_postprocessing(data, m, w, output_dir,
     dim_red_option = dim_red_option.lower()
     with open(os.path.join(output_dir, dim_red_option + '.txt'), 'w') as f:
         f.write('')
+    if cell_frac < 1:
+        if not os.path.exists(os.path.join(output_dir, 'cells.txt')):
+            cells_to_select = np.random.choice(w.shape[1], cell_frac*w.shape[1], replace=False)
+            np.savetxt(os.path.join(output_dir, 'cells.txt'), cells_to_select)
+        else:
+            cells_to_select = np.loadtxt(os.path.join(output_dir, 'cells.txt'), dtype=int)
+        w = w[:, cells_to_select]
     if dim_red_option == 'mds':
         mds_data = uncurl.mds(m, w, 2)
         np.savetxt(os.path.join(output_dir, 'mds_data.txt'), mds_data)
@@ -167,6 +175,11 @@ def generate_analysis_resubmit(data_dir,
     w_new = np.loadtxt(os.path.join(data_dir, 'w.txt'))
     # load data
     try:
+        with open(os.path.join(data_dir, 'params.json')) as f:
+            params = json.load(f)
+    except:
+        params = {}
+    try:
         data_path = os.path.join(data_dir, 'data.txt')
         data = np.loadtxt(data_path)
     except:
@@ -179,14 +192,16 @@ def generate_analysis_resubmit(data_dir,
         data = data[:, cells_subset]
     except:
         pass
-    if os.path.exists(os.path.join(data_dir, 'normalize_data.txt')):
+    if 'normalize_data' in params:
         data = uncurl.preprocessing.cell_normalize(data)
-    genes_subset1 = np.array(uncurl.max_variance_genes(data))
-    genes_subset2 = np.array(uncurl.max_variance_genes(data, 1, 1.0))
-    if m_new.shape[0]==len(genes_subset1):
-        data = data[genes_subset1, :]
-    elif m_new.shape[0]==len(genes_subset2):
-        data = data[genes_subset2, :]
+    cell_frac = 1.0
+    gene_frac = 0.2
+    if 'cell_frac' in params:
+        cell_frac = params['cell_frac']
+    if 'gene_frac' in params:
+        gene_frac = params['gene_frac']
+    gene_subset = np.array(uncurl.max_variance_genes(data, 5, gene_frac))
+    data = data[gene_subset, :]
     if split_or_merge == 'split':
         c = clusters_to_change[0]
         m_new, w_new = relabeling.split_cluster(data, m_new, w_new,
@@ -202,4 +217,4 @@ def generate_analysis_resubmit(data_dir,
     elif os.path.exists(os.path.join(data_dir, 'pca.txt')):
         dim_red_option = 'pca'
     analysis_postprocessing(data, m_new, w_new, data_dir, gene_names,
-            dim_red_option)
+            dim_red_option, cell_frac)
