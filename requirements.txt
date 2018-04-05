@@ -51,3 +51,4 @@ flask
 flask_bootstrap
 scipy
 git+git://github.com/yjzhang/uncurl_analysis.git
+git+git://github.com/yjzhang/simplex_sample.git

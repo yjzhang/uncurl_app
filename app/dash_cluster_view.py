@@ -59,6 +59,12 @@ def create_cells_figure(dim_red, labels, colorscale='Portland',
         color_values = [entropy[labels==c] for c in set(labels)]
     # TODO: add a colorbar for entropy mode.
     # also, use a different view.
+    # have size depend on data shape
+    size = 10
+    if size > 2000:
+        size = 5
+    elif size > 10000:
+        size = 1
     return {
                 'data': [
                     go.Scatter(
@@ -67,7 +73,7 @@ def create_cells_figure(dim_red, labels, colorscale='Portland',
                         mode='markers',
                         name='cluster ' + str(c),
                         marker={
-                            'size': 10,
+                            'size': size,
                             'color': color_values[c],
                             'colorscale': colorscale,
                         },
