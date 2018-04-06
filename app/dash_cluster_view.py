@@ -164,8 +164,9 @@ def generate_cluster_view(dim_red, n_genes=10, gene_names_list=None):
         html.Div([
             dcc.RadioItems(
                 id='means-or-cell',
-                options=[{'label': 'Display Means', 'value': 'Means'},
-                         {'label': 'Display Cells', 'value': 'Cells'}],
+                options=[{'label': 'Cluster Means', 'value': 'Means'},
+                         {'label': 'Processed Cells', 'value': 'Cells'},
+                         {'label': 'Unprocessed Cells', 'value': 'Baseline'}],
                 value='Means',
                 labelStyle={'display': 'inline-block'},
             ),
@@ -277,25 +278,34 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         app.labels = np.loadtxt(os.path.join(data_dir, 'labels.txt')).astype(int)
         app.mds_means = np.loadtxt(os.path.join(data_dir, 'mds_means.txt'))
         app.mds_data = np.loadtxt(os.path.join(data_dir, 'mds_data.txt'))
+        # load genes
         with open(os.path.join(data_dir, 'top_genes.txt')) as f:
             app.top_genes = json.load(f)
+        # load pvals
         try:
             with open(os.path.join(data_dir, 'gene_pvals.txt')) as f:
                 app.p_values = json.load(f)
         except:
             app.p_values = app.top_genes
+        # load gene names
         try:
             app.gene_names = np.loadtxt(os.path.join(data_dir, 'gene_names.txt'), dtype=str)
         except:
             M = np.loadtxt(os.path.join(data_dir, 'm.txt'))
             app.gene_names = np.array(['gene ' + str(x) for x in range(M.shape[0])])
             del M
+        # load entropy
         try:
             app.entropy = np.loadtxt(os.path.join(data_dir, 'entropy.txt'))
         except:
             W = np.loadtxt(os.path.join(data_dir, 'w.txt'))
             app.entropy = -(W*np.log2(W)).sum(0)
             del W
+        # load baseline visualization
+        try:
+            app.baseline_vis = np.loadtxt(os.path.join(data_dir, 'baseline_vis.txt'))
+        except:
+            app.baseline_vis = app.mds_data
 
     # generate layout
     #app.layout.children[1].children = generate_cluster_view(mds_means)
@@ -357,8 +367,6 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
              Input(component_id='cell-color', component_property='value')]
     )
     def update_scatterplot(input_value, cell_color_value):
-        #print('update_scatterplot')
-        #print(input_value)
         if input_value == 'Means':
             app.scatter_mode = 'means'
             return create_means_figure(app.mds_means)
@@ -370,6 +378,14 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
                         mode='entropy', entropy=app.entropy)
             else:
                 return create_cells_figure(app.mds_data, app.labels)
+        elif input_value == 'Baseline':
+            app.scatter_mode = 'baseline'
+            if cell_color_value == 'entropy':
+                return create_cells_figure(app.baseline_vis, app.labels,
+                        colorscale='Viridis',
+                        mode='entropy', entropy=app.entropy)
+            else:
+                return create_cells_figure(app.baseline_vis, app.labels)
 
     # create callback for top genes list
     @app.callback(

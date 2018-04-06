@@ -6,12 +6,16 @@ import os
 import numpy as np
 import scipy.io
 from scipy import sparse
-from sklearn.manifold import TSNE
-from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE, MDS
+from sklearn.decomposition import PCA, TruncatedSVD
+
 import uncurl
 from uncurl.sparse_utils import symmetric_kld
+
 import uncurl_analysis
 from uncurl_analysis import gene_extraction, relabeling
+
+from simplex_sampling import simplex_sample
 
 def generate_uncurl_analysis(data, output_dir,
         data_type='dense',
@@ -24,6 +28,7 @@ def generate_uncurl_analysis(data, output_dir,
         max_reads=1e10,
         frac=0.2,
         cell_frac=1.0,
+        baseline_dim_red='none',
         **uncurl_kwargs):
     """
     Performs an uncurl analysis of the data, writing the results in the given
@@ -98,8 +103,56 @@ def generate_uncurl_analysis(data, output_dir,
     np.savetxt(os.path.join(output_dir, 'm.txt'), m)
     np.savetxt(os.path.join(output_dir, 'w.txt'), w)
     print('uncurl done')
+    # TODO: cell subset
+    if cell_frac < 1:
+        sampled_cells = cell_subset(w, cell_frac)
+    else:
+        sampled_cells = np.arange(data_subset.shape[1])
+    np.savetxt(os.path.join(output_dir, 'cell_sample.txt'), sampled_cells, fmt='%d')
+    # run baseline dimensionality reduction
+    baseline_vis(data_subset[:, sampled_cells], baseline_dim_red)
+    print('baseline vis done')
+    # run postprocessing
     analysis_postprocessing(data, m, w, output_dir, gene_names,
             dim_red_option, cell_frac)
+
+
+def cell_subset(w, cell_frac):
+    """
+    Returns a set of indices.
+    """
+    k, cells = w.shape
+    n_samples = int(cells*cell_frac)
+    samples = simplex_sample.sample(k, n_samples)
+    indices = simplex_sample.data_sample(w, samples)
+    return indices
+
+
+def baseline_vis(data, baseline_dim_red, output_dir):
+    """
+    Generates a visualization using the unprocessed data.
+    """
+    baseline_dim_red = baseline_dim_red.lower()
+    if baseline_dim_red == 'none':
+        return None
+    else:
+        tsvd = TruncatedSVD(50)
+        data_log_norm = uncurl.preprocessing.log1p(uncurl.preprocessing.cell_normalize(data))
+        if baseline_dim_red == 'tsne':
+            data_tsvd = tsvd.fit_transform(data_log_norm.T)
+            tsne = TSNE(2)
+            data_dim_red = tsne.fit_transform(data_tsvd)
+        elif baseline_dim_red == 'tsvd':
+            tsvd2 = TruncatedSVD(2)
+            data_dim_red = tsvd2.fit_transform(data_log_norm.T)
+        elif baseline_dim_red == 'mds':
+            data_tsvd = tsvd.fit_transform(data_log_norm.T)
+            mds = MDS(2)
+            data_dim_red = mds.fit_transform(data_tsvd)
+        with open(os.path.join(output_dir, 'baseline_vis.txt'), 'w') as f:
+            np.savetxt(f, data_dim_red.T)
+        return data_dim_red
+
 
 def analysis_postprocessing(data, m, w, output_dir,
         gene_names=None,
@@ -132,11 +185,11 @@ def analysis_postprocessing(data, m, w, output_dir,
     with open(os.path.join(output_dir, dim_red_option + '.txt'), 'w') as f:
         f.write('')
     if cell_frac < 1:
-        if not os.path.exists(os.path.join(output_dir, 'cells.txt')):
-            cells_to_select = np.random.choice(w.shape[1], cell_frac*w.shape[1], replace=False)
-            np.savetxt(os.path.join(output_dir, 'cells.txt'), cells_to_select)
+        if not os.path.exists(os.path.join(output_dir, 'cell_sample.txt')):
+            cells_to_select = cell_subset(w, cell_frac)
+            np.savetxt(os.path.join(output_dir, 'cell_sample.txt'), cells_to_select)
         else:
-            cells_to_select = np.loadtxt(os.path.join(output_dir, 'cells.txt'), dtype=int)
+            cells_to_select = np.loadtxt(os.path.join(output_dir, 'cell_sample.txt'), dtype=int)
         w = w[:, cells_to_select]
     if dim_red_option == 'mds':
         mds_data = uncurl.mds(m, w, 2)

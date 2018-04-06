@@ -306,12 +306,14 @@ def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson',
     max_reads = 1e10
     cell_frac = 1.0
     normalize = False
+    baseline_vismethod = None
     if preprocess is not None:
         min_reads = int(preprocess['min_reads'])
         max_reads = int(preprocess['max_reads'])
         cell_frac = float(preprocess['cell_frac'])
         if 'normalize' in preprocess:
             normalize = True
+        baseline_vismethod = preprocess['baseline_vismethod']
     # TODO: save params as json instead of having to pass them...
     generate_uncurl_analysis(data, path, clusters=k, gene_names=gene_names,
             gene_sub=True,
@@ -321,6 +323,7 @@ def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson',
             frac=gene_frac,
             cell_frac=cell_frac,
             normalize=normalize,
+            baseline_dim_red=baseline_vismethod,
             **uncurl_args)
 
 @app.route('/lineage')
