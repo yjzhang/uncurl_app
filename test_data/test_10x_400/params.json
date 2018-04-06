@@ -1,0 +1,1 @@
+{"normalize": "1", "nbins": 5, "frac": 0.2, "baseline_vismethod": "tSNE", "cells": 400, "genes": 19848, "disttype": "Poisson", "min_reads": "500", "genes_frac": "0.2", "vismethod": "tSNE", "k": "8", "max_reads": "4780", "cell_frac": "1.0"}

@@ -306,6 +306,13 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             app.baseline_vis = np.loadtxt(os.path.join(data_dir, 'baseline_vis.txt'))
         except:
             app.baseline_vis = app.mds_data
+        # load data subset
+        try:
+            app.cell_sample = np.loadtxt(os.path.join(data_dir, 'cell_sample.txt'), dtype=int)
+            app.labels = app.labels[app.cell_sample]
+            app.entropy = app.entropy[app.cell_sample]
+        except:
+            app.cell_sample = np.arange(app.labels.shape[0])
 
     # generate layout
     #app.layout.children[1].children = generate_cluster_view(mds_means)

@@ -15,7 +15,7 @@ from uncurl.sparse_utils import symmetric_kld
 import uncurl_analysis
 from uncurl_analysis import gene_extraction, relabeling
 
-from simplex_sampling import simplex_sample
+import simplex_sample
 
 def generate_uncurl_analysis(data, output_dir,
         data_type='dense',
@@ -110,7 +110,7 @@ def generate_uncurl_analysis(data, output_dir,
         sampled_cells = np.arange(data_subset.shape[1])
     np.savetxt(os.path.join(output_dir, 'cell_sample.txt'), sampled_cells, fmt='%d')
     # run baseline dimensionality reduction
-    baseline_vis(data_subset[:, sampled_cells], baseline_dim_red)
+    baseline_vis(data_subset[:, sampled_cells], baseline_dim_red, output_dir)
     print('baseline vis done')
     # run postprocessing
     analysis_postprocessing(data, m, w, output_dir, gene_names,
