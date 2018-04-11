@@ -248,7 +248,8 @@ def state_estimation_file(x, user_id, filename):
     if x!='test':
         path = os.path.join('/tmp/uncurl/', user_id)
     else:
-        path = os.path.join('test_data', user_id)
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                'test_data', user_id)
     print(path)
     return send_from_directory(path, filename)
 
