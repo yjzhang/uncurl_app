@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{super()}}
+{% endblock %}
+
+{% block content %}
+
+<div class="container container-main" role="main">
+    <h3>Data downloads for query id {{ user_id }}</h3>
+
+    <!--have a list of downloads -->
+    <ul>
+        {% for element in files %}
+        <li><a href="{{ url_for('state_estimation_file', x=test_or_user, user_id=user_id, filename=element) }}">{{ element }}</a></li>
+        {% endfor %}
+    </ul>
+
+</div>
+
+{% endblock %}

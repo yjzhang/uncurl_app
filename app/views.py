@@ -4,6 +4,7 @@ import os
 import pickle
 import uuid
 
+import bokeh
 from flask import Markup, render_template, request, redirect, send_from_directory, url_for
 from werkzeug import secure_filename
 
@@ -214,7 +215,6 @@ def state_estimation_start(user_id):
 
 @app.route('/state_estimation/results/<user_id>/')
 def state_estimation_result(user_id):
-    # TODO: get summary statistics + visualization
     path = os.path.join('/tmp/uncurl/', user_id)
     if os.path.exists(os.path.join(path, 'mds_data.txt')):
         #try:
@@ -251,6 +251,19 @@ def state_estimation_file(x, user_id, filename):
         path = os.path.join('test_data', user_id)
     print(path)
     return send_from_directory(path, filename)
+
+@app.route('/<x>/results/<user_id>/data_download')
+def data_download(x, user_id):
+    if x!='test':
+        path = os.path.join('/tmp/uncurl/', user_id)
+    else:
+        path = os.path.join('test_data', user_id)
+    files = os.listdir(path)
+    files.sort()
+    return render_template('data_download.html',
+            user_id=user_id,
+            test_or_user=x,
+            files=files)
 
 def state_estimation_preproc(user_id, path=None):
     """
@@ -315,6 +328,7 @@ def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson',
             normalize = True
         baseline_vismethod = preprocess['baseline_vismethod']
     # TODO: save params as json instead of having to pass them...
+    # actually save params.json and pass params lol
     generate_uncurl_analysis(data, path, clusters=k, gene_names=gene_names,
             gene_sub=True,
             dim_red_option=vismethod,

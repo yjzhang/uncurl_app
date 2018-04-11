@@ -278,14 +278,10 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             html.Div(html.A('permalink: ' + permalink, href=permalink),
                 style={'width': 500}),
             # TODO: add links to data downloads
-            html.Div(html.A('Download M', href=url_for('state_estimation_file',
+            html.Div(html.A('Data download', href=url_for('data_download',
                 x=test_or_user,
-                user_id=user_id, filename='m.txt')),
+                user_id=user_id)),
                 style={'width': 200}),
-            html.Div(html.A('Download W', href=url_for('state_estimation_file',
-                x=test_or_user,
-                user_id=user_id, filename='w.txt')),
-                style={'width': 200})
             ],
             style={'display':'inline-block',
                 'margin-left': 60}
@@ -306,11 +302,11 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         #print(input_value)
         num_genes = int(num_genes)
         if input_value is None:
-            input_value = '0'
+            input_value = 0
         else:
-            input_value = str(input_value['points'][0]['curveNumber'])
+            input_value = input_value['points'][0]['curveNumber']
         if top_or_bulk == 'top':
-            selected_top_genes = app.sca.top_genes[input_value][:num_genes]
+            selected_top_genes = app.sca.top_genes[int(input_value)][:num_genes]
             selected_gene_names = [app.sca.gene_names[x[0]] for x in selected_top_genes]
             return create_top_genes_figure(selected_top_genes,
                     selected_gene_names, input_value)
@@ -361,15 +357,15 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
     def update_genes_list(top_or_bulk, input_value, num_genes):
         num_genes = int(num_genes)
         if input_value is None:
-            input_value = '0'
+            input_value = 0
         else:
-            input_value = str(input_value['points'][0]['curveNumber'])
+            input_value = input_value['points'][0]['curveNumber']
         if top_or_bulk == 'top':
-            selected_top_genes = app.sca.top_genes[input_value][:num_genes]
+            selected_top_genes = app.sca.top_genes[int(input_value)][:num_genes]
             selected_gene_names = [app.sca.gene_names[x[0]] for x in selected_top_genes]
             return '\n'.join(selected_gene_names)
         elif top_or_bulk == 'pval':
-            selected_top_genes = app.sca.pvals[input_value][:num_genes]
+            selected_top_genes = app.sca.pvals[int(input_value)][:num_genes]
             selected_gene_names = [app.sca.gene_names[x[0]] for x in selected_top_genes]
             return '\n'.join(selected_gene_names)
         else:
