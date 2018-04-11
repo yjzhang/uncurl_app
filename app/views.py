@@ -275,11 +275,9 @@ def state_estimation_preproc(user_id, path=None):
     data, output_filename, init = load_upload_data(path)
     #except:
     #    return error('Error: no file found', 400)
-    gene_names = load_gene_names(path)
-    if len(gene_names) == 0:
-        gene_names = None
     if path is None:
         path = os.path.join('/tmp/uncurl/', user_id)
+    gene_names = load_gene_names(path)
     summary = Summary(data, path)
     script, div = summary.visualize()
     summary.preprocessing_params()
