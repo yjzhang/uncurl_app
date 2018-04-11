@@ -62,9 +62,9 @@ def create_cells_figure(dim_red, labels, colorscale='Portland',
     # also, use a different view.
     # have size depend on data shape
     size = 10
-    if size > 2000:
+    if len(labels) > 2000:
         size = 5
-    elif size > 10000:
+    elif len(labels) > 10000:
         size = 1
     return {
                 'data': [
