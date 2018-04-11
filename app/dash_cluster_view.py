@@ -11,6 +11,7 @@ import plotly.graph_objs as go
 
 import numpy as np
 from uncurl_analysis import enrichr_api
+from uncurl_analysis import sc_analysis
 import generate_analysis
 
 def create_means_figure(dim_red, colorscale='Portland'):
@@ -114,7 +115,7 @@ def create_top_genes_figure(selected_top_genes, selected_gene_names,
                 'layout': go.Layout(
                     title='Top genes for cluster {0}'.format(cluster_name),
                     xaxis={'title': x_label},
-                    yaxis={'title': 'genes'},
+                    #yaxis={'title': 'genes'},
                 ),
         }
 
@@ -158,6 +159,7 @@ def generate_cluster_view(dim_red, n_genes=10, gene_names_list=None):
     colorscale = 'Portland'
     #if dim_red.shape[1] > 10:
     #    colorscale = 'Jet'
+    # TODO: set up a css grid
     return html.Div([
         dcc.Location(id='url', refresh=False),
         # view 1: graph plot
@@ -266,54 +268,9 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
     app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/bWLwgP.css"})
 
     #M = None
-    app.labels = None
-    app.mds_means = np.array([[1,2,3,4],[1,2,3,4]])
-    app.mds_data = None
-    app.top_genes = {'0': [(0,100),(1,50),(2,40)], '1': [(0,50),(1,45),(2,30)]}
-    app.p_values = {'0': [(0,0.0),(1,0.1),(2,0.2)], '1': [(0,0.0),(1,0.1),(2,0.2)]}
-    app.gene_names = None
-    app.entropy = None
-    #print('initialize ' + data_dir)
-    if data_dir != None:
-        app.labels = np.loadtxt(os.path.join(data_dir, 'labels.txt')).astype(int)
-        app.mds_means = np.loadtxt(os.path.join(data_dir, 'mds_means.txt'))
-        app.mds_data = np.loadtxt(os.path.join(data_dir, 'mds_data.txt'))
-        # load genes
-        with open(os.path.join(data_dir, 'top_genes.txt')) as f:
-            app.top_genes = json.load(f)
-        # load pvals
-        try:
-            with open(os.path.join(data_dir, 'gene_pvals.txt')) as f:
-                app.p_values = json.load(f)
-        except:
-            app.p_values = app.top_genes
-        # load gene names
-        try:
-            app.gene_names = np.loadtxt(os.path.join(data_dir, 'gene_names.txt'), dtype=str)
-        except:
-            M = np.loadtxt(os.path.join(data_dir, 'm.txt'))
-            app.gene_names = np.array(['gene ' + str(x) for x in range(M.shape[0])])
-            del M
-        # load entropy
-        try:
-            app.entropy = np.loadtxt(os.path.join(data_dir, 'entropy.txt'))
-        except:
-            W = np.loadtxt(os.path.join(data_dir, 'w.txt'))
-            app.entropy = -(W*np.log2(W)).sum(0)
-            del W
-        # load baseline visualization
-        try:
-            app.baseline_vis = np.loadtxt(os.path.join(data_dir, 'baseline_vis.txt'))
-        except:
-            app.baseline_vis = app.mds_data
-        # load data subset
-        try:
-            app.cell_sample = np.loadtxt(os.path.join(data_dir, 'cell_sample.txt'), dtype=int)
-            app.labels = app.labels[app.cell_sample]
-            app.entropy = app.entropy[app.cell_sample]
-        except:
-            app.cell_sample = np.arange(app.labels.shape[0])
-
+    app.sca = sc_analysis.SCAnalysis(data_dir)
+    app.sca = app.sca.load_params_from_folder()
+    app.sca.uncurl_kwargs = uncurl_args
     # generate layout
     #app.layout.children[1].children = generate_cluster_view(mds_means)
     app.layout = html.Div([
@@ -333,7 +290,7 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             style={'display':'inline-block',
                 'margin-left': 60}
         ),
-        html.Div([generate_cluster_view(app.mds_means)],
+        html.Div([generate_cluster_view(app.sca.mds_means)],
             id='cluster-view')
     ])
 
@@ -353,13 +310,13 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         else:
             input_value = str(input_value['points'][0]['curveNumber'])
         if top_or_bulk == 'top':
-            selected_top_genes = app.top_genes[input_value][:num_genes]
-            selected_gene_names = [app.gene_names[x[0]] for x in selected_top_genes]
+            selected_top_genes = app.sca.top_genes[input_value][:num_genes]
+            selected_gene_names = [app.sca.gene_names[x[0]] for x in selected_top_genes]
             return create_top_genes_figure(selected_top_genes,
                     selected_gene_names, input_value)
         elif top_or_bulk == 'pval':
-            selected_top_genes = app.p_values[input_value][:num_genes]
-            selected_gene_names = [app.gene_names[x[0]] for x in selected_top_genes]
+            selected_top_genes = app.sca.pvals[input_value][:num_genes]
+            selected_gene_names = [app.sca.gene_names[x[0]] for x in selected_top_genes]
             return create_top_genes_figure(selected_top_genes,
                     selected_gene_names, input_value,
                     x_label='p-value of c-score')
@@ -376,23 +333,23 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
     def update_scatterplot(input_value, cell_color_value):
         if input_value == 'Means':
             app.scatter_mode = 'means'
-            return create_means_figure(app.mds_means)
+            return create_means_figure(app.sca.mds_means)
         elif input_value == 'Cells':
             app.scatter_mode = 'cells'
             if cell_color_value == 'entropy':
-                return create_cells_figure(app.mds_data, app.labels,
+                return create_cells_figure(app.sca.dim_red, app.sca.labels,
                         colorscale='Viridis',
-                        mode='entropy', entropy=app.entropy)
+                        mode='entropy', entropy=app.sca.entropy)
             else:
-                return create_cells_figure(app.mds_data, app.labels)
+                return create_cells_figure(app.sca.dim_red, app.sca.labels)
         elif input_value == 'Baseline':
             app.scatter_mode = 'baseline'
             if cell_color_value == 'entropy':
-                return create_cells_figure(app.baseline_vis, app.labels,
+                return create_cells_figure(app.sca.baseline_vis, app.sca.labels,
                         colorscale='Viridis',
-                        mode='entropy', entropy=app.entropy)
+                        mode='entropy', entropy=app.sca.entropy)
             else:
-                return create_cells_figure(app.baseline_vis, app.labels)
+                return create_cells_figure(app.sca.baseline_vis, app.sca.labels)
 
     # create callback for top genes list
     @app.callback(
@@ -408,12 +365,12 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         else:
             input_value = str(input_value['points'][0]['curveNumber'])
         if top_or_bulk == 'top':
-            selected_top_genes = app.top_genes[input_value][:num_genes]
-            selected_gene_names = [app.gene_names[x[0]] for x in selected_top_genes]
+            selected_top_genes = app.sca.top_genes[input_value][:num_genes]
+            selected_gene_names = [app.sca.gene_names[x[0]] for x in selected_top_genes]
             return '\n'.join(selected_gene_names)
         elif top_or_bulk == 'pval':
-            selected_top_genes = app.p_values[input_value][:num_genes]
-            selected_gene_names = [app.gene_names[x[0]] for x in selected_top_genes]
+            selected_top_genes = app.sca.pvals[input_value][:num_genes]
+            selected_gene_names = [app.sca.gene_names[x[0]] for x in selected_top_genes]
             return '\n'.join(selected_gene_names)
         else:
             # TODO: show bulk correlations
@@ -434,6 +391,8 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             if top_genes_value not in app.enrichr_gene_list_ids:
                 gene_list = top_genes_value.strip().split()
                 user_list_id = enrichr_api.enrichr_add_list(gene_list)
+                if user_list_id == 'timeout':
+                    return 'Error: Enrichr query timed out'
                 app.enrichr_gene_list_ids[top_genes_value] = user_list_id
             else:
                 user_list_id = app.enrichr_gene_list_ids[top_genes_value]
@@ -443,12 +402,18 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             else:
                 try:
                     results = enrichr_api.enrichr_query(user_list_id, gene_set)
+                    if results == 'timeout':
+                        return 'Error: Enrichr query timed out'
                     app.enrichr_results[(top_genes_value, gene_set)] = results[:10]
                 except:
                     gene_list = top_genes_value.strip().split()
                     user_list_id = enrichr_api.enrichr_add_list(gene_list)
+                    if user_list_id == 'timeout':
+                        return 'Error: Enrichr query timed out'
                     app.enrichr_gene_list_ids[top_genes_value] = user_list_id
                     results = enrichr_api.enrichr_query(user_list_id, gene_set)
+                    if results == 'timeout':
+                        return 'Error: Enrichr query timed out'
                     app.enrichr_results[(top_genes_value, gene_set)] = results[:10]
             # only take top 10 results (maybe have this value be variable?)
             results = results[:10]
@@ -483,7 +448,7 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             selected_clusters.append(cluster)
         selected_clusters = list(set(selected_clusters))
         for cluster in selected_clusters:
-            cluster_counts.append((app.labels == cluster).sum())
+            cluster_counts.append((app.sca.labels == cluster).sum())
         # split clusters - TODO: have some kind of progress bar?
         if n_click_split > app.split_clicks:
             if test_or_user == 'test':
@@ -515,23 +480,17 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         # split clusters
         if n_click_split > app.split_clicks:
             app.split_clicks = n_click_split
-            generate_analysis.generate_analysis_resubmit(data_dir,
-                    'split',
-                    selected_clusters,
-                    app.gene_names,
-                    **app.uncurl_args)
+            generate_analysis.generate_analysis_resubmit(app.sca,
+                    'split', selected_clusters)
             initialize(app, data_dir, permalink, user_id, test_or_user)
-            return generate_cluster_view(app.mds_means)
+            return generate_cluster_view(app.sca.mds_means)
         # merge clusters
         elif n_click_merge > app.merge_clicks:
             app.merge_clicks = n_click_merge
-            generate_analysis.generate_analysis_resubmit(data_dir,
-                    'merge',
-                    selected_clusters,
-                    app.gene_names,
-                    **app.uncurl_args)
+            generate_analysis.generate_analysis_resubmit(app.sca,
+                    'merge', selected_clusters)
             initialize(app, data_dir, permalink, user_id, test_or_user)
-            return generate_cluster_view(app.mds_means)
+            return generate_cluster_view(app.sca.dim_red)
         else:
             raise Exception('placeholder')
 
