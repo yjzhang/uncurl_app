@@ -73,6 +73,8 @@ def generate_uncurl_analysis(data, output_dir,
             data_is_sparse = False
     else:
         pass
+    with open(os.path.join(output_dir, 'uncurl_kwargs.json'), 'w') as f:
+        json.dump(uncurl_kwargs, f)
     sca = sc_analysis.SCAnalysis(output_dir,
             data_filename=data_filename,
             data_is_sparse=data_is_sparse,
@@ -91,7 +93,8 @@ def generate_uncurl_analysis(data, output_dir,
 
 def generate_analysis_resubmit(sca,
         split_or_merge='split',
-        clusters_to_change=[]):
+        clusters_to_change=[],
+        **uncurl_kwargs):
     """
     Re-runs uncurl by splitting a cluster or merging clusters.
 
@@ -100,6 +103,7 @@ def generate_analysis_resubmit(sca,
         split_or_merge (str): either 'split' or 'merge'
         clusters_to_change (list): list of cluster numbers. If splitting, only the first cluster will be used. If merging, all the clusters will be merged.
     """
+    sca.uncurl_kwargs = uncurl_kwargs
     sca.recluster(split_or_merge, clusters_to_change)
     sca.run_post_analysis()
     sca.save_pickle_reset()

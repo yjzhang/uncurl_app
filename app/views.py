@@ -33,43 +33,22 @@ def load_upload_data(path=None):
     # allow for mtx input data
     input_type = request.form['inputtype']
     if input_type == 'dense':
-        f.save(os.path.join(path, 'data.txt'))
-        data = np.loadtxt(os.path.join(path, 'data.txt'))
+        data_filename = 'data.txt'
+        if output_filename.endswith('.gz'):
+            data_filename = 'data.txt.gz'
+        f.save(os.path.join(path, data_filename))
+        data = np.loadtxt(os.path.join(path, data_filename))
     elif input_type == 'sparse':
-        f.save(os.path.join(path, 'data.mtx'))
-        data = scipy.io.mmread(os.path.join(path, 'data.mtx'))
+        data_filename = 'data.mtx'
+        if output_filename.endswith('.mtx.gz'):
+            data_filename = 'data.mtx.gz'
+        f.save(os.path.join(path, data_filename))
+        data = scipy.io.mmread(os.path.join(path, data_filename))
     init = None
     if init_f is not None and init_f.filename != '':
         init = np.loadtxt(init_f)
         init_f.save(os.path.join(path, 'init.txt'))
     return data, output_filename, init
-
-def save_upload_data(path):
-    """
-    Saves uploaded data to the given path.
-    """
-    if 'fileinput' in request.files:
-        f = request.files['fileinput']
-        output_filename = secure_filename(f.filename)
-        if output_filename == '':
-            return
-    else:
-        return
-    init_f = None
-    if 'startinput' in request.files:
-        init_f = request.files['startinput']
-    # allow for mtx input data
-    input_type = request.form['inputtype']
-    input_size = 0
-    if input_type == 'dense':
-        f.save(os.path.join(path, 'data.txt'))
-        input_size = os.stat(os.path.join(path, 'data.txt')).st_size
-    elif input_type == 'sparse':
-        f.save(os.path.join(path, 'data.mtx'))
-        input_size = os.stat(os.path.join(path, 'data.mtx')).st_size
-    if init_f is not None and init_f.filename != '':
-        init_f.save(os.path.join(path, 'init.txt'))
-    return input_size
 
 
 def load_gene_names(path=None):
@@ -171,7 +150,6 @@ def state_estimation_input():
     # TODO: if file is large, start a new thread. otherwise just
     # run the thing
     P = Process(target=state_estimation_preproc, args=(user_id, path))
-    #P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type, vismethod, gene_names, gene_sub, path))
     P.start()
     #state_estimation_preproc(user_id, path)
     return redirect(url_for('state_estimation_result', user_id=user_id))
@@ -184,12 +162,7 @@ def state_estimation_start(user_id):
     This saves a file called 'params.json' in /tmp/uncurl/<user_id>
     containing all parameters used in state estimation.
     """
-    # TODO: get parameters???
     path = os.path.join('/tmp/uncurl/', user_id)
-    data = os.path.join(path, 'data.mtx')
-    # get correct data names
-    if not os.path.exists(data):
-        data = os.path.join(path, 'data.txt')
     gene_names = os.path.join(path, 'gene_names.txt')
     if not os.path.exists(gene_names):
         gene_names = None
@@ -204,11 +177,7 @@ def state_estimation_start(user_id):
     # params.json contains all input parameters to the state estimation
     with open(os.path.join(path, 'params.json'), 'w') as f:
         json.dump(preprocess, f)
-    k = int(preprocess['k'])
-    dist_type = preprocess['disttype']
-    vismethod = preprocess['vismethod']
-    gene_frac = float(preprocess['genes_frac'])
-    P = Process(target=state_estimation_thread, args=(data, k, user_id, init, dist_type, vismethod, gene_names, gene_frac, path, preprocess))
+    P = Process(target=state_estimation_thread, args=(user_id, gene_names, init, path, preprocess))
     P.start()
     return redirect(url_for('state_estimation_result', user_id=user_id))
 
@@ -273,59 +242,61 @@ def state_estimation_preproc(user_id, path=None):
     """
     #try:
     data, output_filename, init = load_upload_data(path)
+    is_gz = False
+    if output_filename.endswith('.gz'):
+        is_gz = True
     #except:
     #    return error('Error: no file found', 400)
     if path is None:
         path = os.path.join('/tmp/uncurl/', user_id)
     gene_names = load_gene_names(path)
-    summary = Summary(data, path)
+    summary = Summary(data, path, is_gz)
     script, div = summary.visualize()
     summary.preprocessing_params()
 
-def state_estimation_thread(data, k, user_id, init=None, dist_type='Poisson',
-        vismethod='mds', gene_names=None, gene_frac=0.2, path=None,
-        preprocess=None):
+def state_estimation_thread(user_id, gene_names=None, init=None, path=None, preprocess=None):
     """
-    Uses a new process to do state estimation.
+    Uses a new process to do state estimation. Assumes that the input data is already saved in a directory named /tmp/uncurl/<user_id>/.
 
     Args:
-        data (str or array): path to an array, or a numpy array, or a scipy sparse
-        k (int)
         user_id (str)
-        init (array, optional): init_means- shape is (genes, k). Default: None.
-        dist_type (str, optional): one of Poisson, Negative binomial, or Log-Normal. Default: Poisson
-        vismethod (str, optional): one of mds, tsne, or pca. Default: mds
         gene_names (str or array, optional): path to a list of gene names, or an array of gene names. Default: None
-        gene_frac (float, optional): Fraction of genes to be included. Default: 0.2
+        init (array, optional): init_means- shape is (genes, k). Default: None.
         path (str, optional): Path where data and results are saved.
-        preprocess (dict, optional): dict containing additional parameters, like min_reads, max_reads, normalize,
+        preprocess (dict): dict containing additional parameters: min_reads, max_reads, normalize, is_sparse, is_gz, disttype, genes_frac, cell_frac, vismethod, baseline_vismethod
     """
     if path is None:
         path = os.path.join('/tmp/uncurl/', user_id)
-    # if debugging, set max_iters to 1, inner_max_iters to 1... should be in config
+    # get correct data names
+    data = os.path.join(path, 'data.mtx')
+    if preprocess['is_gz']:
+        data += '.gz'
+    if not os.path.exists(data):
+        data = os.path.join(path, 'data.txt')
+        if preprocess['is_gz']:
+            data += '.gz'
+    # TODO: it's really confusing where the param names come from in
+    # the preprocess dict - they come from the input ids in
+    # state_estimation_user.html.
+    dist_type = preprocess['disttype']
     if dist_type=='Poisson':
         pass
     elif dist_type=='Negative binomial':
         dist_type = 'nb'
     elif dist_type == 'Log-Normal':
         dist_type = 'lognorm'
-    if sparse.issparse(data):
-        data = sparse.csc_matrix(data)
     uncurl_args = app.config['UNCURL_ARGS']
     uncurl_args['dist'] = dist_type
     uncurl_args['init_means'] = init
-    min_reads = 0
-    max_reads = 1e10
-    cell_frac = 1.0
-    normalize = False
-    baseline_vismethod = None
-    if preprocess is not None:
-        min_reads = int(preprocess['min_reads'])
-        max_reads = int(preprocess['max_reads'])
-        cell_frac = float(preprocess['cell_frac'])
-        if 'normalize' in preprocess:
-            normalize = True
-        baseline_vismethod = preprocess['baseline_vismethod']
+    k = int(preprocess['k'])
+    vismethod = preprocess['vismethod']
+    gene_frac = float(preprocess['genes_frac'])
+    min_reads = int(preprocess['min_reads'])
+    max_reads = int(preprocess['max_reads'])
+    cell_frac = float(preprocess['cell_frac'])
+    if 'normalize' in preprocess:
+        normalize = True
+    baseline_vismethod = preprocess['baseline_vismethod']
     # TODO: save params as json instead of having to pass them...
     # actually save params.json and pass params lol
     generate_uncurl_analysis(data, path, clusters=k, gene_names=gene_names,
@@ -357,7 +328,7 @@ def lineage_input():
         P.start()
         return redirect(url_for('lineage_input_user_id', user_id=user_id))
     elif 'fileinput' in request.files:
-        data, output_filename = load_upload_data()
+        data, output_filename, init = load_upload_data()
         k = request.form['k']
         user_id = str(uuid.uuid4())
         P = Process(target=lineage_thread, args=(data, k, None, None, user_id))

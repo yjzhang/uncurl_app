@@ -14,11 +14,12 @@ class Summary(object):
     This object contains a summary for a single-cell RNASeq dataset.
     """
 
-    def __init__(self, data, path):
+    def __init__(self, data, path, is_gz=False):
         self.cell_read_counts = np.array(data.sum(0)).flatten()
         self.cells = data.shape[1]
         self.genes = data.shape[0]
         if sparse.issparse(data):
+            self.is_sparse = True
             data_csc = sparse.csc_matrix(data)
             m, v = sparse_means_var_csc(data_csc.data,
                     data_csc.indices, data_csc.indptr, data.shape[1],
@@ -26,9 +27,11 @@ class Summary(object):
             self.gene_means = m
             self.gene_vars = v
         else:
+            self.is_sparse = False
             self.gene_means = data.mean(1).flatten()
             self.gene_vars = data.var(1).flatten()
         self.path = path
+        self.is_gz = is_gz
         # TODO: try some k selection?
 
     def summary(self):
@@ -50,6 +53,8 @@ class Summary(object):
                           'cells': self.cells,
                           'genes': self.genes,
                           'normalize': False,
+                          'is_gz': self.is_gz,
+                          'is_sparse': self.is_sparse,
                           }
         with open(os.path.join(self.path, 'preprocess.json'), 'w') as f:
             json.dump(preproc_params, f)
