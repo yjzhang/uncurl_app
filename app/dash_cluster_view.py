@@ -312,12 +312,15 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             selected_top_genes = app.sca.top_genes[int(input_value)][:num_genes]
             selected_gene_names = [app.sca.gene_names[x[0]] for x in selected_top_genes]
             return create_top_genes_figure(selected_top_genes,
-                    selected_gene_names, input_value)
+                    selected_gene_names, input_value,
+                    title='Top genes for cluster {0}'.format(input_value),
+                    )
         elif top_or_bulk == 'pval':
             selected_top_genes = app.sca.pvals[input_value][:num_genes]
             selected_gene_names = [app.sca.gene_names[x[0]] for x in selected_top_genes]
             return create_top_genes_figure(selected_top_genes,
                     selected_gene_names, input_value,
+                    title='Top genes for cluster {0}'.format(input_value),
                     x_label='p-value of c-score')
         elif top_or_bulk == 'sep':
             # show separation score
