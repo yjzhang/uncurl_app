@@ -202,12 +202,12 @@ def generate_cluster_view(dim_red, n_genes=10, gene_names_list=None):
                 id='top-or-bulk',
                 options=[{'label': 'Top genes (c-score)', 'value': 'top'},
                          {'label': 'Top genes (p-value)', 'value': 'pval'},
-                         {'label': 'Most similar clusters (separation score', 'value': 'sep'},
+                         {'label': 'Most similar clusters (separation score)', 'value': 'sep'},
                          {'label': 'Bulk correlations', 'value': 'bulk'}],
                 value='top',
                 #labelStyle={'display': 'inline-block'},
                 )],
-                style={'margin-top': -25, 'width': 300}),
+                style={'margin-top': -25, 'width': 350}),
             html.Div(['Number of top genes: ', dcc.Input(
                 id='num-genes',
                 value=10,
@@ -322,7 +322,9 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         elif top_or_bulk == 'sep':
             # show separation score
             sep_scores = app.sca.separation_scores[int(input_value)]
-            cluster_names = list(range(app.sca.separation_scores.shape[0]))
+            cluster_names = map(lambda x: 'cluster ' + str(x),
+                    list(range(app.sca.separation_scores.shape[0])))
+            sep_scores = [(c, x) for c, x in zip(cluster_names, sep_scores)]
             return create_top_genes_figure(sep_scores,
                     cluster_names, input_value,
                     x_label='separation score',
