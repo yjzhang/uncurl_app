@@ -90,7 +90,7 @@ def create_cells_figure(dim_red, labels, colorscale='Portland',
         }
 
 def create_top_genes_figure(selected_top_genes, selected_gene_names,
-        cluster_name, x_label='c-score'):
+        cluster_name, x_label='c-score', title=None):
     """
     Creates a figure for displaying top genes
 
@@ -104,6 +104,8 @@ def create_top_genes_figure(selected_top_genes, selected_gene_names,
         selected_top_genes = [(1,1),(2,2),(3,3)]
     if selected_gene_names is None:
         selected_gene_names = ['placeholder 1', 'placeholder 2', 'placeholder 3']
+    if title is None:
+        title = 'Top genes for cluster {0}'.format(cluster_name),
     return {
                 'data': [
                     go.Bar(
@@ -113,7 +115,7 @@ def create_top_genes_figure(selected_top_genes, selected_gene_names,
                     )
                 ],
                 'layout': go.Layout(
-                    title='Top genes for cluster {0}'.format(cluster_name),
+                    title=title,
                     xaxis={'title': x_label},
                     #yaxis={'title': 'genes'},
                 ),
@@ -198,9 +200,10 @@ def generate_cluster_view(dim_red, n_genes=10, gene_names_list=None):
             html.Div([
                 dcc.Dropdown(
                 id='top-or-bulk',
-                options=[{'label': 'Display top genes (c-score)', 'value': 'top'},
-                         {'label': 'Display top genes (p-value)', 'value': 'pval'},
-                         {'label': 'Display bulk correlations', 'value': 'bulk'}],
+                options=[{'label': 'Top genes (c-score)', 'value': 'top'},
+                         {'label': 'Top genes (p-value)', 'value': 'pval'},
+                         {'label': 'Most similar clusters (separation score', 'value': 'sep'},
+                         {'label': 'Bulk correlations', 'value': 'bulk'}],
                 value='top',
                 #labelStyle={'display': 'inline-block'},
                 )],
@@ -316,6 +319,14 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
             return create_top_genes_figure(selected_top_genes,
                     selected_gene_names, input_value,
                     x_label='p-value of c-score')
+        elif top_or_bulk == 'sep':
+            # show separation score
+            sep_scores = app.sca.separation_scores[int(input_value)]
+            cluster_names = list(range(app.sca.separation_scores.shape[0]))
+            return create_top_genes_figure(sep_scores,
+                    cluster_names, input_value,
+                    x_label='separation score',
+                    title='Inter-cluster separations for cluster {0}'.format(input_value))
         else:
             # TODO: show bulk correlations
             pass
