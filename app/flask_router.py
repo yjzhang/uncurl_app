@@ -62,6 +62,7 @@ def route_user(user_id):
         dash_cluster_view.initialize(app.dash_apps[user_id], test_dir,
                 '/user/'+user_id, user_id, 'user',
                 app.config['UNCURL_ARGS'])
+    dash_cluster_view.reset(app.dash_apps[user_id])
     return redirect('/user_dash/'+str(user_id))
 
 @app.route('/test/<test_id>')
@@ -71,6 +72,7 @@ def route_test(test_id):
         dash_cluster_view.initialize(app.dash_apps[test_id], test_dir,
                 '/test/'+test_id, test_id, 'test',
                 app.config['UNCURL_ARGS'])
+    dash_cluster_view.reset(app.dash_apps[test_id])
     return redirect('/test_dash/'+str(test_id))
 
 initialize()

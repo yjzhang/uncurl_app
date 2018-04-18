@@ -3,20 +3,7 @@
 import json
 import os
 
-import numpy as np
-import scipy.io
-from scipy import sparse
-from sklearn.manifold import TSNE, MDS
-from sklearn.decomposition import PCA, TruncatedSVD
-
-import uncurl
-from uncurl.sparse_utils import symmetric_kld
-
-import uncurl_analysis
 from uncurl_analysis import sc_analysis
-from uncurl_analysis import gene_extraction, relabeling
-
-import simplex_sample
 
 def generate_uncurl_analysis(data, output_dir,
         data_type='dense',
@@ -88,7 +75,7 @@ def generate_uncurl_analysis(data, output_dir,
             baseline_dim_red=baseline_dim_red,
             **uncurl_kwargs)
     sca.run_full_analysis()
-    sca.save_pickle_reset()
+    sca.save_json_reset()
 
 
 def generate_analysis_resubmit(sca,

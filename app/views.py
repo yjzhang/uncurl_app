@@ -185,7 +185,7 @@ def state_estimation_start(user_id):
 @app.route('/state_estimation/results/<user_id>/')
 def state_estimation_result(user_id):
     path = os.path.join('/tmp/uncurl/', user_id)
-    if os.path.exists(os.path.join(path, 'mds_data.txt')):
+    if os.path.exists(os.path.join(path, 'sc_analysis.json')):
         #try:
         #    visualization = open(os.path.join('/tmp/uncurl/', user_id, 'vis_state_estimation.html')).read()
         #except:

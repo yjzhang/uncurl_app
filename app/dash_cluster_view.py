@@ -245,6 +245,10 @@ def generate_cluster_view(dim_red, n_genes=10, gene_names_list=None):
             'margin-top': 10,
             'margin-left': 60})
 
+def reset(app):
+    """OMG"""
+    app.n_clicks_enrichr = 0
+
 
 def initialize(app, data_dir=None, permalink='test', user_id='test',
         test_or_user='test', uncurl_args={'max_iters': 20, 'threads':2}):
@@ -280,7 +284,6 @@ def initialize(app, data_dir=None, permalink='test', user_id='test',
         html.Div([
             html.Div(html.A('permalink: ' + permalink, href=permalink),
                 style={'width': 500}),
-            # TODO: add links to data downloads
             html.Div(html.A('Data download', href=url_for('data_download',
                 x=test_or_user,
                 user_id=user_id)),
