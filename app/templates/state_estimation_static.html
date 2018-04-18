@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block head %}
+
+{{ super() }}
+
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<script>
+// this script is used to generate all the graphs, and deal with callbacks. 
+var user_id = {{ user_id }};
+
+// also store a data cache here...
+// use jquery for ajax calls
+
+// function called whenever a scatterplot is clicked or
+// when the dropdown is changed...
+function update_barplot() {
+    var top_or_bulk = $("#top-or-bulk");
+    var input_value;
+    var num_genes = $("#num-genes");
+};
+
+function update_scatterplot() {
+};
+
+function update_enrichr() {
+};
+
+function split_or_merge_cluster() {
+};
+
+
+window.onload = function() {
+
+};
+
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div class="container container-main" role="main">
+    <h4>Results for query id {{ user_id }}</h4>
+    Results are available:
+    {% block file_downloads %}
+
+    <a href="{{ url_for('data_download', x=test_or_user, user_id=data_user_id) }}">Data downloads</a>
+
+    {% endblock %}
+
+
+    <h2>Visualization</h2>
+
+    <div id="left-hand-panel-1" style="display: inline-block; width: 750; float: left">
+        <input type="radio" id="Means" value="Means" name="means-or-cell" selected>
+        <label for="Means">Means</label>
+        <input type="radio" id="Cells" value="Cells" name="means-or-cell">
+        <label for="Cells">Cells</label>
+        <input type="radio" id="Baseline" value="Baseline" name="means-or-cell">
+        <label for="Baseline">Baseline</label>
+
+        <div id="means-scatter-plot"></div>
+
+        <select id="cell-color">
+            <option value="cluster" selected>Cluster</option>
+            <option value="entropy">Entropy</option>
+        </select>
+
+        <div>
+            <button id="split">Split selected clusters</button>
+            <button id="merge">Merge selected clusters</button>
+            <div id="update-area"></div>
+        </div>
+    </div>
+
+    <div id="right-hand-panel-1" style="display: inline-block; width: 550">
+        <select id="top-or-bulk" style="width: 350;">
+            <option value="top">Top genes (c-score)</option>
+            <option value="pval" selected>Top genes (p-value)</option>
+            <option value="sep">Most similar clusters (separation score)</option>
+            <option value="bulk">Bulk correlations</option>
+        </select>
+
+        <div style="margin-top: 4; margin-bottom: 0">
+            Number of top genes: 
+            <input type="number" id="num-genes" value="10">
+        </div>
+
+        <!-- Plot of top gene/p-value bar plots goes here -->
+        <div id="top-genes"></div>
+
+        <textarea id="top-genes-view" cols="50" rows="10">Top genes go here</textarea>
+    </div>
+
+    <div id="bottom-panel" style="margin-top: 50; float: left; display: inline-block;">
+        Call Enrichr on current top genes
+        <div>
+            <select id="gene-set-library">
+                {% for opt in gene_sets %}
+                <option value={{ opt }}>{{ opt }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button id="enrichr-submit">Submit Enrichr query</button>
+
+    </div>
+
+
+    <p>Results</p>
+
+    <!--display properties in this window... -->
+    <div id="data_properties"></div>
+
+
+</div>
+
+{% endblock %}
