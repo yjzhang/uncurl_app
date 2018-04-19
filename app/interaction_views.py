@@ -70,6 +70,7 @@ def barplot_data(gene_values, gene_names, cluster_name, x_label,
             'layout': {
                 'title': title,
                 'xaxis': {'title': x_label},
+                'margin':{'t':40},
             },
         })
 

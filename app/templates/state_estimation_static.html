@@ -164,6 +164,7 @@ window.onload = function() {
 .wrapper {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+    padding-top: 10px;
 }
 
 .top-left {
@@ -172,7 +173,7 @@ window.onload = function() {
 }
 
 .top-right {
-    grid-column: 2 / 2;
+    grid-column: 2 / 3;
     grid-row: 1;
 }
 
@@ -183,7 +184,7 @@ window.onload = function() {
 }
 
 .bottom-right {
-    grid-column: 3 / 3;
+    grid-column: 2 / 3;
     grid-row: 2;
     margin-top: 20px;
 }
@@ -226,17 +227,15 @@ th {
     {% endblock %}
 
 
-    <h2>Visualization</h2>
-
     <div id="visualization" class="wrapper">
 
         <div class="top-left" id="left-hand-panel-1" style="width: 750px;">
             <input type="radio" id="Means" value="Means" name="scatter-type" checked="checked">
-            <label for="Means">Means</label>
+            <label for="Means">Cluster means</label>
             <input type="radio" id="Cells" value="Cells" name="scatter-type">
-            <label for="Cells">Cells</label>
+            <label for="Cells">Processed cells</label>
             <input type="radio" id="Baseline" value="Baseline" name="scatter-type">
-            <label for="Baseline">Baseline</label>
+            <label for="Baseline">Unprocessed cells</label>
 
             <div id="means-scatter-plot" style="width: 700px; margin-top: 5px"></div>
 
@@ -268,6 +267,7 @@ th {
             <!-- Plot of top gene/p-value bar plots goes here -->
             <div id="top-genes" style="width: 500px;"></div>
 
+            <textarea id="top-genes-view" cols="50" rows="4">Top genes go here</textarea>
         </div>
 
         <div class="bottom-left" id="bottom-panel" style="margin-top: 20px;">
@@ -284,7 +284,6 @@ th {
         </div>
 
         <div class="bottom-right">
-            <textarea id="top-genes-view" cols="50" rows="10">Top genes go here</textarea>
         </div>
 
     </div>
