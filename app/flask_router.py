@@ -27,14 +27,14 @@ def initialize():
         user_dirs = get_test_dirs('/tmp/uncurl')
     except:
         user_dirs = []
-    for d in test_dirs:
-        if d not in app.dash_apps:
-            app.dash_apps[d] = deploy_dash_app(#os.path.join('test', d),
-                    '/test_dash/'+d)
-    for d in user_dirs:
-        if d not in app.dash_apps:
-            app.dash_apps[d] = deploy_dash_app(#os.path.join('user', d),
-                    '/user_dash/'+d)
+    #for d in test_dirs:
+    #    if d not in app.dash_apps:
+    #        app.dash_apps[d] = deploy_dash_app(#os.path.join('test', d),
+    #                '/test_dash/'+d)
+    #for d in user_dirs:
+    #    if d not in app.dash_apps:
+    #        app.dash_apps[d] = deploy_dash_app(#os.path.join('user', d),
+    #                '/user_dash/'+d)
     app.user_dirs = user_dirs
     app.test_dirs = test_dirs
 

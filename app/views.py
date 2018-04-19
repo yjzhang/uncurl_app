@@ -32,6 +32,8 @@ def load_upload_data(path=None):
         init_f = request.files['startinput']
     # allow for mtx input data
     input_type = request.form['inputtype']
+    if output_filename.endswith('.mtx.gz') or output_filename.endswith('.mtx'):
+        input_type = 'sparse'
     if input_type == 'dense':
         data_filename = 'data.txt'
         if output_filename.endswith('.gz'):
@@ -191,7 +193,7 @@ def state_estimation_result(user_id):
         #except:
         #    visualization = ''
         #visualization = Markup(visualization)
-        return redirect(url_for('route_user', user_id=user_id))
+        return redirect(url_for('view_plots', user_id=user_id))
     elif os.path.exists(os.path.join(path, 'preprocess.json')):
         uncurl_is_running = os.path.exists(os.path.join(path, 'submitted'))
         with open(os.path.join(path, 'preprocess.json')) as f:

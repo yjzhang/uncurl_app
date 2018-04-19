@@ -1,0 +1,1 @@
+{"normalize": false, "nbins": 5, "min_reads": 678, "frac": 0.2, "is_gz": true, "cells": 400, "genes": 19848, "max_reads": 4780, "is_sparse": true}
