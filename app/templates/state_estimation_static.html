@@ -9,34 +9,209 @@
 
 <script>
 // this script is used to generate all the graphs, and deal with callbacks. 
-var user_id = {{ user_id }};
+var user_id = "{{ user_id }}";
 
-// also store a data cache here...
+// have a user-side cache to avoid having to re-make so many json calls
+var cache = {};
+cache.barplots = {};
+cache.scatterplots = {};
+cache.enrichr = {};
+
+var currently_selected_cluster = 0;
+
 // use jquery for ajax calls
+
+function bind_click() {
+    var plot = $('#means-scatter-plot')[0];
+    plot.on('plotly_click', function(data) {
+        var cluster = data.points[0].curveNumber;
+        currently_selected_cluster = cluster;
+        console.log(cluster);
+        // update barplot
+        update_barplot(cluster);
+    });
+};
 
 // function called whenever a scatterplot is clicked or
 // when the dropdown is changed...
-function update_barplot() {
-    var top_or_bulk = $("#top-or-bulk");
-    var input_value;
-    var num_genes = $("#num-genes");
+function update_barplot(cluster_number) {
+    var top_or_bulk = $("#top-or-bulk").val();
+    var input_value = cluster_number;
+    var num_genes = $("#num-genes").val();
+    console.log('update_barplot');
+    var key = top_or_bulk + String(input_value) + ' ' + String(num_genes);
+    if (cache.barplots.hasOwnProperty(key)) {
+        var data = cache.barplots[key];
+        var gene_names = data.data[0].y;
+        $('#top-genes-view').val(gene_names.join('\n'));
+        Plotly.newPlot("top-genes", data.data, data.layout);
+        return true;
+    }
+    $.ajax({url: window.location.pathname + "/update_barplot",
+        type: "POST",
+        data: {"top_or_bulk": top_or_bulk,
+               "input_value": input_value,
+               "num_genes": num_genes},
+    }).done(function(data) {
+        data = JSON.parse(data);
+        cache.barplots[key] = data;
+        var gene_names = data.data[0].y;
+        $('#top-genes-view').val(gene_names.join('\n'));
+        Plotly.newPlot("top-genes", data.data, data.layout);
+    });
+    return true;
 };
 
+// this function is called on startup, and whenever the radio buttons
+// corresponding to different input types are clicked.
 function update_scatterplot() {
+    var plot_type = $('input[name="scatter-type"]:checked').val();
+    // TODO: have a cache and look up the outputs
+    var cell_color = $("#cell-color").val();
+    console.log(plot_type);
+    console.log(cell_color);
+    if (cache.scatterplots.hasOwnProperty(plot_type + cell_color)) {
+        var data = cache.scatterplots[plot_type + cell_color];
+        Plotly.newPlot("means-scatter-plot", data.data, data.layout);
+        bind_click();
+        return true;
+    }
+    $.ajax({url: window.location.pathname + "/update_scatterplot",
+        type: "POST",
+        data: {"scatter_type": plot_type, "cell_color": cell_color},
+    }).done(function(data) {
+        data = JSON.parse(data);
+        cache.scatterplots[plot_type + cell_color] = data;
+        Plotly.newPlot("means-scatter-plot", data.data, data.layout);
+        bind_click();
+    });
+    return true;
 };
+
+function set_enrichr_results(data) {
+    // create table
+    var table = $('<table>');
+    var header = $('<tr>');
+    for (var j = 0; j<data[0].length; j++) {
+        header.append('<th>'+data[0][j]+'</td>');
+    }
+    table.append(header);
+    for (var i = 1; i<data.length; i++) {
+        var row = $('<tr>');
+        for (var j = 0; j<data[i].length; j++) {
+            row.append('<td>'+data[i][j]+'</td>');
+        }
+        table.append(row);
+    }
+    $('#enrichr-results').append(table);
+}
 
 function update_enrichr() {
+    var top_genes = $('#top-genes-view').val();
+    var gene_set = $('#gene-set-library').val();
+    console.log('update_enrichr');
+    var key = top_genes + gene_set;
+    if (cache.enrichr.hasOwnProperty(key)) {
+        set_enrichr_results(cache.enrichr[key]);
+    }
+    $.ajax({url: window.location.pathname + "/update_enrichr",
+        type: "POST",
+        data: {'top_genes': top_genes, 'gene_set': gene_set},
+    }).done(function(data) {
+        $('#enrichr-results').empty();
+        if (data.startsWith('Error')) {
+            $('#enrichr-results').append(data);
+        } else {
+            data = JSON.parse(data);
+            cache.enrichr[key] = data;
+            set_enrichr_results(data);
+        }
+    });
+    return true;
 };
 
 function split_or_merge_cluster() {
 };
 
 
-window.onload = function() {
 
+window.onload = function() {
+    // bind radio buttons to update_scatterplot
+    $('input[name="scatter-type"]').change(function() {
+        update_scatterplot();
+    });
+    update_scatterplot();
+
+    // bind dropdowns to update_barplot
+    $('#top-or-bulk').change(function() {
+        update_barplot(currently_selected_cluster);
+    });
+    update_barplot(currently_selected_cluster);
+
+    // bind update enrichr button to update_enrichr
+    $('#enrichr-submit').click(function() {
+        update_enrichr();
+    });
+
+    // bind merge and split buttons to split_or_merge_cluster
 };
 
 </script>
+
+
+<style>
+
+.wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.top-left {
+    grid-column: 1 / 2;
+    grid-row: 1;
+}
+
+.top-right {
+    grid-column: 2 / 2;
+    grid-row: 1;
+}
+
+.bottom-left {
+    grid-column: 1 / 2;
+    grid-row: 2;
+    margin-top: 20px;
+}
+
+.bottom-right {
+    grid-column: 3 / 3;
+    grid-row: 2;
+    margin-top: 20px;
+}
+
+.container {
+    padding-left: 0px;
+}
+
+table {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-right: 5px;
+}
+
+tr {
+}
+
+td {
+    padding-top: 10px;
+    padding-right: 10px;
+}
+
+th {
+    padding-top: 10px;
+    padding-right: 10px;
+}
+</style>
+
 {% endblock %}
 
 {% block content %}
@@ -53,57 +228,64 @@ window.onload = function() {
 
     <h2>Visualization</h2>
 
-    <div id="left-hand-panel-1" style="display: inline-block; width: 750; float: left">
-        <input type="radio" id="Means" value="Means" name="means-or-cell" selected>
-        <label for="Means">Means</label>
-        <input type="radio" id="Cells" value="Cells" name="means-or-cell">
-        <label for="Cells">Cells</label>
-        <input type="radio" id="Baseline" value="Baseline" name="means-or-cell">
-        <label for="Baseline">Baseline</label>
+    <div id="visualization" class="wrapper">
 
-        <div id="means-scatter-plot"></div>
+        <div class="top-left" id="left-hand-panel-1" style="width: 750px;">
+            <input type="radio" id="Means" value="Means" name="scatter-type" checked="checked">
+            <label for="Means">Means</label>
+            <input type="radio" id="Cells" value="Cells" name="scatter-type">
+            <label for="Cells">Cells</label>
+            <input type="radio" id="Baseline" value="Baseline" name="scatter-type">
+            <label for="Baseline">Baseline</label>
 
-        <select id="cell-color">
-            <option value="cluster" selected>Cluster</option>
-            <option value="entropy">Entropy</option>
-        </select>
+            <div id="means-scatter-plot" style="width: 700px; margin-top: 5px"></div>
 
-        <div>
-            <button id="split">Split selected clusters</button>
-            <button id="merge">Merge selected clusters</button>
-            <div id="update-area"></div>
-        </div>
-    </div>
-
-    <div id="right-hand-panel-1" style="display: inline-block; width: 550">
-        <select id="top-or-bulk" style="width: 350;">
-            <option value="top">Top genes (c-score)</option>
-            <option value="pval" selected>Top genes (p-value)</option>
-            <option value="sep">Most similar clusters (separation score)</option>
-            <option value="bulk">Bulk correlations</option>
-        </select>
-
-        <div style="margin-top: 4; margin-bottom: 0">
-            Number of top genes: 
-            <input type="number" id="num-genes" value="10">
-        </div>
-
-        <!-- Plot of top gene/p-value bar plots goes here -->
-        <div id="top-genes"></div>
-
-        <textarea id="top-genes-view" cols="50" rows="10">Top genes go here</textarea>
-    </div>
-
-    <div id="bottom-panel" style="margin-top: 50; float: left; display: inline-block;">
-        Call Enrichr on current top genes
-        <div>
-            <select id="gene-set-library">
-                {% for opt in gene_sets %}
-                <option value={{ opt }}>{{ opt }}</option>
-                {% endfor %}
+            <select id="cell-color">
+                <option value="cluster" selected>Cluster</option>
+                <option value="entropy">Entropy</option>
             </select>
+
+            <div style="margin-top: 5px;">
+                <button id="split" style="margin-right: 2px;">Split selected clusters</button>
+                <button id="merge">Merge selected clusters</button>
+                <div id="update-area"></div>
+            </div>
         </div>
-        <button id="enrichr-submit">Submit Enrichr query</button>
+
+        <div class="top-right" id="right-hand-panel-1" style="width: 550px">
+            <select id="top-or-bulk" style="width: 300px;">
+                <option value="top">Top genes (c-score)</option>
+                <option value="pval" selected>Top genes (p-value)</option>
+                <option value="sep">Most similar clusters (separation score)</option>
+                <option value="bulk">Bulk correlations</option>
+            </select>
+
+            <div style="margin-top: 4; margin-bottom: 0">
+                Number of top genes: 
+                <input type="number" id="num-genes" value="10">
+            </div>
+
+            <!-- Plot of top gene/p-value bar plots goes here -->
+            <div id="top-genes" style="width: 500px;"></div>
+
+        </div>
+
+        <div class="bottom-left" id="bottom-panel" style="margin-top: 20px;">
+            Call Enrichr on current top genes
+            <div style="margin-top: 5px; margin-bottom: 5px;">
+                <select id="gene-set-library">
+                    {% for opt in gene_sets %}
+                    <option value={{ opt }}>{{ opt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button id="enrichr-submit">Submit Enrichr query</button>
+            <div id="enrichr-results"></div>
+        </div>
+
+        <div class="bottom-right">
+            <textarea id="top-genes-view" cols="50" rows="10">Top genes go here</textarea>
+        </div>
 
     </div>
 
