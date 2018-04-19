@@ -13,6 +13,7 @@ from flask import request, render_template
 from uncurl_analysis import enrichr_api, sc_analysis
 
 from app import app
+from cache import cache
 
 # map of user_id to SCAnalysis objects
 app.sc_analysis_dict = {}
@@ -94,6 +95,8 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
     # also, use a different view.
     # have size depend on data shape
     size = 10
+    if len(labels) < 50:
+        size = 20
     if len(labels) > 2000:
         size = 5
     elif len(labels) > 10000:
@@ -152,6 +155,7 @@ def update_barplot(user_id):
     return update_barplot_result(user_id, top_or_bulk, input_value, num_genes)
 
 # TODO: cache this function
+@cache.memoize()
 def update_barplot_result(user_id, top_or_bulk, input_value, num_genes):
     sca = get_sca(user_id)
     if top_or_bulk == 'top':
@@ -198,6 +202,7 @@ def update_scatterplot(user_id):
     return update_scatterplot_result(user_id, plot_type, cell_color_value)
 
 # TODO: cache this function
+@cache.memoize()
 def update_scatterplot_result(user_id, plot_type, cell_color_value):
     sca = get_sca(user_id)
     if plot_type == 'Means':
@@ -227,6 +232,7 @@ def update_enrichr(user_id):
     gene_set = request.form['gene_set']
     return update_enrichr_result(user_id, top_genes, gene_set)
 
+# TODO: cache this function??? but we don't want to cache timeouts
 def update_enrichr_result(user_id, top_genes, gene_set):
     user_list_id = 0
     if top_genes not in app.enrichr_gene_list_ids:

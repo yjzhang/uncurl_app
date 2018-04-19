@@ -19,6 +19,10 @@ cache.enrichr = {};
 
 var currently_selected_cluster = 0;
 
+var current_scatterplot_data = {};
+
+var all_selected_clusters = [];
+
 // use jquery for ajax calls
 
 function bind_click() {
@@ -73,7 +77,9 @@ function update_scatterplot() {
     if (cache.scatterplots.hasOwnProperty(plot_type + cell_color)) {
         var data = cache.scatterplots[plot_type + cell_color];
         Plotly.newPlot("means-scatter-plot", data.data, data.layout);
+        current_scatterplot_data = data;
         bind_click();
+        bind_select();
         return true;
     }
     $.ajax({url: window.location.pathname + "/update_scatterplot",
@@ -83,7 +89,9 @@ function update_scatterplot() {
         data = JSON.parse(data);
         cache.scatterplots[plot_type + cell_color] = data;
         Plotly.newPlot("means-scatter-plot", data.data, data.layout);
+        current_scatterplot_data = data;
         bind_click();
+        bind_select();
     });
     return true;
 };
@@ -130,7 +138,39 @@ function update_enrichr() {
     return true;
 };
 
-function split_or_merge_cluster() {
+function bind_select() {
+   var plot = $('#means-scatter-plot')[0];
+   plot.on('plotly_selected', on_select);
+};
+
+// handler for scatterplot selection events
+function on_select(data) {
+    var clusters = new Set([]);
+    for (var i = 0; i<data.points.length; i++) {
+        clusters.add(data.points[i].curveNumber);
+    }
+    // find cluster lengths
+    var cluster_lengths = [];
+    all_selected_clusters = [];
+    var selection_string = "";
+    clusters.forEach(function(x) {
+        var l = current_scatterplot_data.data[x].x.length;
+        cluster_lengths.push(l);
+        all_selected_clusters.push(x);
+        selection_string += "cluster " + String(x) + 
+            " (" + String(l) + " cells), ";
+    });
+    // set update area...
+    $("#update-area").empty();
+    $("#update-area").append("selected clusters: " + selection_string);
+};
+
+
+function split_or_merge_cluster(split_or_merge) {
+    var selected_clusters = all_selected_clusters;
+    // lengths of each of the selected clusters
+    console.log(split_or_merge);
+    console.log(selected_clusters);
 };
 
 
@@ -154,6 +194,12 @@ window.onload = function() {
     });
 
     // bind merge and split buttons to split_or_merge_cluster
+    $('#split').click(function() {
+        split_or_merge_cluster('split');
+    });
+    $('#merge').click(function() {
+        split_or_merge_cluster('merge');
+    });
 };
 
 </script>
@@ -245,9 +291,9 @@ th {
             </select>
 
             <div style="margin-top: 5px;">
+                <div id="update-area"></div>
                 <button id="split" style="margin-right: 2px;">Split selected clusters</button>
                 <button id="merge">Merge selected clusters</button>
-                <div id="update-area"></div>
             </div>
         </div>
 

@@ -105,7 +105,7 @@ def create_top_genes_figure(selected_top_genes, selected_gene_names,
     if selected_gene_names is None:
         selected_gene_names = ['placeholder 1', 'placeholder 2', 'placeholder 3']
     if title is None:
-        title = 'Top genes for cluster {0}'.format(cluster_name),
+        title = 'Top genes for cluster {0}'.format(cluster_name)
     return {
                 'data': [
                     go.Bar(
