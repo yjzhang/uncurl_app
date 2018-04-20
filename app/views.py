@@ -14,6 +14,7 @@ from scipy import sparse
 import uncurl
 
 from app import app
+from .cache import cache
 
 from . import vis
 from .generate_analysis import generate_uncurl_analysis
@@ -62,6 +63,7 @@ def load_gene_names(path=None):
         return None
 
 @app.route('/')
+@cache.cached()
 def index():
     return render_template('index.html')
 
@@ -89,7 +91,7 @@ def cluster_thread(data, k, user_id, init=None, dist_type='Poisson'):
     path = os.path.join('/tmp/uncurl/', user_id)
     try:
         os.mkdir(path)
-        print path
+        print(path)
     except:
         pass
     if dist_type=='Poisson':
@@ -135,6 +137,7 @@ def clustering_result(user_id):
                 user_id=user_id, has_result=False)
 
 @app.route('/state_estimation')
+@cache.cached()
 def state_estimation():
     return render_template('state_estimation.html')
 
@@ -226,6 +229,7 @@ def state_estimation_file(x, user_id, filename):
     return send_from_directory(path, filename)
 
 @app.route('/<x>/results/<user_id>/data_download')
+@cache.cached()
 def data_download(x, user_id):
     if x!='test':
         path = os.path.join('/tmp/uncurl/', user_id)

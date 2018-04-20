@@ -1,10 +1,8 @@
 import os
 
-import dash
 from flask import Flask, render_template, redirect
 from flask_bootstrap import Bootstrap
 
-from . import dash_cluster_view
 
 from app import app
 
@@ -52,7 +50,7 @@ def deploy_dash_app(url):
     #dash_cluster_view.initialize(dash_app, data_dir)
     return dash_app
 
-@app.route('/user/<user_id>')
+#@app.route('/user/<user_id>')
 def route_user(user_id):
     test_dir = os.path.join('/tmp/uncurl', user_id)
     if user_id not in app.dash_apps:
@@ -65,7 +63,7 @@ def route_user(user_id):
     dash_cluster_view.reset(app.dash_apps[user_id])
     return redirect('/user_dash/'+str(user_id))
 
-@app.route('/test/<test_id>')
+#@app.route('/test/<test_id>')
 def route_test(test_id):
     test_dir = os.path.join('test_data', test_id)
     if not app.dash_apps[test_id].initialized:

@@ -22,4 +22,4 @@ app.config['DEPLOY'] = True
 app.config['CACHE_TYPE'] = 'redis'
 
 from app import views, flask_router, interaction_views
-from cache import cache
+from .cache import cache

@@ -13,7 +13,8 @@ from flask import request, render_template
 from uncurl_analysis import enrichr_api, sc_analysis
 
 from app import app
-from cache import cache
+from .cache import cache
+from .utils import SimpleEncoder
 
 # map of user_id to SCAnalysis objects
 app.sc_analysis_dict = {}
@@ -77,7 +78,7 @@ def barplot_data(gene_values, gene_names, cluster_name, x_label,
         title = 'Top genes for cluster {0}'.format(cluster_name)
     return json.dumps({
             'data': [{
-                'x': [x[1] for x in gene_values],
+                'x': list(x[1] for x in gene_values),
                 'y': gene_names,
                 'orientation': 'h',
                 'type': 'bar',
@@ -85,9 +86,9 @@ def barplot_data(gene_values, gene_names, cluster_name, x_label,
             'layout': {
                 'title': title,
                 'xaxis': {'title': x_label},
-                'margin':{'t':40},
+                'margin': {'t': 40},
             },
-        })
+        }, cls=SimpleEncoder)
 
 def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
         gene_expression_list=None, entropy=None):
@@ -136,11 +137,12 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                 'yaxis':{'title': 'dim2'},
                 'margin':{'t':30},
             },
-    })
+    }, cls=SimpleEncoder)
 
 
 
 @app.route('/user/<user_id>/view')
+@cache.memoize()
 def view_plots(user_id):
     test_or_user = 'user'
     data_user_id = user_id
@@ -193,6 +195,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes):
         sep_scores = sca.separation_scores[int(input_value)]
         cluster_names = map(lambda x: 'cluster ' + str(x),
                 list(range(sca.separation_scores.shape[0])))
+        cluster_names = list(cluster_names)
         sep_scores = [(c, x) for c, x in zip(cluster_names, sep_scores)]
         return barplot_data(sep_scores,
                 cluster_names, input_value,
@@ -283,7 +286,7 @@ def update_enrichr_result(user_id, top_genes, gene_set):
                                  'z-score',
                                  'combined score']] + \
             [[r[1], r[2], r[3], r[4]] for r in results]
-    return json.dumps(app.last_enrichr_results)
+    return json.dumps(app.last_enrichr_results, cls=SimpleEncoder)
 
 @app.route('/user/<user_id>/view/split_or_merge_cluster', methods=['POST'])
 def split_or_merge_cluster(user_id):

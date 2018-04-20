@@ -10,6 +10,8 @@ import scipy.io
 from scipy import sparse
 from uncurl.sparse_utils import sparse_means_var_csc
 
+from .utils import SimpleEncoder
+
 class Summary(object):
     """
     This object contains a summary for a single-cell RNASeq dataset.
@@ -52,8 +54,8 @@ class Summary(object):
         """
         sorted_read_counts = np.sort(self.cell_read_counts)
         top_05 = int(self.cells/20) #5%
-        preproc_params = {'min_reads': sorted_read_counts[top_05],
-                          'max_reads': sorted_read_counts[-top_05],
+        preproc_params = {'min_reads': int(sorted_read_counts[top_05]),
+                          'max_reads': int(sorted_read_counts[-top_05]),
                           'frac': 0.2,
                           'nbins': 5,
                           'cells': self.cells,
@@ -63,7 +65,7 @@ class Summary(object):
                           'is_sparse': self.is_sparse,
                           }
         with open(os.path.join(self.path, 'preprocess.json'), 'w') as f:
-            json.dump(preproc_params, f)
+            json.dump(preproc_params, f, cls=SimpleEncoder)
         return preproc_params
 
     def visualize(self):
