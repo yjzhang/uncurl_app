@@ -31,6 +31,21 @@ def get_sca(user_id):
         sca = sca.load_params_from_folder()
         return sca
 
+@cache.memoize()
+def get_sca_top_genes(user_id):
+    sca = get_sca(user_id)
+    return sca.top_genes
+
+@cache.memoize()
+def get_sca_pvals(user_id):
+    sca = get_sca(user_id)
+    return sca.pvals
+
+@cache.memoize()
+def get_sca_gene_names(user_id):
+    sca = get_sca(user_id)
+    return sca.gene_names
+
 def user_id_to_path(user_id):
     if user_id.startswith('test_'):
         user_id = user_id[5:]
@@ -153,21 +168,22 @@ def update_barplot(user_id):
     num_genes = int(request.form['num_genes'])
     return update_barplot_result(user_id, top_or_bulk, input_value, num_genes)
 
-# TODO: cache this function
 @cache.memoize()
 def update_barplot_result(user_id, top_or_bulk, input_value, num_genes):
     sca = get_sca(user_id)
     if top_or_bulk == 'top':
-        selected_top_genes = sca.top_genes[int(input_value)][:num_genes]
-        selected_gene_names = [sca.gene_names[x[0]] for x in selected_top_genes]
+        selected_top_genes = get_sca_top_genes(user_id)[int(input_value)][:num_genes]
+        gene_names = get_sca_gene_names(user_id)
+        selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
         return barplot_data(selected_top_genes,
                 selected_gene_names, input_value,
                 x_label='c-score',
                 title='Top genes for cluster {0}'.format(input_value),
                 )
     elif top_or_bulk == 'pval':
-        selected_top_genes = sca.pvals[input_value][:num_genes]
-        selected_gene_names = [sca.gene_names[x[0]] for x in selected_top_genes]
+        selected_top_genes = get_sca_pvals(user_id)[input_value][:num_genes]
+        gene_names = get_sca_gene_names(user_id)
+        selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
         return barplot_data(selected_top_genes,
                 selected_gene_names, input_value,
                 title='Top genes for cluster {0}'.format(input_value),
@@ -200,7 +216,6 @@ def update_scatterplot(user_id):
     cell_color_value = request.form['cell_color']
     return update_scatterplot_result(user_id, plot_type, cell_color_value)
 
-# TODO: cache this function
 @cache.memoize()
 def update_scatterplot_result(user_id, plot_type, cell_color_value):
     sca = get_sca(user_id)
