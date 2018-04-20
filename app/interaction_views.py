@@ -271,11 +271,12 @@ def update_enrichr_result(user_id, top_genes, gene_set):
             [[r[1], r[2], r[3], r[4]] for r in results]
     return json.dumps(app.last_enrichr_results)
 
-@app.route('/user/<user_id>/view/split_or_merge_cluster')
+@app.route('/user/<user_id>/view/split_or_merge_cluster', methods=['POST'])
 def split_or_merge_cluster(user_id):
     sca = get_sca(user_id)
     selected_clusters = []
     cluster_counts = []
+    return
     for point in selected_points['points']:
         cluster = point['curveNumber']
         selected_clusters.append(cluster)
@@ -292,6 +293,7 @@ def split_or_merge_cluster(user_id):
         if test_or_user == 'test':
             return 'Test datasets cannot be modified.'
         return 'Merging selected clusters: ' + ' '.join(map(str, selected_clusters)) + '...'
+    cache.clear()
     return 'Selected clusters: ' + ' '.join(map(lambda x: '{0} ({1} cells)'.format(x[0], x[1]), zip(selected_clusters, cluster_counts)))
 
 

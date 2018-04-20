@@ -76,6 +76,7 @@ def generate_uncurl_analysis(data, output_dir,
             **uncurl_kwargs)
     sca.run_full_analysis()
     sca.save_json_reset()
+    print('done with generate_analysis')
 
 
 def generate_analysis_resubmit(sca,

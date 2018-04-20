@@ -171,6 +171,11 @@ function split_or_merge_cluster(split_or_merge) {
     // lengths of each of the selected clusters
     console.log(split_or_merge);
     console.log(selected_clusters);
+    $.ajax({url: window.location.pathname + "/split_or_merge_cluster",
+        data: {},
+        method: 'POST',
+    }).done(function(data) {
+    });
 };
 
 
