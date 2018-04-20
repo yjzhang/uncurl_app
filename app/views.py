@@ -1,5 +1,5 @@
 import json
-from multiprocessing import Process
+from multiprocessing.dummy import Process
 import os
 import pickle
 import uuid
@@ -19,37 +19,37 @@ from . import vis
 from .generate_analysis import generate_uncurl_analysis
 from .data_stats import Summary
 
-def load_upload_data(path=None):
-    if 'fileinput' in request.files:
-        f = request.files['fileinput']
+def load_upload_data(request_files, request_form, path=None):
+    if 'fileinput' in request_files:
+        f = request_files['fileinput']
         output_filename = secure_filename(f.filename)
         if output_filename == '':
             return
     else:
         return
     init_f = None
-    if 'startinput' in request.files:
-        init_f = request.files['startinput']
+    if 'startinput' in request_files:
+        init_f = request_files['startinput']
     # allow for mtx input data
-    input_type = request.form['inputtype']
+    input_type = request_form['inputtype']
     if output_filename.endswith('.mtx.gz') or output_filename.endswith('.mtx'):
         input_type = 'sparse'
     if input_type == 'dense':
         data_filename = 'data.txt'
         if output_filename.endswith('.gz'):
             data_filename = 'data.txt.gz'
-        f.save(os.path.join(path, data_filename))
-        data = np.loadtxt(os.path.join(path, data_filename))
+        data = os.path.join(path, data_filename)
+        f.save(data)
     elif input_type == 'sparse':
         data_filename = 'data.mtx'
         if output_filename.endswith('.mtx.gz'):
             data_filename = 'data.mtx.gz'
-        f.save(os.path.join(path, data_filename))
-        data = scipy.io.mmread(os.path.join(path, data_filename))
+        data = os.path.join(path, data_filename)
+        f.save(data)
     init = None
     if init_f is not None and init_f.filename != '':
-        init = np.loadtxt(init_f)
-        init_f.save(os.path.join(path, 'init.txt'))
+        init = os.path.join(path, 'init.txt')
+        init_f.save(init)
     return data, output_filename, init
 
 
@@ -60,9 +60,6 @@ def load_gene_names(path=None):
             f.save(os.path.join(path, 'gene_names.txt'))
     else:
         return None
-    gene_names = np.loadtxt(f, dtype=str)
-    print(gene_names)
-    return gene_names
 
 @app.route('/')
 def index():
@@ -151,7 +148,11 @@ def state_estimation_input():
         f.write(json.dumps(request.form))
     # TODO: if file is large, start a new thread. otherwise just
     # run the thing
-    P = Process(target=state_estimation_preproc, args=(user_id, path))
+    request_file = request.files
+    request_form = request.form
+    load_gene_names(path)
+    data, output_filename, init = load_upload_data(request_file, request_form, path)
+    P = Process(target=state_estimation_preproc, args=(user_id, path, data, output_filename))
     P.start()
     #state_estimation_preproc(user_id, path)
     return redirect(url_for('state_estimation_result', user_id=user_id))
@@ -237,13 +238,12 @@ def data_download(x, user_id):
             test_or_user=x,
             files=files)
 
-def state_estimation_preproc(user_id, path=None):
+def state_estimation_preproc(user_id, path, data, output_filename):
     """
     Preprocessing for state estimation - generates summary statistics,
     etc...
     """
     #try:
-    data, output_filename, init = load_upload_data(path)
     is_gz = False
     if output_filename.endswith('.gz'):
         is_gz = True
@@ -251,7 +251,6 @@ def state_estimation_preproc(user_id, path=None):
     #    return error('Error: no file found', 400)
     if path is None:
         path = os.path.join('/tmp/uncurl/', user_id)
-    gene_names = load_gene_names(path)
     summary = Summary(data, path, is_gz)
     script, div = summary.visualize()
     summary.preprocessing_params()
