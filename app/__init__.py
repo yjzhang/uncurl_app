@@ -17,11 +17,15 @@ app.config['TEST_DATA_DIR'] = 'test_data/'
 app.config['USER_DATA_DIR'] = '/tmp/uncurl/'
 app.config['BULK_DATA_DIR'] = 'bulk_data/'
 
+app.config['DEPLOY'] = True
 
-app.config['CACHE_TYPE'] = 'simple'
+app.config['CACHE_TYPE'] = 'redis'
 
 from app import views, flask_router, interaction_views
 from cache import cache
 
-cache.config = {'CACHE_TYPE': 'simple'}
+cache.config = {'CACHE_TYPE': 'redis',
+                'CACHE_REDIS_HOST': '127.0.0.1',
+                'CACHE_REDIS_PORT': 6379,
+                'CACHE_KEY_PREFIX': 'uncurl'}
 cache.init_app(app)

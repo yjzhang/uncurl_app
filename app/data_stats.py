@@ -6,6 +6,7 @@ from bokeh.embed import components
 from bokeh.layouts import gridplot
 
 import numpy as np
+import scipy.io
 from scipy import sparse
 from uncurl.sparse_utils import sparse_means_var_csc
 
@@ -15,6 +16,11 @@ class Summary(object):
     """
 
     def __init__(self, data, path, is_gz=False):
+        if type(data) is str:
+            try:
+                data = scipy.io.mmread(data)
+            except:
+                data = np.loadtxt(data)
         self.cell_read_counts = np.array(data.sum(0)).flatten()
         self.cells = data.shape[1]
         self.genes = data.shape[0]

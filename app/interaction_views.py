@@ -29,7 +29,6 @@ def get_sca(user_id):
         path = user_id_to_path(user_id)
         sca = sc_analysis.SCAnalysis(path)
         sca = sca.load_params_from_folder()
-        app.sc_analysis_dict[user_id] = sca
         return sca
 
 def user_id_to_path(user_id):
