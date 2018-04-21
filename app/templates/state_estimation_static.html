@@ -26,6 +26,7 @@ var currently_selected_cluster = 0;
 var current_scatterplot_data = {};
 
 var all_selected_clusters = [];
+var currently_merging = false;
 
 // use jquery for ajax calls
 
@@ -174,17 +175,23 @@ function on_select(data) {
 
 
 function split_or_merge_cluster(split_or_merge) {
+    if (currently_merging) {
+        window.alert('Already running ' + split_or_merge + ' cluster');
+        return false;
+    }
     var selected_clusters = all_selected_clusters;
     // lengths of each of the selected clusters
     console.log(split_or_merge);
     console.log(selected_clusters);
-    $("#update-area").append("<br>" + split_or_merge + " clusters in progress...");
+    $("#update-area").append("<br>" + split_or_merge + " clusters in progress... " + '<img src="/static/ajax-loader.gif"/>');
+    currently_merging = true;
     // TODO: make some indication that
     $.ajax({url: window.location.pathname + "/split_or_merge_cluster",
         data: {'split_or_merge': split_or_merge,
                'selected_clusters': selected_clusters.join(',')},
         method: 'POST',
     }).done(function(data) {
+        currently_merging = false;
         if (data.startsWith('Error')) {
             $('#update-area').empty();
             $('#update-area').append(data);
