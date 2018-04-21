@@ -17,8 +17,6 @@ app.config['TEST_DATA_DIR'] = 'test_data/'
 app.config['USER_DATA_DIR'] = '/tmp/uncurl/'
 app.config['BULK_DATA_DIR'] = 'bulk_data/'
 
-app.config['DEPLOY'] = True
-
 app.config['CACHE_TYPE'] = 'redis'
 
 from app import views, flask_router, interaction_views

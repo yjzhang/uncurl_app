@@ -2,6 +2,10 @@
 
 {% block head %}
 
+<!-- TODO: have an option for serving static files?-->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+
 {{ super() }}
 
 <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
@@ -145,6 +149,9 @@ function bind_select() {
 
 // handler for scatterplot selection events
 function on_select(data) {
+    if (!data) {
+        return false;
+    }
     var clusters = new Set([]);
     for (var i = 0; i<data.points.length; i++) {
         clusters.add(data.points[i].curveNumber);
@@ -171,16 +178,34 @@ function split_or_merge_cluster(split_or_merge) {
     // lengths of each of the selected clusters
     console.log(split_or_merge);
     console.log(selected_clusters);
+    $("#update-area").append("<br>" + split_or_merge + " clusters in progress...");
+    // TODO: make some indication that
     $.ajax({url: window.location.pathname + "/split_or_merge_cluster",
-        data: {},
+        data: {'split_or_merge': split_or_merge,
+               'selected_clusters': selected_clusters.join(',')},
         method: 'POST',
     }).done(function(data) {
+        if (data.startsWith('Error')) {
+            $('#update-area').empty();
+            $('#update-area').append(data);
+        } else {
+            $('#update-area').empty();
+            $('#update-area').append(data);
+            // reload page?
+            cache.barplots = {};
+            cache.scatterplots = {};
+            update_scatterplot();
+            update_barplot(0);
+            //location.reload(true);
+        }
     });
 };
 
 
 
 window.onload = function() {
+    // activate tooltips
+    $('[data-toggle="tooltip"]').tooltip();
     // bind radio buttons to update_scatterplot
     $('input[name="scatter-type"]').change(function() {
         update_scatterplot();
@@ -282,15 +307,15 @@ th {
 
         <div class="top-left" id="left-hand-panel-1" style="width: 750px;">
             <input type="radio" id="Means" value="Means" name="scatter-type" checked="checked">
-            <label for="Means">Cluster means</label>
+            <label for="Means" data-toggle="tooltip" title="Scatterplot of the cluster archetypes, plotted by MDS.">Cluster means</label>
             <input type="radio" id="Cells" value="Cells" name="scatter-type">
-            <label for="Cells">Processed cells</label>
+            <label for="Cells" data-toggle="tooltip" title="Scatterplot visualization of cells after processing with UNCURL.">Processed cells</label>
             <input type="radio" id="Baseline" value="Baseline" name="scatter-type">
-            <label for="Baseline">Unprocessed cells</label>
+            <label for="Baseline" data-toggle="tooltip" title="Scatterplot visualization of cells before processing with UNCURL.">Unprocessed cells</label>
 
             <div id="means-scatter-plot" style="width: 700px; margin-top: 5px"></div>
 
-            <select id="cell-color">
+            <select id="cell-color" data-toggle="tooltip" title="How the cells should be colored - either by their cluster label, or by their cluster label entropy.">
                 <option value="cluster" selected>Cluster</option>
                 <option value="entropy">Entropy</option>
             </select>
@@ -303,7 +328,7 @@ th {
         </div>
 
         <div class="top-right" id="right-hand-panel-1" style="width: 550px">
-            <select id="top-or-bulk" style="width: 300px;">
+            <select id="top-or-bulk" style="width: 300px;" data-toggle="tooltip" title="Which quantity to visualize in the barplot. C-score is the ratio of the mean expression in the given cluster to the cluster with the second-highest expression.">
                 <option value="top" selected>Top genes (c-score)</option>
                 <option value="pval">Top genes (p-value)</option>
                 <option value="sep">Most similar clusters (separation score)</option>
@@ -324,13 +349,13 @@ th {
         <div class="bottom-left" id="bottom-panel" style="margin-top: 20px;">
             Call Enrichr on current top genes
             <div style="margin-top: 5px; margin-bottom: 5px;">
-                <select id="gene-set-library">
+                <select id="gene-set-library" data-toggle="tooltip" title="Uses the Enrichr tool from http://amp.pharm.mssm.edu/Enrichr/">
                     {% for opt in gene_sets %}
                     <option value={{ opt }}>{{ opt }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <button id="enrichr-submit">Submit Enrichr query</button>
+            <button id="enrichr-submit" data-toggle="tooltip" title="Uses the Enrichr tool from http://amp.pharm.mssm.edu/Enrichr/">Submit Enrichr query</button>
             <div id="enrichr-results"></div>
         </div>
 

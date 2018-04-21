@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
 {% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
 {{super()}}
 {% if has_preview %}
 <!-- TODO: parameterize the version number -->
@@ -15,6 +17,12 @@ rel="stylesheet" type="text/css">
 <script src="https://cdn.pydata.org/bokeh/release/bokeh-api-0.12.13.min.js"></script>
 <script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.13.min.js"></script>
 <script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.13.min.js"></script>
+
+<script>
+window.onload = function() {
+      $('[data-toggle="tooltip"]').tooltip()
+};
+</script>
 {% endif %}
 {% endblock %}
 
@@ -22,6 +30,12 @@ rel="stylesheet" type="text/css">
 
 <div class="container container-main" role="main">
     <h4>Results for query id {{ user_id }}</h4>
+
+    {% if uncurl_is_running %}
+    <h5>Current task: {{ current_task }}</h5>
+    <h5>Estimated time remaining: {{ time_remaining }}</h5>
+    {% endif %}
+
     {% if has_preview %}
     Data preview is available
     <h5>Visualization</h5>
@@ -39,18 +53,18 @@ rel="stylesheet" type="text/css">
         <div class="form-group">
 
             
-            <label for="min-reads">Remove cells with read counts less than:</label>
+            <label for="min-reads" data-toggle="tooltip" title="By default, this is the bottom 5% of cells by read count.">Remove cells with read counts less than:</label>
             <input type="number" id="min-reads" name="min_reads" value={{ min_reads }}>
             <br>
 
-            <label for="max-reads">Remove cells with read counts greater than:</label>
+            <label for="max-reads" data-toggle="tooltip" title="By default, this is the top 5% of cells by read count.">Remove cells with read counts greater than:</label>
             <input type="number" id="max-reads" name="max_reads" value={{ max_reads }}>
             <br>
         </div>
 
-        <div class="form-group">
-            <label for="k">Number of states (k):</label>
-            <input type=number id="k" name="k" value=2>
+        <div class="form-group" data-toggle="tooltip" title="How many cell types are present in the data. If this is unknown, we suggest an overestimate.">
+            <label for="k">Number of cell types (k):</label>
+            <input type=number id="k" name="k" value=10>
         </div>
 
         <div class="form-group">
@@ -62,7 +76,7 @@ rel="stylesheet" type="text/css">
             </select>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" data-toggle="tooltip" title="By default, UNCURL">
             <label for="genes-frac">Fraction of genes to include (put 1.0 to include all genes):</label>
             <input type="number" id="genes-frac" name="genes_frac" value=0.2 step="0.01" min="0.0" max="1.0">
         </div>
@@ -72,12 +86,12 @@ rel="stylesheet" type="text/css">
             <input type="number" id="cell-frac" name="cell_frac" value=1.0 step="0.01" min="0.0" max="1.0">
         </div>
 
-        <div class="form-group">
+        <div class="form-group" data-toggle="tooltip" title="If this is checked, then the data will be normalized so that each cell has the same read count (equal to the median read count over all cells).">
             <label for="cell-norm">Normalize cells by read count:</label>
             <input type="checkbox" id="cell-norm" name="normalize" value="1">
         </div>
 
-        <div class="form-group">
+        <div class="form-group" data-toggle="tooltip" title="This is the visualization method that will be used on the UNCURL-processed data.">
             <label for="vismethod">Visualization method:</label>
             <select id="vismethod" name="vismethod">
                 <option selected>MDS</option>
@@ -86,7 +100,7 @@ rel="stylesheet" type="text/css">
             </select>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" data-toggle="tooltip" title="This is the visualization method that will be used on the raw data, without UNCURL.">
             <label for="baseline-vismethod">Baseline visualization method:</label>
             <select id="baseline-vismethod" name="baseline_vismethod">
                 <option selected>None</option>

@@ -60,6 +60,7 @@ def generate_uncurl_analysis(data, output_dir,
             data_is_sparse = False
     else:
         pass
+    uncurl_kwargs['write_progress_file'] = os.path.join(output_dir, 'progress.txt')
     with open(os.path.join(output_dir, 'uncurl_kwargs.json'), 'w') as f:
         json.dump(uncurl_kwargs, f)
     sca = sc_analysis.SCAnalysis(output_dir,
@@ -91,7 +92,38 @@ def generate_analysis_resubmit(sca,
         split_or_merge (str): either 'split' or 'merge'
         clusters_to_change (list): list of cluster numbers. If splitting, only the first cluster will be used. If merging, all the clusters will be merged.
     """
-    sca.uncurl_kwargs = uncurl_kwargs
     sca.recluster(split_or_merge, clusters_to_change)
     sca.run_post_analysis()
-    sca.save_pickle_reset()
+    sca.save_json_reset()
+
+def get_progress(path):
+    """
+    Returns the current preprocessing/analysis progress for the given path.
+
+    Returns:
+        current_task (str): a description of what step the preprocessing is on.
+        time_remaining (str): a description of the time remaining.
+    """
+    with open(os.path.join(path, 'preprocess.json')) as f:
+        preproc = json.load(f)
+    genes = preproc['genes']
+    cells = preproc['cells']
+    # TODO: calculate time remaining using genes and cells
+    time_remaining = 500
+    if os.path.exists(os.path.join(path, 'sc_analysis.json')):
+        current_task = 'DONE'
+    elif os.path.exists(os.path.join(path, 'top_genes.txt')):
+        current_task = 'p-value calculations'
+    elif os.path.exists(os.path.join(path, 'mds_data.txt')):
+        current_task = 'gene selection and p-value calculation'
+    elif os.path.exists('baseline_vis.txt'):
+        current_task = 'data visualization'
+    elif os.path.exists('m.txt'):
+        current_task = 'baseline visualization'
+    elif os.path.exists(os.path.join(path, 'progress.txt')):
+        i = 0
+        with open(os.path.join(path, 'progress.txt')) as f:
+            i = int(f.read().strip())
+        current_task = 'UNCURL: {0}/20'.format(i)
+    time_remaining_minutes = int(time_remaining/60) + 1
+    return current_task, '{0} minutes'.format(time_remaining_minutes)

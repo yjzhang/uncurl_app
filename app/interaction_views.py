@@ -13,6 +13,7 @@ from flask import request, render_template
 from uncurl_analysis import enrichr_api, sc_analysis
 
 from app import app
+from . import generate_analysis
 from .cache import cache
 from .utils import SimpleEncoder
 
@@ -290,53 +291,28 @@ def update_enrichr_result(user_id, top_genes, gene_set):
 
 @app.route('/user/<user_id>/view/split_or_merge_cluster', methods=['POST'])
 def split_or_merge_cluster(user_id):
+    if user_id.startswith('test_'):
+        return 'Error: test datasets cannot be modified.'
+    split_or_merge = request.form['split_or_merge']
+    selected_clusters = request.form['selected_clusters']
+    selected_clusters = selected_clusters.split(',')
+    selected_clusters = [int(x) for x in selected_clusters]
+    print(split_or_merge)
+    print(selected_clusters)
     sca = get_sca(user_id)
-    selected_clusters = []
-    cluster_counts = []
-    return
-    for point in selected_points['points']:
-        cluster = point['curveNumber']
-        selected_clusters.append(cluster)
     selected_clusters = list(set(selected_clusters))
-    for cluster in selected_clusters:
-        cluster_counts.append((sca.labels == cluster).sum())
-    # split clusters - TODO: have some kind of progress bar?
-    if n_click_split > app.split_clicks:
-        if test_or_user == 'test':
-            return 'Test datasets cannot be modified.'
-        return 'Splitting selected cluster: ' + str(selected_clusters[0]) + '...'
-    # merge clusters
-    elif n_click_merge > app.merge_clicks:
-        if test_or_user == 'test':
-            return 'Test datasets cannot be modified.'
-        return 'Merging selected clusters: ' + ' '.join(map(str, selected_clusters)) + '...'
+    if len(selected_clusters) == 0:
+        return 'Error: no selected clusters.'
+    # TODO: have a more fine-grained key control. don't just clear the entire
+    # cache, but clear some keys selectively from redis.
     cache.clear()
-    return 'Selected clusters: ' + ' '.join(map(lambda x: '{0} ({1} cells)'.format(x[0], x[1]), zip(selected_clusters, cluster_counts)))
-
-
-def update_all_views(selected_points, n_click_split, n_click_merge):
-    """
-    """
-    if test_or_user == 'test':
-        raise Exception('test datasets cannot be changed')
-    selected_clusters = []
-    for point in selected_points['points']:
-        cluster = point['curveNumber']
-        selected_clusters.append(cluster)
-    selected_clusters = list(set(selected_clusters))
     # split clusters
-    if n_click_split > app.split_clicks:
-        app.split_clicks = n_click_split
+    if split_or_merge == 'split':
         generate_analysis.generate_analysis_resubmit(sca,
                 'split', selected_clusters)
-        initialize(app, data_dir, permalink, user_id, test_or_user)
-        return generate_cluster_view(sca.mds_means)
+        return 'Finished splitting selected cluster: ' + str(selected_clusters[0])
     # merge clusters
-    elif n_click_merge > app.merge_clicks:
-        app.merge_clicks = n_click_merge
+    elif  split_or_merge == 'merge':
         generate_analysis.generate_analysis_resubmit(sca,
                 'merge', selected_clusters)
-        initialize(app, data_dir, permalink, user_id, test_or_user)
-        return generate_cluster_view(sca.dim_red)
-    else:
-        raise Exception('placeholder')
+        return 'Finished merging selected clusters: ' + ' '.join(map(str, selected_clusters))
