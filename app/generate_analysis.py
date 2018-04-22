@@ -125,5 +125,7 @@ def get_progress(path):
         with open(os.path.join(path, 'progress.txt')) as f:
             i = int(f.read().strip())
         current_task = 'UNCURL: {0}/20'.format(i)
+    else:
+        current_task = 'None'
     time_remaining_minutes = int(time_remaining/60) + 1
     return current_task, '{0} minutes'.format(time_remaining_minutes)

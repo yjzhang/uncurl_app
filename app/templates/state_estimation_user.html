@@ -29,9 +29,10 @@ window.onload = function() {
 {% block content %}
 
 <div class="container container-main" role="main">
-    <h4>Results for query id {{ user_id }}</h4>
+    <h3>Results for query id {{ user_id }}</h3>
 
     {% if uncurl_is_running %}
+    <h4>Currently running uncurl. Will refresh every 60 seconds.</h4>
     <h4>Current task: {{ current_task }}</h4>
     <h4>Estimated time remaining: {{ time_remaining }}</h4>
     {% endif %}
@@ -50,49 +51,17 @@ window.onload = function() {
     {% if not uncurl_is_running %}
     <form action="start" method="post" enctype="multipart/form-data">
 
+        <!--TODO: split into basic and advanced options. -->
+
+        <h4>Basic Options</h4>
+
         <div class="form-group">
-
-            
-            <label for="min-reads" data-toggle="tooltip" title="By default, this is the bottom 5% of cells by read count.">Remove cells with read counts less than:</label>
-            <input type="number" id="min-reads" name="min_reads" value={{ min_reads }}>
-            <br>
-
-            <label for="max-reads" data-toggle="tooltip" title="By default, this is the top 5% of cells by read count.">Remove cells with read counts greater than:</label>
-            <input type="number" id="max-reads" name="max_reads" value={{ max_reads }}>
-            <br>
-        </div>
-
-        <div class="form-group" data-toggle="tooltip" title="How many cell types are present in the data. If this is unknown, we suggest an overestimate.">
-            <label for="k">Number of cell types (k):</label>
+            <label for="k" data-toggle="tooltip" title="How many cell types are present in the data. If this is unknown, we suggest an overestimate.">Number of cell types (k):</label>
             <input type=number id="k" name="k" value=10>
         </div>
 
         <div class="form-group">
-            <label for="disttype">Distribution type:</label>
-            <select id="disttype" name="disttype">
-                <option selected>Poisson</option>
-                <option>Log-Normal</option>
-                <option>Gaussian</option>
-            </select>
-        </div>
-
-        <div class="form-group" data-toggle="tooltip" title="By default, UNCURL">
-            <label for="genes-frac">Fraction of genes to include (put 1.0 to include all genes):</label>
-            <input type="number" id="genes-frac" name="genes_frac" value=0.2 step="0.01" min="0.0" max="1.0">
-        </div>
-
-        <div class="form-group">
-            <label for="cell-frac">Fraction of cells to include for visualization:</label>
-            <input type="number" id="cell-frac" name="cell_frac" value=1.0 step="0.01" min="0.0" max="1.0">
-        </div>
-
-        <div class="form-group" data-toggle="tooltip" title="If this is checked, then the data will be normalized so that each cell has the same read count (equal to the median read count over all cells).">
-            <label for="cell-norm">Normalize cells by read count:</label>
-            <input type="checkbox" id="cell-norm" name="normalize" value="1">
-        </div>
-
-        <div class="form-group" data-toggle="tooltip" title="This is the visualization method that will be used on the UNCURL-processed data.">
-            <label for="vismethod">Visualization method:</label>
+            <label for="vismethod" data-toggle="tooltip" title="This is the visualization method that will be used on the UNCURL-processed data.">Visualization method:</label>
             <select id="vismethod" name="vismethod">
                 <option selected>MDS</option>
                 <option>tSNE</option>
@@ -100,14 +69,58 @@ window.onload = function() {
             </select>
         </div>
 
-        <div class="form-group" data-toggle="tooltip" title="This is the visualization method that will be used on the raw data, without UNCURL.">
-            <label for="baseline-vismethod">Baseline visualization method:</label>
+        <div class="form-group">
+            <label for="baseline-vismethod" data-toggle="tooltip" title="This is the visualization method that will be used on the raw data, without UNCURL.">Baseline visualization method:</label>
             <select id="baseline-vismethod" name="baseline_vismethod">
-                <option selected>None</option>
+                <option>None</option>
                 <option>MDS</option>
-                <option>tSNE</option>
+                <option selected>tSNE</option>
                 <option>tSVD</option>
             </select>
+        </div>
+
+
+        <h4>Advanced Options</h4>
+
+        <div id="advanced-options">
+
+            <div class="form-group">
+                <span>
+                <label for="min-reads" data-toggle="tooltip" title="By default, this is the bottom 5% of cells by read count.">Remove cells with read counts less than:</label>
+                <input type="number" id="min-reads" name="min_reads" value={{ min_reads }}>
+                </span>
+                <br>
+
+                <span>
+                <label for="max-reads" data-toggle="tooltip" title="By default, this is the top 5% of cells by read count.">Remove cells with read counts greater than:</label>
+                <input type="number" id="max-reads" name="max_reads" value={{ max_reads }}>
+                </span>
+                <br>
+            </div>
+
+            <div class="form-group">
+                <label for="disttype">Distribution type:</label>
+                <select id="disttype" name="disttype">
+                    <option selected>Poisson</option>
+                    <option>Log-Normal</option>
+                    <option>Gaussian</option>
+                </select>
+            </div>
+
+            <div class="form-group" data-toggle="tooltip" title="By default, UNCURL uses 20% of the genes, selected by variance.">
+                <label for="genes-frac">Fraction of genes to include (put 1.0 to include all genes):</label>
+                <input type="number" id="genes-frac" name="genes_frac" value=0.2 step="0.01" min="0.0" max="1.0">
+            </div>
+
+            <div class="form-group">
+                <label for="cell-frac">Fraction of cells to include for visualization:</label>
+                <input type="number" id="cell-frac" name="cell_frac" value={{ cell_frac }} step="0.01" min="0.0" max="1.0">
+            </div>
+
+            <div class="form-group">
+                <label for="cell-norm" data-toggle="tooltip" title="If this is checked, then the data will be normalized so that each cell has the same read count (equal to the median read count over all cells).">Normalize cells by read count:</label>
+                <input type="checkbox" id="cell-norm" name="normalize" value="1" checked>
+            </div>
         </div>
 
         <div class="form-group">
@@ -117,7 +130,6 @@ window.onload = function() {
     </form>
 
     {% else %}
-    Currently running uncurl. Will refresh every 60 seconds.
 
     <script>
         setTimeout(function(){

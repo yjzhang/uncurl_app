@@ -14,7 +14,7 @@ from uncurl_analysis import enrichr_api, sc_analysis
 
 from app import app
 from . import generate_analysis
-from .cache import cache
+from .cache import cache, clear_cache_user_id
 from .utils import SimpleEncoder
 
 # map of user_id to SCAnalysis objects
@@ -113,7 +113,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
     size = 10
     if len(labels) < 50:
         size = 20
-    if len(labels) > 2000:
+    if len(labels) > 1000:
         size = 5
     elif len(labels) > 10000:
         size = 1
@@ -305,7 +305,12 @@ def split_or_merge_cluster(user_id):
         return 'Error: no selected clusters.'
     # TODO: have a more fine-grained key control. don't just clear the entire
     # cache, but clear some keys selectively from redis.
-    cache.clear()
+    if 'DEPLOY' in app.config and app.config['DEPLOY']:
+        print('deleting user_id from cache')
+        clear_cache_user_id(user_id)
+    else:
+        print('clearing cache')
+        cache.clear()
     # split clusters
     if split_or_merge == 'split':
         generate_analysis.generate_analysis_resubmit(sca,

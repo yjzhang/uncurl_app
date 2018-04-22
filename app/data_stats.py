@@ -52,12 +52,15 @@ class Summary(object):
         params: min_reads (bottom 10th percentile), max_reads
         (top 10th percentile), frac (0.2), nbins (5)
         """
+        # cell_frac is set so that there will be 500 points?
+        cell_frac = min(1.0, 1500.0/self.cells)
         sorted_read_counts = np.sort(self.cell_read_counts)
         top_05 = int(self.cells/20) #5%
         preproc_params = {'min_reads': int(sorted_read_counts[top_05]),
                           'max_reads': int(sorted_read_counts[-top_05]),
                           'frac': 0.2,
                           'nbins': 5,
+                          'cell_frac': cell_frac,
                           'cells': self.cells,
                           'genes': self.genes,
                           'normalize': False,

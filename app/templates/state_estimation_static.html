@@ -301,7 +301,7 @@ th {
 {% block content %}
 
 <div class="container container-main" role="main">
-    <h4>Results for query id {{ user_id }}</h4>
+    <h3>Results for query id {{ user_id }}</h3>
     Results are available:
     {% block file_downloads %}
 
@@ -354,15 +354,15 @@ th {
         </div>
 
         <div class="bottom-left" id="bottom-panel" style="margin-top: 20px;">
-            Call Enrichr on current top genes
+            <span data-toggle="tooltip" title="Uses the Enrichr tool from http://amp.pharm.mssm.edu/Enrichr/">Call Enrichr on current top genes</span>
             <div style="margin-top: 5px; margin-bottom: 5px;">
-                <select id="gene-set-library" data-toggle="tooltip" title="Uses the Enrichr tool from http://amp.pharm.mssm.edu/Enrichr/">
+                <select id="gene-set-library">
                     {% for opt in gene_sets %}
                     <option value={{ opt }}>{{ opt }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <button id="enrichr-submit" data-toggle="tooltip" title="Uses the Enrichr tool from http://amp.pharm.mssm.edu/Enrichr/">Submit Enrichr query</button>
+            <button id="enrichr-submit">Submit Enrichr query</button>
             <div id="enrichr-results"></div>
         </div>
 

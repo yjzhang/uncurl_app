@@ -17,7 +17,7 @@ from app import app
 from .cache import cache
 
 from . import vis
-from .generate_analysis import generate_uncurl_analysis
+from .generate_analysis import generate_uncurl_analysis, get_progress
 from .data_stats import Summary
 
 def load_upload_data(request_files, request_form, path=None):
@@ -192,14 +192,14 @@ def state_estimation_start(user_id):
 def state_estimation_result(user_id):
     path = os.path.join('/tmp/uncurl/', user_id)
     if os.path.exists(os.path.join(path, 'sc_analysis.json')):
-        #try:
-        #    visualization = open(os.path.join('/tmp/uncurl/', user_id, 'vis_state_estimation.html')).read()
-        #except:
-        #    visualization = ''
-        #visualization = Markup(visualization)
         return redirect(url_for('view_plots', user_id=user_id))
     elif os.path.exists(os.path.join(path, 'preprocess.json')):
         uncurl_is_running = os.path.exists(os.path.join(path, 'submitted'))
+        current_task = 'None'
+        time_remaining = 'Unknown'
+        if uncurl_is_running:
+            # TODO: get running time information
+            current_task, time_remaining = get_progress(path)
         with open(os.path.join(path, 'preprocess.json')) as f:
             preprocess = json.load(f)
         with open(os.path.join(path, 'vis_summary.html')) as f:
@@ -209,6 +209,9 @@ def state_estimation_result(user_id):
                 user_id=user_id, has_preview=True,
                 uncurl_is_running=uncurl_is_running,
                 visualization=v,
+                current_task=current_task,
+                time_remaining=time_remaining,
+                cell_frac=preprocess['cell_frac'],
                 min_reads=preprocess['min_reads'],
                 max_reads=preprocess['max_reads'],
                 cells=preprocess['cells'],
