@@ -3,6 +3,8 @@
 import json
 import os
 
+import numpy as np
+
 from uncurl_analysis import sc_analysis
 
 def generate_uncurl_analysis(data, output_dir,
@@ -104,28 +106,43 @@ def get_progress(path):
         current_task (str): a description of what step the preprocessing is on.
         time_remaining (str): a description of the time remaining.
     """
-    with open(os.path.join(path, 'preprocess.json')) as f:
+    with open(os.path.join(path, 'params.json')) as f:
         preproc = json.load(f)
     genes = preproc['genes']
+    frac = preproc['frac']
+    cell_frac = preproc['cell_frac']
     cells = preproc['cells']
-    # TODO: calculate time remaining using genes and cells
+    # calculate time remaining using genes and cells
+    # wow this is really arbitrary but better than nothing???
+    uncurl_factor = 120.0/(8000.0*3000.0)
+    uncurl_total_time = genes*frac*cells*uncurl_factor
+    vis_factor = 30.0/(1500.0*3000.0)
+    visualization_time = genes*frac*cells*cell_frac*vis_factor
+    pval_time = 70
     time_remaining = 500
     if os.path.exists(os.path.join(path, 'sc_analysis.json')):
         current_task = 'DONE'
     elif os.path.exists(os.path.join(path, 'top_genes.txt')):
         current_task = 'p-value calculations'
+        time_remaining = 5
     elif os.path.exists(os.path.join(path, 'mds_data.txt')):
-        current_task = 'gene selection and p-value calculation'
+        current_task = 'differential expression'
+        # time for t-tests is ~70 with 20k genes
+        time_remaining = pval_time
     elif os.path.exists('baseline_vis.txt'):
         current_task = 'data visualization'
+        time_remaining = pval_time + visualization_time
     elif os.path.exists('m.txt'):
         current_task = 'baseline visualization'
+        time_remaining = pval_time + 2*visualization_time
     elif os.path.exists(os.path.join(path, 'progress.txt')):
         i = 0
         with open(os.path.join(path, 'progress.txt')) as f:
             i = int(f.read().strip())
-        current_task = 'UNCURL: {0}/20'.format(i)
+        current_task = 'UNCURL progress: {0}/20'.format(i)
+        time_remaining = pval_time + 2*visualization_time + uncurl_total_time*i/20.0
     else:
         current_task = 'None'
+        time_remaining = pval_time + 2*visualization_time + uncurl_total_time
     time_remaining_minutes = int(time_remaining/60) + 1
     return current_task, '{0} minutes'.format(time_remaining_minutes)

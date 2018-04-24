@@ -54,6 +54,7 @@ class Summary(object):
         """
         # cell_frac is set so that there will be 500 points?
         cell_frac = min(1.0, 1500.0/self.cells)
+        cell_frac = round(cell_frac, 2)
         sorted_read_counts = np.sort(self.cell_read_counts)
         top_05 = int(self.cells/20) #5%
         preproc_params = {'min_reads': int(sorted_read_counts[top_05]),

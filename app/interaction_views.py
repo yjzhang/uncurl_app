@@ -150,8 +150,6 @@ def view_plots(user_id):
     if user_id.startswith('test_'):
         test_or_user = 'test'
         data_user_id = user_id[5:]
-    path = user_id_to_path(user_id)
-    sca = get_sca(user_id)
     return render_template('state_estimation_static.html', user_id=user_id,
             test_or_user=test_or_user,
             data_user_id=data_user_id,
@@ -306,8 +304,14 @@ def split_or_merge_cluster(user_id):
     # TODO: have a more fine-grained key control. don't just clear the entire
     # cache, but clear some keys selectively from redis.
     if 'DEPLOY' in app.config and app.config['DEPLOY']:
-        print('deleting user_id from cache')
-        clear_cache_user_id(user_id)
+        print('clearing cache')
+        cache.delete_memoized(get_sca_top_genes, user_id)
+        cache.delete_memoized(get_sca_pvals, user_id)
+        cache.delete_memoized(update_barplot_result)
+        cache.delete_memoized(update_scatterplot_result)
+        #print('deleting user_id from cache')
+        # TODO: this currently doesn't work, since keys are hashed.
+        #clear_cache_user_id(user_id)
     else:
         print('clearing cache')
         cache.clear()
