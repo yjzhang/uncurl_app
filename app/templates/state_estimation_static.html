@@ -127,6 +127,8 @@ function update_enrichr() {
     if (cache.enrichr.hasOwnProperty(key)) {
         set_enrichr_results(cache.enrichr[key]);
     }
+    $('#enrichr-results').empty();
+    $("#enrichr-results").append("<br>" + "Enrichr query in progress... " + '<img src="/static/ajax-loader.gif"/>');
     $.ajax({url: window.location.pathname + "/update_enrichr",
         type: "POST",
         data: {'top_genes': top_genes, 'gene_set': gene_set},
