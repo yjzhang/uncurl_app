@@ -2,6 +2,7 @@ import json
 import os
 import unittest
 
+from app import generate_analysis
 from app import app
 from app import cache
 
@@ -76,6 +77,11 @@ class UncurlAppTest(unittest.TestCase):
         self.assertTrue('data' in scatterplot_data)
         self.assertTrue('layout' in scatterplot_data)
         self.assertTrue(len(scatterplot_data['data']) == 8)
+
+    def test_helper_functions(self):
+        current_task, time_remaining = generate_analysis.get_progress('test_data/10x_400_new')
+        print(current_task)
+        print(time_remaining)
 
 
 if __name__ == '__main__':

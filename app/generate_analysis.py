@@ -140,9 +140,9 @@ def get_progress(path):
         with open(os.path.join(path, 'progress.txt')) as f:
             i = int(f.read().strip())
         current_task = 'UNCURL progress: {0}/20'.format(i)
-        time_remaining = pval_time + 2*visualization_time + uncurl_total_time*i/20.0
+        time_remaining = pval_time + 2*visualization_time + uncurl_total_time*(20.0-i)/20.0
     else:
-        current_task = 'None'
+        current_task = 'loading data'
         time_remaining = pval_time + 2*visualization_time + uncurl_total_time
     time_remaining_minutes = int(time_remaining/60) + 1
     return current_task, '{0} minutes'.format(time_remaining_minutes)
