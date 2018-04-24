@@ -108,10 +108,10 @@ def get_progress(path):
     """
     with open(os.path.join(path, 'params.json')) as f:
         preproc = json.load(f)
-    genes = preproc['genes']
-    frac = preproc['frac']
-    cell_frac = preproc['cell_frac']
-    cells = preproc['cells']
+    genes = int(preproc['genes'])
+    frac = float(preproc['frac'])
+    cell_frac = float(preproc['cell_frac'])
+    cells = int(preproc['cells'])
     # calculate time remaining using genes and cells
     # wow this is really arbitrary but better than nothing???
     uncurl_factor = 120.0/(8000.0*3000.0)
