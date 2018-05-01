@@ -144,6 +144,8 @@ def state_estimation():
 @app.route('/state_estimation/input', methods=['POST'])
 def state_estimation_input():
     user_id = str(uuid.uuid4())
+    if 'username' in request.form:
+        user_id = user_id + '-' + request.form['username']
     path = os.path.join('/tmp/uncurl/', user_id)
     os.makedirs(path)
     # save state estimation params? save request.form
