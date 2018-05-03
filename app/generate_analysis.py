@@ -4,6 +4,7 @@ import json
 import os
 
 import numpy as np
+from scipy import sparse
 
 from uncurl_analysis import sc_analysis
 
@@ -54,7 +55,7 @@ def generate_uncurl_analysis(data, output_dir,
     with open(os.path.join(output_dir, 'submitted'), 'w') as f:
         f.write('')
     data_is_sparse = True
-    if isinstance(data, str) or isinstance(data, unicode):
+    if not isinstance(data, np.ndarray) and not isinstance(data, sparse.spmatrix):
         data_filename = data
         if data.endswith('.mtx') or data.endswith('.mtx.gz'):
             data_is_sparse = True
@@ -112,13 +113,14 @@ def get_progress(path):
     frac = float(preproc['frac'])
     cell_frac = float(preproc['cell_frac'])
     cells = int(preproc['cells'])
+    k = int(preproc['k'])
     # calculate time remaining using genes and cells
     # wow this is really arbitrary but better than nothing???
-    uncurl_factor = 120.0/(8000.0*3000.0)
-    uncurl_total_time = genes*frac*cells*uncurl_factor
+    uncurl_factor = 120.0/(8000.0*3000.0*8)
+    uncurl_total_time = k*genes*frac*cells*uncurl_factor
     vis_factor = 30.0/(1500.0*3000.0)
     visualization_time = genes*frac*cells*cell_frac*vis_factor
-    pval_time = 70
+    pval_time = 70.0*k**2/8**2
     time_remaining = 500
     if os.path.exists(os.path.join(path, 'sc_analysis.json')):
         current_task = 'DONE'
