@@ -145,7 +145,8 @@ def state_estimation():
 def state_estimation_input():
     user_id = str(uuid.uuid4())
     if 'username' in request.form:
-        user_id = user_id + '-' + request.form['username']
+        if len(request.form['username']) > 0:
+            user_id = user_id + '-' + request.form['username']
     path = os.path.join('/tmp/uncurl/', user_id)
     os.makedirs(path)
     # save state estimation params? save request.form
