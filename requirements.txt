@@ -8,4 +8,5 @@ scikit-learn
 redis
 uncurl-seq
 gunicorn
+git+git://github.com/yjzhang/simplex_sample.git
 git+git://github.com/yjzhang/uncurl_analysis.git
