@@ -13,6 +13,8 @@ app.config['UNCURL_ARGS'] = {
         'max_iters': 20,
         'inner_max_iters': 50
 }
+app.config['NMF_ARGS'] = {
+}
 app.config['TEST_DATA_DIR'] = 'test_data/'
 app.config['USER_DATA_DIR'] = '/tmp/uncurl/'
 app.config['BULK_DATA_DIR'] = 'bulk_data/'

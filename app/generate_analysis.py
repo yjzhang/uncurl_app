@@ -63,7 +63,6 @@ def generate_uncurl_analysis(data, output_dir,
             data_is_sparse = False
     else:
         pass
-    uncurl_kwargs['write_progress_file'] = os.path.join(output_dir, 'progress.txt')
     with open(os.path.join(output_dir, 'uncurl_kwargs.json'), 'w') as f:
         json.dump(uncurl_kwargs, f)
     sca = sc_analysis.SCAnalysis(output_dir,

@@ -297,6 +297,10 @@ def state_estimation_thread(user_id, gene_names=None, init=None, path=None, prep
     elif dist_type == 'Log-Normal':
         dist_type = 'lognorm'
     uncurl_args = app.config['UNCURL_ARGS']
+    if dist_type != 'Poisson':
+        uncurl_args = app.config['NMF_ARGS']
+    if dist_type == 'Poisson':
+        uncurl_args['write_progress_file'] = os.path.join(path, 'progress.txt')
     uncurl_args['dist'] = dist_type
     uncurl_args['init_means'] = init
     k = int(preprocess['k'])
