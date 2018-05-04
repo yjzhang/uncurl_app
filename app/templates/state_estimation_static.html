@@ -34,10 +34,18 @@ function bind_click() {
     var plot = $('#means-scatter-plot')[0];
     plot.on('plotly_click', function(data) {
         var cluster = data.points[0].curveNumber;
+        // TODO: update selected cluster
         currently_selected_cluster = cluster;
         console.log(cluster);
-        // update barplot
         update_barplot(cluster);
+        // update barplot
+        var l = current_scatterplot_data.data[cluster].x.length;
+        all_selected_clusters = [cluster];
+        selection_string = "cluster " + String(cluster) + 
+            " (" + String(l) + " cells), ";
+        // set update area...
+        $("#update-area").empty();
+        $("#update-area").append("selected clusters: " + selection_string);
     });
 };
 
@@ -128,7 +136,7 @@ function update_enrichr() {
         set_enrichr_results(cache.enrichr[key]);
     }
     $('#enrichr-results').empty();
-    $("#enrichr-results").append("<br>" + "Enrichr query in progress... " + '<img src="/static/ajax-loader.gif"/>');
+    $("#enrichr-results").append("<br>" + "Enrichr query in progress..." + '<img src="/static/ajax-loader.gif"/>');
     $.ajax({url: window.location.pathname + "/update_enrichr",
         type: "POST",
         data: {'top_genes': top_genes, 'gene_set': gene_set},
@@ -182,10 +190,18 @@ function split_or_merge_cluster(split_or_merge) {
         return false;
     }
     var selected_clusters = all_selected_clusters;
+    if (all_selected_clusters.length == 0) {
+        window.alert('Warning: no selected clusters.');
+        return false;
+    }
+    if (split_or_merge == "merge" && all_selected_clusters.length == 1) {
+        window.alert('Warning: cannot merge a single cluster.');
+        return false;
+    }
     // lengths of each of the selected clusters
     console.log(split_or_merge);
     console.log(selected_clusters);
-    $("#update-area").append("<br>" + split_or_merge + " clusters in progress... " + '<img src="/static/ajax-loader.gif"/>');
+    $("#update-area").append("<br>" + split_or_merge + " clusters in progress... (re-running UNCURL, recalculating differentially expressed genes) " + '<img src="/static/ajax-loader.gif"/>');
     currently_merging = true;
     // TODO: make some indication that
     $.ajax({url: window.location.pathname + "/split_or_merge_cluster",

@@ -41,8 +41,8 @@ window.onload = function() {
     Data preview is available
     <h5>Visualization</h5>
 
-    <div>Number of cells: {{ cells }}</div>
-    <div>Number of genes: {{ genes }}</div>
+    <div id="num-cells">Number of cells: {{ cells }}</div>
+    <div id="num-genes">Number of genes: {{ genes }}</div>
 
     {{ visualization }}
     <!-- TODO: submit revisions? -->
@@ -126,7 +126,7 @@ window.onload = function() {
         </div>
 
         <div class="form-group">
-            <button type="submit" class="btn btn-default">Submit</button>
+            <button type="submit" id="submit" class="btn btn-default">Submit</button>
         </div>
 
     </form>
