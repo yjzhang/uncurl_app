@@ -1,0 +1,5 @@
+test_data/
+dash_app/
+app/static/
+*.out
+*.rdb
