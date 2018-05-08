@@ -2,9 +2,6 @@
 # I'm thinking of writing the frontend entirely in plotly.js, and not have
 # any backend Python rendering components.
 
-# TODO: have some sort of caching (redis for deployment, 
-# simple cache for testing) - have some mechanism to switch between the two
-
 import json
 import os
 
@@ -14,7 +11,7 @@ from uncurl_analysis import enrichr_api, sc_analysis
 
 from app import app
 from . import generate_analysis
-from .cache import cache, clear_cache_user_id
+from .cache import cache
 from .utils import SimpleEncoder
 
 # map of user_id to SCAnalysis objects

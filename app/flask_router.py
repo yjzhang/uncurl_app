@@ -43,36 +43,6 @@ def data_index():
             user_dirs=app.user_dirs,
             test_dirs=app.test_dirs)
 
-def deploy_dash_app(url):
-    dash_app = dash.Dash(name='Cluster view', sharing=True, server=app,
-            url_base_pathname=url)
-    dash_cluster_view.initialize_layout(dash_app)
-    #dash_cluster_view.initialize(dash_app, data_dir)
-    return dash_app
-
-#@app.route('/user/<user_id>')
-def route_user(user_id):
-    test_dir = os.path.join('/tmp/uncurl', user_id)
-    if user_id not in app.dash_apps:
-        app.dash_apps[user_id] = deploy_dash_app(#os.path.join('user', d),
-                '/user_dash/'+user_id)
-    if not app.dash_apps[user_id].initialized:
-        dash_cluster_view.initialize(app.dash_apps[user_id], test_dir,
-                '/user/'+user_id, user_id, 'user',
-                app.config['UNCURL_ARGS'])
-    dash_cluster_view.reset(app.dash_apps[user_id])
-    return redirect('/user_dash/'+str(user_id))
-
-#@app.route('/test/<test_id>')
-def route_test(test_id):
-    test_dir = os.path.join('test_data', test_id)
-    if not app.dash_apps[test_id].initialized:
-        dash_cluster_view.initialize(app.dash_apps[test_id], test_dir,
-                '/test/'+test_id, test_id, 'test',
-                app.config['UNCURL_ARGS'])
-    dash_cluster_view.reset(app.dash_apps[test_id])
-    return redirect('/test_dash/'+str(test_id))
-
 initialize()
 
 if __name__ == '__main__':
