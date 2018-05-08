@@ -11,6 +11,16 @@ To deploy on a server (requires redis): run `sh start-gunicorn.sh`
 
 Main code is located in `app/`
 
+## Building with Docker
+
+(still working on this...)
+
+`docker build . -t uncurl-app`
+
+`docker run uncurl-app -p 8888:<port>`
+
+This exposes the given port.
+
 ## Testing
 
 `python test_app.py`
@@ -18,6 +28,8 @@ Main code is located in `app/`
 `python test_frontend.py` (requires selenium and the Firefox webdriver from https://github.com/mozilla/geckodriver/releases)
 
 ## Usage
+
+See `user_guide.md`
 
 
 ## Data sources
