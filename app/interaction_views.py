@@ -4,6 +4,8 @@
 
 import json
 import os
+import shutil
+import uuid
 
 import numpy as np
 from flask import request, render_template
@@ -287,7 +289,7 @@ def update_enrichr_result(user_id, top_genes, gene_set):
 @app.route('/user/<user_id>/view/split_or_merge_cluster', methods=['POST'])
 def split_or_merge_cluster(user_id):
     if user_id.startswith('test_'):
-        return 'Error: test datasets cannot be modified.'
+        return 'Error: test datasets cannot be modified. Copy the dataset if you wish to modify it.'
     split_or_merge = request.form['split_or_merge']
     selected_clusters = request.form['selected_clusters']
     selected_clusters = selected_clusters.split(',')
@@ -314,11 +316,28 @@ def split_or_merge_cluster(user_id):
         cache.clear()
     # split clusters
     if split_or_merge == 'split':
-        generate_analysis.generate_analysis_resubmit(sca,
-                'split', selected_clusters)
-        return 'Finished splitting selected cluster: ' + str(selected_clusters[0])
+        try:
+            generate_analysis.generate_analysis_resubmit(sca,
+                    'split', selected_clusters)
+            return 'Finished splitting selected cluster: ' + str(selected_clusters[0])
+        except:
+            return 'Error in splitting clusters.'
     # merge clusters
     elif  split_or_merge == 'merge':
-        generate_analysis.generate_analysis_resubmit(sca,
-                'merge', selected_clusters)
-        return 'Finished merging selected clusters: ' + ' '.join(map(str, selected_clusters))
+        try:
+            generate_analysis.generate_analysis_resubmit(sca,
+                    'merge', selected_clusters)
+            return 'Finished merging selected clusters: ' + ' '.join(map(str, selected_clusters))
+        except:
+            return 'Error in merging clusters.'
+
+@app.route('/user/<user_id>/view/copy_dataset', methods=['POST'])
+def copy_dataset(user_id):
+    sca = get_sca(user_id)
+    path = sca.data_dir
+    try:
+        new_user_id = str(uuid.uuid4())
+        shutil.copytree(path, os.path.join(app.config['USER_DATA_DIR'], new_user_id))
+        return new_user_id
+    except:
+        return 'Error: copy failed.'

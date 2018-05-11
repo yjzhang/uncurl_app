@@ -74,6 +74,10 @@ function update_barplot(cluster_number) {
         cache.barplots[key] = data;
         var gene_names = data.data[0].y;
         $('#top-genes-view').val(gene_names.join('\n'));
+        if (gene_names.length > 20) {
+            data.layout.yaxis = {};
+            data.layout.yaxis.showticklabels = false;
+        }
         Plotly.newPlot("top-genes", data.data, data.layout);
     });
     return true;
@@ -226,6 +230,29 @@ function split_or_merge_cluster(split_or_merge) {
     });
 };
 
+// copies data to a new user_id
+function copy_data() {
+    var result = window.confirm("Do you wish to copy this dataset to a new user id?");
+    if (result == false) {
+        return false;
+    }
+    $('#update-area').empty();
+    $("#update-area").append("Copying data and results " + '<img src="/static/ajax-loader.gif"/>');
+    $.ajax({url: window.location.pathname + "/copy_dataset",
+        method: 'POST'
+    }).done(function(data) {
+        if (data.startsWith('Error')) {
+            $('#update-area').empty();
+            $('#update-area').append(data);
+        } else {
+            var new_user_id = data;
+            $('#update-area').empty();
+            $('#update-area').append('New results page: <a href="/user/' + new_user_id + '/view">' + new_user_id + '</a>');
+        }
+    });
+
+};
+
 
 
 window.onload = function() {
@@ -244,6 +271,9 @@ window.onload = function() {
     $('#top-or-bulk').change(function() {
         update_barplot(currently_selected_cluster);
     });
+    $('#num-genes').change(function() {
+        update_barplot(currently_selected_cluster);
+    });
     update_barplot(currently_selected_cluster);
 
     // bind update enrichr button to update_enrichr
@@ -257,6 +287,9 @@ window.onload = function() {
     });
     $('#merge').click(function() {
         split_or_merge_cluster('merge');
+    });
+    $('#copy').click(function() {
+        copy_data();
     });
 };
 
@@ -343,6 +376,8 @@ th {
 
             <div id="means-scatter-plot" style="width: 700px; margin-top: 5px"></div>
 
+
+            <label for="cell-color">Color scheme:</label>
             <select id="cell-color" data-toggle="tooltip" title="How the cells should be colored - either by their cluster label, or by their cluster label entropy.">
                 <option value="cluster" selected>Cluster</option>
                 <option value="entropy">Entropy</option>
@@ -352,6 +387,7 @@ th {
                 <div id="update-area"></div>
                 <button id="split" style="margin-right: 2px;">Split selected clusters</button>
                 <button id="merge">Merge selected clusters</button>
+                <button id="copy">Copy dataset</button>
             </div>
         </div>
 
@@ -371,11 +407,14 @@ th {
             <!-- Plot of top gene/p-value bar plots goes here -->
             <div id="top-genes" style="width: 500px;"></div>
 
-            <textarea id="top-genes-view" cols="50" rows="4">Top genes go here</textarea>
         </div>
 
         <div class="bottom-left" id="bottom-panel" style="margin-top: 20px;">
-            <span data-toggle="tooltip" title="Uses the Enrichr tool from http://amp.pharm.mssm.edu/Enrichr/">Call Enrichr on current top genes</span>
+            <h4 data-toggle="tooltip" title="Uses the Enrichr tool from http://amp.pharm.mssm.edu/Enrichr/">Call Enrichr on current top genes</h4>
+            <div>Currently selected top genes:</div>
+            <div>
+                <textarea id="top-genes-view" cols="50" rows="4">Top genes go here</textarea>
+            </div>
             <div style="margin-top: 5px; margin-bottom: 5px;">
                 <select id="gene-set-library">
                     {% for opt in gene_sets %}
