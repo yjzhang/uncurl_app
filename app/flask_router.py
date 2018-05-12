@@ -13,7 +13,7 @@ def get_test_dirs(base='test_data'):
     # allow dir to be accessed if uncurl has ran? if some visualization
     # is available?
     for s in subdirectories:
-        if os.path.exists(os.path.join(base, 'mds_data.txt')):
+        if os.path.exists(os.path.join(base, s, 'mds_data.txt')):
             good_dirs.append(s)
     return good_dirs
 
