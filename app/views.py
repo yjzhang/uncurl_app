@@ -219,6 +219,11 @@ def state_estimation_result(user_id):
                 max_reads=preprocess['max_reads'],
                 cells=preprocess['cells'],
                 genes=preprocess['genes'])
+    elif os.path.exists(os.path.join(path, 'error.txt')):
+        error_txt = ''
+        with open(os.path.join(path, 'error.txt')) as f:
+            error_txt = f.read()
+        return error(error_txt, 404)
     else:
         return render_template('state_estimation_user.html',
                 user_id=user_id, uncurl_is_running=False,

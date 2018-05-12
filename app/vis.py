@@ -13,6 +13,8 @@ import uncurl
 def vis_clustering(data, assignments, user_id):
     """
     Visualizes a hard-assignment clustering. Presents data in 2D.
+
+    DEPRECATED
     """
     X = uncurl.dim_reduce_data(data,2)
     colors = [Accent8[c] for c in assignments]
@@ -40,6 +42,8 @@ def vis_state_estimation(data, M, W, user_id, vismethod='MDS'):
     """
     2d bokeh visualization of 2d data. Outputs an embeddable html fragment to
     /tmp/user_id/vis_state_estimation.html
+
+    DEPRECATED
     """
     reduced_data = None
     if vismethod == 'MDS':
@@ -79,6 +83,8 @@ def vis_lineage(M, W, smoothed_data, edges, clusters, user_id):
     """
     2d bokeh visualization of lineage estimation output. Outputs an embeddable
     html fragment to /tmp/user_id/vis_lineage.html
+
+    DEPRECATED
     """
     X = uncurl.dim_reduce(M, W, 2)
     reduced_data = np.dot(X.T, W)
