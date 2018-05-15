@@ -89,9 +89,10 @@ function update_scatterplot() {
     var plot_type = $('input[name="scatter-type"]:checked').val();
     // TODO: have a cache and look up the outputs
     var cell_color = $("#cell-color").val();
+    var gene_name = $('#gene_name').val();
     console.log(plot_type);
     console.log(cell_color);
-    if (cache.scatterplots.hasOwnProperty(plot_type + cell_color)) {
+    if (cache.scatterplots.hasOwnProperty(plot_type + cell_color + gene_name)) {
         var data = cache.scatterplots[plot_type + cell_color];
         Plotly.newPlot("means-scatter-plot", data.data, data.layout);
         current_scatterplot_data = data;
@@ -101,7 +102,8 @@ function update_scatterplot() {
     }
     $.ajax({url: window.location.pathname + "/update_scatterplot",
         type: "POST",
-        data: {"scatter_type": plot_type, "cell_color": cell_color},
+        data: {"scatter_type": plot_type, "cell_color": cell_color,
+               "gene_name": gene_name},
     }).done(function(data) {
         data = JSON.parse(data);
         cache.scatterplots[plot_type + cell_color] = data;
@@ -263,7 +265,17 @@ window.onload = function() {
         update_scatterplot();
     });
     $('#cell-color').change(function() {
-        update_scatterplot();
+        var cell_color = $("#cell-color").val();
+        if (cell_color == "gene") {
+            var gene_name = $('#gene_name').val();
+            if (gene_name.length > 0) {
+                update_scatterplot();
+            }
+            $('#gene-name-area').css('display', 'block');
+        } else {
+            $('#gene-name-area').css('display', 'none');
+            update_scatterplot();
+        }
     });
     update_scatterplot();
 
@@ -381,7 +393,14 @@ th {
             <select id="cell-color" data-toggle="tooltip" title="How the cells should be colored - either by their cluster label, or by their cluster label entropy.">
                 <option value="cluster" selected>Cluster</option>
                 <option value="entropy">Entropy</option>
+                <option value="gene">Gene</option>
             </select>
+
+            <div id="gene-name-area" style="display:none;">
+                <label for="gene_name">Gene name:</label>
+                <input id="gene_name" type="text">
+                <button id="gene_name_submit" onclick="update_scatterplot()">Submit</button>
+            </div>
 
             <div style="margin-top: 5px;">
                 <div id="update-area"></div>

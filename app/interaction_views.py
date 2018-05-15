@@ -121,8 +121,9 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
     elif len(labels) > 10000:
         size = 1
     data = []
+    label_values = list(range(len(set(labels))))
     if mode == 'cluster':
-        color_values = list(range(len(set(labels))))
+        color_values = label_values
         data =  [
             {
                 'x': dim_red[0,labels==c].tolist(),
@@ -138,27 +139,37 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
             for c in range(len(set(labels)))
         ]
     elif mode == 'entropy':
+        color_values = [color_vals[labels==c] for c in label_values]
+        cmin = min(color_vals)
+        cmax = max(color_vals)
         data = [
             {
-                'x': dim_red[0,:].tolist(),
-                'y': dim_red[1,:].tolist(),
+                'x': dim_red[0,labels==c].tolist(),
+                'y': dim_red[1,labels==c].tolist(),
                 'mode': 'markers',
+                'name': 'cluster ' + str(c),
                 'marker': {
                     'size': size,
-                    'color': color_vals,
+                    'color': color_values[c],
                     'colorscale': colorscale,
+                    'cmin': cmin,
+                    'cmax': cmax,
+                    'showscale': True if c==0 else False,
                 },
+                'text': list(map(str, color_values[c]))
             }
+            for c in range(len(set(labels)))
         ]
     # TODO: add a colorbar for entropy mode.
     # also, use a different view.
     return json.dumps({
             'data': data,
             'layout': {
-                'title':'Cells',
-                'xaxis':{'title': 'dim1'},
-                'yaxis':{'title': 'dim2'},
-                'margin':{'t':30},
+                'title': 'Cells',
+                'xaxis': {'title': 'dim1'},
+                'yaxis': {'title': 'dim2'},
+                'margin': {'t':30},
+                'showlegend': True if mode == 'cluster' else False
             },
     }, cls=SimpleEncoder)
 
@@ -255,7 +266,11 @@ def update_scatterplot(user_id):
     """
     plot_type = request.form['scatter_type']
     cell_color_value = request.form['cell_color']
-    return update_scatterplot_result(user_id, plot_type, cell_color_value)
+    gene_name = None
+    if 'gene_name' in request.form:
+        gene_name = request.form['gene_name']
+    return update_scatterplot_result(user_id, plot_type, cell_color_value,
+            gene_name)
 
 @cache.memoize()
 def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=None):
@@ -270,7 +285,7 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
                     colorscale='Viridis',
                     mode='entropy', color_vals=sca.entropy)
         elif cell_color_value == 'gene':
-            gene_data = get_gene_data(gene_name)
+            gene_data = get_gene_data(user_id, gene_name)
             return scatterplot_data(sca.dim_red, sca.labels,
                     colorscale='Viridis',
                     mode='entropy', color_vals=gene_data)
@@ -281,6 +296,11 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
             return scatterplot_data(sca.baseline_vis, sca.labels,
                     colorscale='Viridis',
                     mode='entropy', color_vals=sca.entropy)
+        elif cell_color_value == 'gene':
+            gene_data = get_gene_data(user_id, gene_name)
+            return scatterplot_data(sca.baseline_vis, sca.labels,
+                    colorscale='Viridis',
+                    mode='entropy', color_vals=gene_data)
         else:
             return scatterplot_data(sca.baseline_vis, sca.labels)
 
