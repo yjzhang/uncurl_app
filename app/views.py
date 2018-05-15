@@ -146,7 +146,11 @@ def state_estimation_input():
     user_id = str(uuid.uuid4())
     if 'username' in request.form:
         if len(request.form['username']) > 0:
-            user_id = user_id + '-' + request.form['username']
+            # make username a safe string
+            keep_chars = set(['-', '_', ' '])
+            username = request.form['username'].strip()[:25]
+            username = ''.join([c for c in username if c.isalnum() or (c in keep_chars)])
+            user_id = user_id + '-' + username
     path = os.path.join('/tmp/uncurl/', user_id)
     os.makedirs(path)
     # save state estimation params? save request.form
@@ -201,7 +205,7 @@ def state_estimation_result(user_id):
         current_task = 'None'
         time_remaining = 'Unknown'
         if uncurl_is_running:
-            # TODO: get running time information
+            # get running time information (highly approximate)
             current_task, time_remaining = get_progress(path)
         with open(os.path.join(path, 'preprocess.json')) as f:
             preprocess = json.load(f)

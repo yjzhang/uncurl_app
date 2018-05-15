@@ -43,6 +43,16 @@ def get_sca_pvals(user_id):
     return sca.pvals
 
 @cache.memoize()
+def get_sca_pval_1vr(user_id):
+    sca = get_sca(user_id)
+    return sca.pvals_1_vs_rest
+
+@cache.memoize()
+def get_sca_top_1vr(user_id):
+    sca = get_sca(user_id)
+    return sca.top_genes_1_vs_rest
+
+@cache.memoize()
 def get_sca_gene_names(user_id):
     sca = get_sca(user_id)
     return sca.gene_names
@@ -91,7 +101,7 @@ def barplot_data(gene_values, gene_names, cluster_name, x_label,
         }, cls=SimpleEncoder)
 
 def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
-        gene_expression_list=None, entropy=None):
+        gene_expression_list=None, color_vals=None):
     """
     Converts data into a form that will be sent as json for building the
     scatterplot. Output should be formatted in a way that can be used by
@@ -102,35 +112,48 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
         labels (array): 1d array of length n
 
     """
-    if mode == 'cluster':
-        color_values = list(range(len(set(labels))))
-    elif mode == 'entropy':
-        color_values = [entropy[labels==c].tolist() for c in set(labels)]
-    # TODO: add a colorbar for entropy mode.
-    # also, use a different view.
     # have size depend on data shape
     size = 10
     if len(labels) < 50:
         size = 20
-    if len(labels) > 1000:
+    elif len(labels) > 1000:
         size = 5
     elif len(labels) > 10000:
         size = 1
+    data = []
+    if mode == 'cluster':
+        color_values = list(range(len(set(labels))))
+        data =  [
+            {
+                'x': dim_red[0,labels==c].tolist(),
+                'y': dim_red[1,labels==c].tolist(),
+                'mode': 'markers',
+                'name': 'cluster ' + str(c),
+                'marker': {
+                    'size': size,
+                    'color': color_values[c],
+                    'colorscale': colorscale,
+                },
+            }
+            for c in range(len(set(labels)))
+        ]
+    elif mode == 'entropy':
+        data = [
+            {
+                'x': dim_red[0,:].tolist(),
+                'y': dim_red[1,:].tolist(),
+                'mode': 'markers',
+                'marker': {
+                    'size': size,
+                    'color': color_vals,
+                    'colorscale': colorscale,
+                },
+            }
+        ]
+    # TODO: add a colorbar for entropy mode.
+    # also, use a different view.
     return json.dumps({
-            'data': [
-                {
-                    'x': dim_red[0,labels==c].tolist(),
-                    'y': dim_red[1,labels==c].tolist(),
-                    'mode': 'markers',
-                    'name': 'cluster ' + str(c),
-                    'marker': {
-                        'size': size,
-                        'color': color_values[c],
-                        'colorscale': colorscale,
-                    },
-                }
-                for c in range(len(set(labels)))
-            ],
+            'data': data,
             'layout': {
                 'title':'Cells',
                 'xaxis':{'title': 'dim1'},
@@ -199,6 +222,23 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes):
                 cluster_names, input_value,
                 x_label='separation score',
                 title='Inter-cluster separations for cluster {0}'.format(input_value))
+    elif top_or_bulk == 'top_1_vs_rest':
+        selected_top_genes = get_sca_top_1vr(user_id)[int(input_value)][:num_genes]
+        gene_names = get_sca_gene_names(user_id)
+        selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
+        return barplot_data(selected_top_genes,
+                selected_gene_names, input_value,
+                title='Top genes for cluster {0}'.format(input_value),
+                x_label='Fold change (1 vs rest)')
+    elif top_or_bulk == 'pval_1_vs_rest':
+        print get_sca_pval_1vr(user_id)
+        selected_top_genes = get_sca_pval_1vr(user_id)[input_value][:num_genes]
+        gene_names = get_sca_gene_names(user_id)
+        selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
+        return barplot_data(selected_top_genes,
+                selected_gene_names, input_value,
+                title='Top genes for cluster {0}'.format(input_value),
+                x_label='p-value of log-fold change (1 vs rest)')
     else:
         # TODO: show bulk correlations
         pass
@@ -218,7 +258,7 @@ def update_scatterplot(user_id):
     return update_scatterplot_result(user_id, plot_type, cell_color_value)
 
 @cache.memoize()
-def update_scatterplot_result(user_id, plot_type, cell_color_value):
+def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=None):
     sca = get_sca(user_id)
     if plot_type == 'Means':
         labels = np.arange(sca.mds_means.shape[1])
@@ -228,16 +268,29 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value):
         if cell_color_value == 'entropy':
             return scatterplot_data(sca.dim_red, sca.labels,
                     colorscale='Viridis',
-                    mode='entropy', entropy=sca.entropy)
+                    mode='entropy', color_vals=sca.entropy)
+        elif cell_color_value == 'gene':
+            gene_data = get_gene_data(gene_name)
+            return scatterplot_data(sca.dim_red, sca.labels,
+                    colorscale='Viridis',
+                    mode='entropy', color_vals=gene_data)
         else:
             return scatterplot_data(sca.dim_red, sca.labels)
     elif plot_type == 'Baseline':
         if cell_color_value == 'entropy':
             return scatterplot_data(sca.baseline_vis, sca.labels,
                     colorscale='Viridis',
-                    mode='entropy', entropy=sca.entropy)
+                    mode='entropy', color_vals=sca.entropy)
         else:
             return scatterplot_data(sca.baseline_vis, sca.labels)
+
+@cache.memoize()
+def get_gene_data(user_id, gene_name):
+    """
+    Returns an array containing data for a given gene name.
+    """
+    sca = get_sca(user_id)
+    return sca.data_sampled_gene(gene_name)
 
 @app.route('/user/<user_id>/view/update_enrichr', methods=['GET', 'POST'])
 def update_enrichr(user_id):
@@ -316,12 +369,12 @@ def split_or_merge_cluster(user_id):
         cache.clear()
     # split clusters
     if split_or_merge == 'split':
-        try:
+        #try:
             generate_analysis.generate_analysis_resubmit(sca,
                     'split', selected_clusters)
             return 'Finished splitting selected cluster: ' + str(selected_clusters[0])
-        except:
-            return 'Error in splitting clusters.'
+        #except:
+        #    return 'Error in splitting clusters.'
     # merge clusters
     elif  split_or_merge == 'merge':
         try:
@@ -341,3 +394,10 @@ def copy_dataset(user_id):
         return new_user_id
     except:
         return 'Error: copy failed.'
+
+def rerun_uncurl(user_id):
+    sca = get_sca(user_id)
+    path = sca.data_dir
+    # TODO: implement re-running uncurl
+
+

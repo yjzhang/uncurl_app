@@ -395,6 +395,8 @@ th {
             <select id="top-or-bulk" style="width: 300px;" data-toggle="tooltip" title="Which quantity to visualize in the barplot. C-score is the ratio of the mean expression in the given cluster to the cluster with the second-highest expression.">
                 <option value="top" selected>Top genes (c-score)</option>
                 <option value="pval">Top genes (p-value)</option>
+                <option value="top_1_vs_rest">Top genes (1-vs-rest fold change)</option>
+                <option value="pval_1_vs_rest">Top genes (p-value of fold change)</option>
                 <option value="sep">Most similar clusters (separation score)</option>
                 <!--<option value="bulk">Bulk correlations</option>-->
             </select>
