@@ -244,7 +244,6 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes):
                 title='Top genes for cluster {0}'.format(input_value),
                 x_label='Fold change (1 vs rest)')
     elif top_or_bulk == 'pval_1_vs_rest':
-        print get_sca_pval_1vr(user_id)
         selected_top_genes = get_sca_pval_1vr(user_id)[input_value][:num_genes]
         gene_names = get_sca_gene_names(user_id)
         selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
