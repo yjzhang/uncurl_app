@@ -139,6 +139,8 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
             for c in range(len(set(labels)))
         ]
     elif mode == 'entropy':
+        if colorscale == 'Portland' or colorscale is None:
+            colorscale = 'Reds'
         color_values = [color_vals[labels==c] for c in label_values]
         cmin = min(color_vals)
         cmax = max(color_vals)
@@ -287,7 +289,6 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
         elif cell_color_value == 'gene':
             gene_data = get_gene_data(user_id, gene_name)
             return scatterplot_data(sca.dim_red, sca.labels,
-                    colorscale='Viridis',
                     mode='entropy', color_vals=gene_data)
         else:
             return scatterplot_data(sca.dim_red, sca.labels)
@@ -299,7 +300,6 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
         elif cell_color_value == 'gene':
             gene_data = get_gene_data(user_id, gene_name)
             return scatterplot_data(sca.baseline_vis, sca.labels,
-                    colorscale='Viridis',
                     mode='entropy', color_vals=gene_data)
         else:
             return scatterplot_data(sca.baseline_vis, sca.labels)
