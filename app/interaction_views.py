@@ -162,8 +162,6 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
             }
             for c in range(len(set(labels)))
         ]
-    # TODO: add a colorbar for entropy mode.
-    # also, use a different view.
     return json.dumps({
             'data': data,
             'layout': {
