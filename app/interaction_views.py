@@ -180,6 +180,9 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
 @app.route('/user/<user_id>/view')
 @cache.memoize()
 def view_plots(user_id):
+    """
+    Returns main HTML view.
+    """
     test_or_user = 'user'
     data_user_id = user_id
     if user_id.startswith('test_'):
@@ -188,6 +191,7 @@ def view_plots(user_id):
     return render_template('state_estimation_static.html', user_id=user_id,
             test_or_user=test_or_user,
             data_user_id=data_user_id,
+            gene_names=get_sca_gene_names(user_id),
             gene_sets=enrichr_api.ENRICHR_LIBRARIES)
 
 
@@ -275,6 +279,9 @@ def update_scatterplot(user_id):
 
 @cache.memoize()
 def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=None):
+    """
+    Returns the plotly JSON representation of the scatterplot.
+    """
     sca = get_sca(user_id)
     if plot_type == 'Means':
         labels = np.arange(sca.mds_means.shape[1])
@@ -287,6 +294,8 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
                     mode='entropy', color_vals=sca.entropy)
         elif cell_color_value == 'gene':
             gene_data = get_gene_data(user_id, gene_name)
+            if len(gene_data)==0:
+                return 'Error: gene not found'
             return scatterplot_data(sca.dim_red, sca.labels,
                     mode='entropy', color_vals=gene_data)
         else:
@@ -298,6 +307,8 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
                     mode='entropy', color_vals=sca.entropy)
         elif cell_color_value == 'gene':
             gene_data = get_gene_data(user_id, gene_name)
+            if len(gene_data)==0:
+                return 'Error: gene not found'
             return scatterplot_data(sca.baseline_vis, sca.labels,
                     mode='entropy', color_vals=gene_data)
         else:

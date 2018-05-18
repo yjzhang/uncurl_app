@@ -111,6 +111,11 @@ function update_scatterplot() {
         data: {"scatter_type": plot_type, "cell_color": cell_color,
                "gene_name": gene_name},
     }).done(function(data) {
+        if (data.startsWith('Error')) {
+            $("#update-area").empty();
+            $("#update-area").append(data);
+            return false;
+        }
         data = JSON.parse(data);
         cache.scatterplots[plot_type + cell_color] = data;
         Plotly.newPlot("means-scatter-plot", data.data, data.layout);
@@ -406,7 +411,12 @@ th {
 
             <div id="gene-name-area" style="display:none;">
                 <label for="gene_name">Gene name:</label>
-                <input id="gene_name" type="text">
+                <input list="gene_names" id="gene_name">
+                <datalist id="gene_names">
+                    {% for gene_name in gene_names %}
+                    <option value="{{ gene_name }}">
+                    {% endfor %}
+                </datalist>
                 <button id="gene_name_submit" onclick="update_scatterplot()">Submit</button>
             </div>
 
