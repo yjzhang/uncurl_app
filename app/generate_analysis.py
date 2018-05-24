@@ -130,10 +130,10 @@ def get_progress(path):
         current_task = 'differential expression'
         # time for t-tests is ~70 with 20k genes
         time_remaining = pval_time
-    elif os.path.exists('baseline_vis.txt'):
+    elif os.path.exists(os.path.join(path, 'baseline_vis.txt')):
         current_task = 'data visualization'
         time_remaining = pval_time + visualization_time
-    elif os.path.exists('m.txt'):
+    elif os.path.exists(os.path.join(path, 'm.txt')):
         current_task = 'baseline visualization'
         time_remaining = pval_time + 2*visualization_time
     elif os.path.exists(os.path.join(path, 'progress.txt')):
