@@ -386,7 +386,9 @@ def split_or_merge_cluster(user_id):
     if 'DEPLOY' in app.config and app.config['DEPLOY']:
         print('clearing cache')
         cache.delete_memoized(get_sca_top_genes, user_id)
+        cache.delete_memoized(get_sca_top_1vr, user_id)
         cache.delete_memoized(get_sca_pvals, user_id)
+        cache.delete_memoized(get_sca_pval_1vr, user_id)
         cache.delete_memoized(update_barplot_result)
         cache.delete_memoized(update_scatterplot_result)
         #print('deleting user_id from cache')
