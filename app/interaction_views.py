@@ -118,6 +118,8 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
         size = 20
     elif len(labels) > 1000:
         size = 5
+    elif len(labels) > 5000:
+        size = 2
     elif len(labels) > 10000:
         size = 1
     data = []
