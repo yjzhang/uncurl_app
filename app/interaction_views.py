@@ -188,11 +188,13 @@ def view_plots(user_id):
     if user_id.startswith('test_'):
         test_or_user = 'test'
         data_user_id = user_id[5:]
+    sca = get_sca(user_id)
     return render_template('state_estimation_static.html', user_id=user_id,
             test_or_user=test_or_user,
             data_user_id=data_user_id,
             gene_names=get_sca_gene_names(user_id),
-            gene_sets=enrichr_api.ENRICHR_LIBRARIES)
+            gene_sets=enrichr_api.ENRICHR_LIBRARIES,
+            color_tracks=sca.get_color_track_names())
 
 
 @app.route('/user/<user_id>/view/update_barplot', methods=['GET', 'POST'])
@@ -415,6 +417,39 @@ def split_or_merge_cluster(user_id):
             return 'Finished merging selected clusters: ' + ' '.join(map(str, selected_clusters))
         except:
             return 'Error in merging clusters.'
+
+@app.route('/user/<user_id>/view/upload_color_track', methods=['POST'])
+def upload_color_track(user_id):
+    from werkzeug import secure_filename
+    sca = get_sca(user_id)
+    if 'color_track_file' in request.files:
+        f = request.files['color_track_file']
+        output_filename = secure_filename(f.filename)
+        output_filename = output_filename.split('.')[0]
+        color_track_type = request.form['color_track_type']
+        if color_track_type == 'continuous':
+            data = np.loadtxt(f, dtype=np.float)
+            data = data.flatten()
+            sca.add_color_track(output_filename, data, False)
+        elif color_track_type == 'discrete':
+            data = np.loadtxt(f, dtype=str)
+            data = data.flatten()
+            sca.add_color_track(output_filename, data, True)
+        elif color_track_type == 'table':
+            data = np.loadtxt(f, dtype=str, delimiter='\t')
+            for i in range(data.shape[1]):
+                column = data[:,i]
+                column_data = column[1:]
+                column_name = column[0]
+                is_discrete = True
+                try:
+                    column_data = column_data.astype(float)
+                    is_discrete = False
+                except:
+                    pass
+                sca.add_color_track(column_name, column[1:], is_discrete)
+    # return new color tracks
+    return sca.get_color_track_names()
 
 @app.route('/user/<user_id>/view/copy_dataset', methods=['POST'])
 def copy_dataset(user_id):

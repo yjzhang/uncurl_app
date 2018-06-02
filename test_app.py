@@ -51,6 +51,18 @@ class UncurlAppTest(unittest.TestCase):
         self.assertTrue('layout' in barplot_data)
         self.assertTrue(len(barplot_data['data'][0]['x']) == 20)
         self.assertTrue(len(barplot_data['data'][0]['y']) == 20)
+        barplot = self.app.post('/user/test_10x_400_new/view/update_barplot',
+                data={'top_or_bulk': 'top_1_vs_rest',
+                      'input_value': 4,
+                      'num_genes': 15})
+        self.assertEqual(barplot.status, '200 OK')
+        barplot_data = json.loads(barplot.data)
+        self.assertTrue('data' in barplot_data)
+        self.assertTrue('layout' in barplot_data)
+        self.assertTrue(len(barplot_data['data'][0]['x']) == 15)
+        self.assertTrue(len(barplot_data['data'][0]['y']) == 15)
+
+
 
     def test_get_scatterplot(self):
         scatterplot = self.app.post('/user/test_10x_400_new/view/update_scatterplot',
@@ -72,6 +84,15 @@ class UncurlAppTest(unittest.TestCase):
         scatterplot = self.app.post('/user/test_10x_400_new/view/update_scatterplot',
                 data={'scatter_type': 'Baseline',
                       'cell_color': 'cluster'})
+        self.assertEqual(scatterplot.status, '200 OK')
+        scatterplot_data = json.loads(scatterplot.data)
+        self.assertTrue('data' in scatterplot_data)
+        self.assertTrue('layout' in scatterplot_data)
+        self.assertTrue(len(scatterplot_data['data']) == 8)
+        scatterplot = self.app.post('/user/test_10x_400_new/view/update_scatterplot',
+                data={'scatter_type': 'Cells',
+                      'cell_color': 'gene',
+                      'gene_name': 'CD8B'})
         self.assertEqual(scatterplot.status, '200 OK')
         scatterplot_data = json.loads(scatterplot.data)
         self.assertTrue('data' in scatterplot_data)

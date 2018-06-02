@@ -265,7 +265,22 @@ function copy_data() {
             $('#update-area').append('New results page: <a href="/user/' + new_user_id + '/view">' + new_user_id + '</a>');
         }
     });
+};
 
+function add_color_scale() {
+    event.preventDefault();
+    var file = $('#color_track_file');
+    $.ajax({url: window.location.pathname + "/upload_color_track",
+        method: 'POST',
+        data: new FormData($('#color-track-form')[0]),
+        cache: false,
+        contentType: false,
+        processData: false,
+    }).done(function(data) {
+        console.log('data uploaded');
+        console.log(data);
+        // TODO: append new options to view
+    });
 };
 
 
@@ -407,6 +422,9 @@ th {
                 <option value="cluster" selected>Cluster</option>
                 <option value="entropy">Entropy</option>
                 <option value="gene">Gene</option>
+                {% for track in color_tracks %}
+                <option value="{{ track }}">{{ track }}</option>
+                {% endfor %}
             </select>
 
             <div id="gene-name-area" style="display:none;">
@@ -418,6 +436,19 @@ th {
                     {% endfor %}
                 </datalist>
                 <button id="gene_name_submit" onclick="update_scatterplot()">Submit</button>
+            </div>
+
+            <div id="color-track-upload-area" style="display:none;">
+                <form id="color-track-form" action="./upload_color_track" method="post" enctype=multipart/form-data>
+                    <label for="color_track_file">Upload colorscale here</label>
+                    <input type="file" id="color_track_file">
+                    <select id="color_track_type">
+                        <option value="continuous" selected>Continuous</option>
+                        <option value="discrete" selected>Discrete</option>
+                        <option value="table" selected>Table</option>
+                    </select>
+                    <button type="submit" id="submit_color_track" class="btn btn-default">Submit</button>
+                </form>
             </div>
 
             <div style="margin-top: 5px;">

@@ -32,6 +32,8 @@ This exposes the given port.
 See `user_guide.md`
 
 
-## Data sources
+## Included resources
 
 loading gif from http://www.ajaxload.info/
+
+Includes plotly, jquery, poppler

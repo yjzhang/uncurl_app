@@ -64,8 +64,12 @@ class UncurlFrontendTest(LiveServerTestCase):
         self.driver.execute_script('window.all_selected_clusters = [0];')
         self.driver.find_element_by_id('split').click()
         time.sleep(55)
+        select = Select(self.driver.find_element_by_id('top-or-bulk'))
+        select.select_by_value('top_1_vs_rest')
+        time.sleep(1)
 
     def test_submit_2(self):
+        # submit using Log-Normal
         self.driver.find_element_by_id('state-estimation-link').click()
         time.sleep(1)
         self.driver.find_element_by_id('fileinput').send_keys(
