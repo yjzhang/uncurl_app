@@ -267,45 +267,6 @@ function copy_data() {
     });
 };
 
-// given an object of the format {'color': [list of colors]}, this
-// updates the #cell-color area.
-function update_color_scales(data) {
-    var colors_area = $('#cell-color'); 
-    colors_area.empty();
-    colors_area.append('<option value="cluster" selected>Cluster</option>\n' + 
-            '<option value="entropy">Entropy</option>\n' +
-            '<option value="gene">Gene</option>')
-    for (var color in data['colors']) {
-        colors_area.append('<option value="' + color + '">' + color + '</option>\n');
-    }
-    colors_area.append('<option value="new">New color track</option>');
-};
-
-function add_color_scale() {
-    var file = $('#color_track_file')[0].files[0];
-    console.log(file);
-    var form_data = new FormData($('#color-track-form')[0]);
-    console.log(form_data);
-    $.ajax({url: window.location.pathname + "/upload_color_track",
-        method: 'POST',
-        data: form_data,
-        cache: false,
-        contentType: false,
-        processData: false,
-    }).done(function(data) {
-        console.log('data uploaded');
-        console.log(data);
-        // TODO: append new options to view
-        if (data.startsWith('Error')) {
-            return 0;
-        }
-        var data = JSON.parse(data);
-        update_color_scales(data);
-    });
-};
-
-
-
 window.onload = function() {
     // activate tooltips
     $('[data-toggle="tooltip"]').tooltip();
