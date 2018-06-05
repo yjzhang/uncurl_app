@@ -267,12 +267,28 @@ function copy_data() {
     });
 };
 
+// given an object of the format {'color': [list of colors]}, this
+// updates the #cell-color area.
+function update_color_scales(data) {
+    var colors_area = $('#cell-color'); 
+    colors_area.empty();
+    colors_area.append('<option value="cluster" selected>Cluster</option>\n' + 
+            '<option value="entropy">Entropy</option>\n' +
+            '<option value="gene">Gene</option>')
+    for (var color in data['colors']) {
+        colors_area.append('<option value="' + color + '">' + color + '</option>\n');
+    }
+    colors_area.append('<option value="new">New color track</option>');
+};
+
 function add_color_scale() {
-    event.preventDefault();
-    var file = $('#color_track_file');
+    var file = $('#color_track_file')[0].files[0];
+    console.log(file);
+    var form_data = new FormData($('#color-track-form')[0]);
+    console.log(form_data);
     $.ajax({url: window.location.pathname + "/upload_color_track",
         method: 'POST',
-        data: new FormData($('#color-track-form')[0]),
+        data: form_data,
         cache: false,
         contentType: false,
         processData: false,
@@ -280,6 +296,11 @@ function add_color_scale() {
         console.log('data uploaded');
         console.log(data);
         // TODO: append new options to view
+        if (data.startsWith('Error')) {
+            return 0;
+        }
+        var data = JSON.parse(data);
+        update_color_scales(data);
     });
 };
 
@@ -300,8 +321,11 @@ window.onload = function() {
                 update_scatterplot();
             }
             $('#gene-name-area').css('display', 'block');
+        } else if (cell_color == "new") {
+            $('#color-track-upload-area').css('display', 'block');
         } else {
             $('#gene-name-area').css('display', 'none');
+            $('#color-track-upload-area').css('display', 'none');
             update_scatterplot();
         }
     });
@@ -425,6 +449,7 @@ th {
                 {% for track in color_tracks %}
                 <option value="{{ track }}">{{ track }}</option>
                 {% endfor %}
+                <option value="new">New color track</option>
             </select>
 
             <div id="gene-name-area" style="display:none;">
@@ -438,14 +463,15 @@ th {
                 <button id="gene_name_submit" onclick="update_scatterplot()">Submit</button>
             </div>
 
-            <div id="color-track-upload-area" style="display:none;">
-                <form id="color-track-form" action="./upload_color_track" method="post" enctype=multipart/form-data>
-                    <label for="color_track_file">Upload colorscale here</label>
-                    <input type="file" id="color_track_file">
-                    <select id="color_track_type">
+            <div id="color-track-upload-area" style="display:none; width: 700px;">
+                <form id="color-track-form" action="view/upload_color_track" method="post" enctype=multipart/form-data>
+                    <label for="color_track_file">Upload color track here</label>
+                    <input type="file" name="color_track_file" id="color_track_file">
+                    <label for="color_track_type">Type of color track:</label>
+                    <select id="color_track_type" name="color_track_type" >
                         <option value="continuous" selected>Continuous</option>
-                        <option value="discrete" selected>Discrete</option>
-                        <option value="table" selected>Table</option>
+                        <option value="discrete">Discrete</option>
+                        <option value="table">Table</option>
                     </select>
                     <button type="submit" id="submit_color_track" class="btn btn-default">Submit</button>
                 </form>

@@ -8,7 +8,7 @@ import shutil
 import uuid
 
 import numpy as np
-from flask import request, render_template
+from flask import request, render_template, redirect, url_for
 from uncurl_analysis import enrichr_api, sc_analysis
 
 from app import app
@@ -124,6 +124,10 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
         size = 1
     data = []
     label_values = list(range(len(set(labels))))
+    cluster_names = ['cluster ' + str(c) for c in label_values]
+    if type(labels[0]) is str or type(labels[0]) is np.string_:
+        label_values = list(set(labels))
+        cluster_names = label_values
     if mode == 'cluster':
         color_values = label_values
         data =  [
@@ -131,14 +135,14 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                 'x': dim_red[0,labels==c].tolist(),
                 'y': dim_red[1,labels==c].tolist(),
                 'mode': 'markers',
-                'name': 'cluster ' + str(c),
+                'name': cluster_names[i],
                 'marker': {
                     'size': size,
-                    'color': color_values[c],
+                    'color': color_values[i],
                     'colorscale': colorscale,
                 },
             }
-            for c in range(len(set(labels)))
+            for i, c in enumerate(label_values)
         ]
     elif mode == 'entropy':
         if colorscale == 'Portland' or colorscale is None:
@@ -178,7 +182,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
 
 
 @app.route('/user/<user_id>/view')
-@cache.memoize()
+#@cache.memoize()
 def view_plots(user_id):
     """
     Returns main HTML view.
@@ -289,32 +293,35 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
         labels = np.arange(sca.mds_means.shape[1])
         return scatterplot_data(sca.mds_means,
                 labels)
-    elif plot_type == 'Cells':
+    else:
+        dim_red = None
+        if plot_type == 'Cells':
+            dim_red = sca.dim_red
+        elif plot_type == 'Baseline':
+            dim_red = sca.baseline_vis
         if cell_color_value == 'entropy':
-            return scatterplot_data(sca.dim_red, sca.labels,
+            return scatterplot_data(dim_red, sca.labels,
                     colorscale='Viridis',
                     mode='entropy', color_vals=sca.entropy)
         elif cell_color_value == 'gene':
             gene_data = get_gene_data(user_id, gene_name)
             if len(gene_data)==0:
                 return 'Error: gene not found'
-            return scatterplot_data(sca.dim_red, sca.labels,
+            return scatterplot_data(dim_red, sca.labels,
                     mode='entropy', color_vals=gene_data)
+        elif cell_color_value == 'cluster':
+            return scatterplot_data(dim_red, sca.labels)
         else:
-            return scatterplot_data(sca.dim_red, sca.labels)
-    elif plot_type == 'Baseline':
-        if cell_color_value == 'entropy':
-            return scatterplot_data(sca.baseline_vis, sca.labels,
-                    colorscale='Viridis',
-                    mode='entropy', color_vals=sca.entropy)
-        elif cell_color_value == 'gene':
-            gene_data = get_gene_data(user_id, gene_name)
-            if len(gene_data)==0:
-                return 'Error: gene not found'
-            return scatterplot_data(sca.baseline_vis, sca.labels,
-                    mode='entropy', color_vals=gene_data)
-        else:
-            return scatterplot_data(sca.baseline_vis, sca.labels)
+            # try to get color track
+            color_track, is_discrete = sca.get_color_track(cell_color_value)
+            if color_track is None:
+                return scatterplot_data(dim_red, sca.labels)
+            else:
+                if is_discrete:
+                    return scatterplot_data(dim_red, color_track)
+                else:
+                    return scatterplot_data(dim_red, sca.labels,
+                            mode='entropy', color_vals=color_track)
 
 @cache.memoize()
 def get_gene_data(user_id, gene_name):
@@ -422,6 +429,8 @@ def split_or_merge_cluster(user_id):
 def upload_color_track(user_id):
     from werkzeug import secure_filename
     sca = get_sca(user_id)
+    print(request.form)
+    print(request.files)
     if 'color_track_file' in request.files:
         f = request.files['color_track_file']
         output_filename = secure_filename(f.filename)
@@ -449,7 +458,7 @@ def upload_color_track(user_id):
                     pass
                 sca.add_color_track(column_name, column[1:], is_discrete)
     # return new color tracks
-    return sca.get_color_track_names()
+    return redirect(url_for('view_plots', user_id=user_id))
 
 @app.route('/user/<user_id>/view/copy_dataset', methods=['POST'])
 def copy_dataset(user_id):
