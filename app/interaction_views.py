@@ -53,9 +53,27 @@ def get_sca_top_1vr(user_id):
     return sca.top_genes_1_vs_rest
 
 @cache.memoize()
+def get_sca_top_genes_custom(user_id, color_track):
+    sca = get_sca(user_id)
+    return sca.calculate_diffexp(color_track)
+
+@cache.memoize()
 def get_sca_gene_names(user_id):
     sca = get_sca(user_id)
     return sca.gene_names
+
+@cache.memoize()
+def get_sca_color_track(user_id, color_track):
+    sca = get_sca(user_id)
+    return sca.get_color_track(color_track)
+
+def color_track_map(color_track):
+    """
+    Returns a map of labels to ints, and a map of ints to labels.
+    """
+    colors = sorted(list(set(color_track)))
+    return {c: i for i, c in enumerate(colors)}, {i: c for i, c in enumerate(colors)}
+
 
 def user_id_to_path(user_id):
     if user_id.startswith('test_'):
@@ -123,10 +141,12 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
     elif len(labels) > 10000:
         size = 1
     data = []
+    # label_values is a list 0...number of unique labels - 1
     label_values = list(range(len(set(labels))))
     cluster_names = ['cluster ' + str(c) for c in label_values]
     if type(labels[0]) is str or type(labels[0]) is np.string_:
-        label_values = list(set(labels))
+        color_to_index, index_to_color = color_track_map(labels)
+        label_values = [index_to_color[c] for c in label_values]
         cluster_names = label_values
     if mode == 'cluster':
         color_values = label_values
@@ -212,10 +232,15 @@ def update_barplot(user_id):
     top_or_bulk = str(request.form['top_or_bulk'])
     input_value = int(request.form['input_value'])
     num_genes = int(request.form['num_genes'])
-    return update_barplot_result(user_id, top_or_bulk, input_value, num_genes)
+    colormap = None
+    if 'cell_color' in request.form:
+        colormap = str(request.form['cell_color'])
+    return update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
+            colormap)
 
 @cache.memoize()
-def update_barplot_result(user_id, top_or_bulk, input_value, num_genes):
+def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
+        colormap=None):
     sca = get_sca(user_id)
     if top_or_bulk == 'top':
         selected_top_genes = get_sca_top_genes(user_id)[int(input_value)][:num_genes]
@@ -261,6 +286,21 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes):
                 selected_gene_names, input_value,
                 title='Top genes for cluster {0}'.format(input_value),
                 x_label='p-value of log-fold change (1 vs rest)')
+    elif top_or_bulk == 'selected_color':
+        if colormap is None:
+            return None
+        # TODO: map input_value to cluster name
+        color_track, is_discrete = get_sca_color_track(user_id, colormap)
+        selected_diffexp = get_sca_top_genes_custom(user_id, colormap)
+        _, color_map = color_track_map(color_track)
+        input_label = color_map[input_value]
+        selected_top_genes = selected_diffexp[input_label][:num_genes]
+        gene_names = get_sca_gene_names(user_id)
+        selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
+        return barplot_data(selected_top_genes,
+                selected_gene_names, input_label,
+                title='Top genes for label {0}'.format(input_label),
+                x_label='Fold change (1 vs rest)')
     else:
         # TODO: show bulk correlations
         pass
@@ -311,9 +351,12 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
                     mode='entropy', color_vals=gene_data)
         elif cell_color_value == 'cluster':
             return scatterplot_data(dim_red, sca.labels)
+        elif cell_color_value == 'new':
+            # this usually happens by mistake...
+            return scatterplot_data(dim_red, sca.labels)
         else:
             # try to get color track
-            color_track, is_discrete = sca.get_color_track(cell_color_value)
+            color_track, is_discrete = get_sca_color_track(user_id, cell_color_value)
             if color_track is None:
                 return scatterplot_data(dim_red, sca.labels)
             else:

@@ -73,6 +73,7 @@ class UncurlAppTest(unittest.TestCase):
         self.assertTrue('data' in scatterplot_data)
         self.assertTrue('layout' in scatterplot_data)
         self.assertTrue(len(scatterplot_data['data']) == 8)
+        self.assertTrue(scatterplot_data['data'][0]['name'] == 'cluster 0')
         scatterplot = self.app.post('/user/test_10x_400_new/view/update_scatterplot',
                 data={'scatter_type': 'Cells',
                       'cell_color': 'cluster'})
@@ -81,6 +82,7 @@ class UncurlAppTest(unittest.TestCase):
         self.assertTrue('data' in scatterplot_data)
         self.assertTrue('layout' in scatterplot_data)
         self.assertTrue(len(scatterplot_data['data']) == 8)
+        self.assertTrue(scatterplot_data['data'][1]['name'] == 'cluster 1')
         scatterplot = self.app.post('/user/test_10x_400_new/view/update_scatterplot',
                 data={'scatter_type': 'Baseline',
                       'cell_color': 'cluster'})

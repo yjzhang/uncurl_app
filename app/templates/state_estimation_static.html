@@ -55,6 +55,7 @@ function update_barplot(cluster_number) {
     var top_or_bulk = $("#top-or-bulk").val();
     var input_value = cluster_number;
     var num_genes = $("#num-genes").val();
+    var cell_color = $("#cell-color").val();
     console.log('update_barplot');
     var key = top_or_bulk + String(input_value) + ' ' + String(num_genes);
     if (cache.barplots.hasOwnProperty(key)) {
@@ -68,7 +69,8 @@ function update_barplot(cluster_number) {
         type: "POST",
         data: {"top_or_bulk": top_or_bulk,
                "input_value": input_value,
-               "num_genes": num_genes},
+               "num_genes": num_genes,
+               "cell_color": cell_color},
     }).done(function(data) {
         data = JSON.parse(data);
         cache.barplots[key] = data;
@@ -453,6 +455,7 @@ th {
                 <option value="top_1_vs_rest">Top genes (1-vs-rest fold change)</option>
                 <option value="pval_1_vs_rest">Top genes (p-value of fold change)</option>
                 <option value="sep">Most similar clusters (separation score)</option>
+                <option value="selected_color">Top genes for custom labels</option>
                 <!--<option value="bulk">Bulk correlations</option>-->
             </select>
 
