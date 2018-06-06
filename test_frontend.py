@@ -49,9 +49,10 @@ class UncurlFrontendTest(LiveServerTestCase):
         time.sleep(1)
         self.driver.find_element_by_id('submit').click()
         time.sleep(80)
-        # should be completed by now
+        # initial processing be completed by now
         print(self.driver.current_url)
         self.assertTrue('view' in self.driver.current_url)
+        # testing various UI elements
         self.driver.find_element_by_id('visualization')
         self.driver.find_element_by_id('means-scatter-plot')
         self.driver.find_element_by_id('Cells').click()
@@ -61,6 +62,26 @@ class UncurlFrontendTest(LiveServerTestCase):
         select = Select(self.driver.find_element_by_id('top-or-bulk'))
         select.select_by_value('pval')
         time.sleep(1)
+        # test cell color
+        select = Select(self.driver.find_element_by_id('cell-color'))
+        select.select_by_value('entropy')
+        time.sleep(1)
+        # upload custom color map
+        select.select_by_value('new')
+        self.driver.find_element_by_id('color_track_file').send_keys(
+                os.path.join(os.getcwd(), 'app/static/labels_400_cells.txt'))
+        select = Select(self.driver.find_element_by_id('color_track_type'))
+        select.select_by_value('discrete')
+        time.sleep(1)
+        self.driver.find_element_by_id('submit_color_track').click()
+        time.sleep(2)
+        print(self.driver.current_url)
+        print('color track upload done')
+        time.sleep(2)
+        # check that custom color track has been uploaded
+        select = Select(self.driver.find_element_by_id('cell-color'))
+        select.select_by_value('labels_400_cells')
+        # test split cluster
         self.driver.execute_script('window.all_selected_clusters = [0];')
         self.driver.find_element_by_id('split').click()
         time.sleep(55)
