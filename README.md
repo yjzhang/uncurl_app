@@ -1,6 +1,8 @@
 Flask web app for UNCURL
 =======================
 
+Try it out: the current url is at http://uncurl-app.yjzhang.com:8888/
+
 ## Installation
 
 Requirements: see `requirements.txt`. To install requirements, run `pip install -r requirements.txt`
