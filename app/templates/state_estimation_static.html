@@ -210,6 +210,10 @@ function split_or_merge_cluster(split_or_merge) {
         window.alert('Already running ' + split_or_merge + ' cluster');
         return false;
     }
+    var result = window.confirm("Warning: splitting or merging might take a while, depending on the size of the dataset. Are you sure you wish to run this operation?");
+    if (result == false) {
+        return false;
+    }
     var selected_clusters = all_selected_clusters;
     if (all_selected_clusters.length == 0) {
         window.alert('Warning: no selected clusters.');
@@ -404,8 +408,8 @@ th {
             <div id="means-scatter-plot" style="width: 700px; margin-top: 5px"></div>
 
 
-            <label for="cell-color">Color scheme:</label>
-            <select id="cell-color" data-toggle="tooltip" title="How the cells should be colored - either by their cluster label, or by their cluster label entropy.">
+            <label for="cell-color" data-toggle="tooltip" title="How the cells should be colored - either by their cluster label, or by their cluster label entropy.">Label scheme:</label>
+            <select id="cell-color">
                 <option value="cluster" selected>Cluster</option>
                 <option value="entropy">Entropy</option>
                 <option value="gene">Gene</option>
@@ -428,9 +432,9 @@ th {
 
             <div id="color-track-upload-area" style="display:none; width: 700px;">
                 <form id="color-track-form" action="view/upload_color_track" method="post" enctype=multipart/form-data>
-                    <label for="color_track_file">Upload color track here</label>
+                    <label for="color_track_file" data-toggle="tooltip" title="File should contain one line for each cell.">Upload color track here</label>
                     <input type="file" name="color_track_file" id="color_track_file">
-                    <label for="color_track_type">Type of color track:</label>
+                    <label for="color_track_type" data-toggle="tooltip" title="Discrete: each line will be interpreted as a string/label; continuous: each line will be interpreted as a number.">Type of color track:</label>
                     <select id="color_track_type" name="color_track_type" >
                         <option value="continuous" selected>Continuous</option>
                         <option value="discrete">Discrete</option>
