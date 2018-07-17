@@ -88,7 +88,7 @@ def cluster_thread(data, k, user_id, init=None, dist_type='Poisson'):
     """
     Thread for performing the clustering operation - currently unused.
     """
-    path = os.path.join('/tmp/uncurl/', user_id)
+    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     try:
         os.mkdir(path)
         print(path)
@@ -118,13 +118,13 @@ def cluster_thread(data, k, user_id, init=None, dist_type='Poisson'):
 
 @app.route('/clustering/results/<user_id>')
 def clustering_result(user_id):
-    if os.path.exists(os.path.join('/tmp/uncurl/', user_id, 'assignments.txt')):
+    if os.path.exists(os.path.join(app.config['USER_DATA_DIR'], user_id, 'assignments.txt')):
         try:
-            visualization = open(os.path.join('/tmp/uncurl/', user_id, 'vis_clustering.html')).read()
+            visualization = open(os.path.join(app.config['USER_DATA_DIR'], user_id, 'vis_clustering.html')).read()
         except:
             visualization = ''
         poisson = True
-        if os.path.exists(os.path.join('/tmp/uncurl/', user_id, 'centers.txt')):
+        if os.path.exists(os.path.join(app.config['USER_DATA_DIR'], user_id, 'centers.txt')):
             pass
         else:
             poisson=False
@@ -151,7 +151,7 @@ def state_estimation_input():
             username = request.form['username'].strip()[:25]
             username = ''.join([c for c in username if c.isalnum() or (c in keep_chars)])
             user_id = user_id + '-' + username
-    path = os.path.join('/tmp/uncurl/', user_id)
+    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     os.makedirs(path)
     # save state estimation params? save request.form
     with open(os.path.join(path, 'inputs.json'), 'w') as f:
@@ -175,7 +175,7 @@ def state_estimation_start(user_id):
     This saves a file called 'params.json' in /tmp/uncurl/<user_id>
     containing all parameters used in state estimation.
     """
-    path = os.path.join('/tmp/uncurl/', user_id)
+    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     gene_names = os.path.join(path, 'gene_names.txt')
     if not os.path.exists(gene_names):
         gene_names = None
@@ -197,7 +197,7 @@ def state_estimation_start(user_id):
 
 @app.route('/state_estimation/results/<user_id>/')
 def state_estimation_result(user_id):
-    path = os.path.join('/tmp/uncurl/', user_id)
+    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     if os.path.exists(os.path.join(path, 'sc_analysis.json')):
         return redirect(url_for('view_plots', user_id=user_id))
     elif os.path.exists(os.path.join(path, 'preprocess.json')):
@@ -236,7 +236,7 @@ def state_estimation_result(user_id):
 @app.route('/<x>/results/<user_id>/<filename>')
 def state_estimation_file(x, user_id, filename):
     if x!='test':
-        path = os.path.join('/tmp/uncurl/', user_id)
+        path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     else:
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                 'test_data', user_id)
@@ -247,7 +247,7 @@ def state_estimation_file(x, user_id, filename):
 @cache.cached()
 def data_download(x, user_id):
     if x!='test':
-        path = os.path.join('/tmp/uncurl/', user_id)
+        path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     else:
         path = os.path.join('test_data', user_id)
     files = os.listdir(path)
@@ -269,7 +269,7 @@ def state_estimation_preproc(user_id, path, data, output_filename):
     #except:
     #    return error('Error: no file found', 400)
     if path is None:
-        path = os.path.join('/tmp/uncurl/', user_id)
+        path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     summary = Summary(data, path, is_gz)
     script, div = summary.visualize()
     summary.preprocessing_params()
@@ -286,7 +286,7 @@ def state_estimation_thread(user_id, gene_names=None, init=None, path=None, prep
         preprocess (dict): dict containing additional parameters: min_reads, max_reads, normalize, is_sparse, is_gz, disttype, genes_frac, cell_frac, vismethod, baseline_vismethod
     """
     if path is None:
-        path = os.path.join('/tmp/uncurl/', user_id)
+        path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     # get correct data names
     data = os.path.join(path, 'data.mtx')
     if preprocess['is_gz']:
@@ -346,7 +346,7 @@ def lineage_input():
     if 'useridinput' in request.form and request.form['useridinput']:
         user_id = request.form['useridinput']
         # Try to load m/w data, or return an error if you can't
-        if not os.path.exists(os.path.join('/tmp/uncurl/', user_id, 'm.txt')):
+        if not os.path.exists(os.path.join(app.config['USER_DATA_DIR'], user_id, 'm.txt')):
             return error('Data for user id not found', 400)
         P = Process(target=lineage_thread, args=(None, None, None, None, user_id))
         P.start()
@@ -374,7 +374,7 @@ def lineage_thread(data, k, M, W, user_id):
     """
     Thread to do lineage calculation...
     """
-    path = os.path.join('/tmp/uncurl/', user_id)
+    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     if data is not None:
         # run state estimation then lineage estimation
         os.mkdir(path)
@@ -406,9 +406,9 @@ def lineage_input_user_id(user_id):
     """
     Lineage input from a user's perspective
     """
-    if os.path.exists(os.path.join('/tmp/uncurl/', user_id, 'smoothed_data.txt')):
+    if os.path.exists(os.path.join(app.config['USER_DATA_DIR'], user_id, 'smoothed_data.txt')):
         try:
-            visualization = open(os.path.join('/tmp/uncurl/', user_id, 'vis_lineage.html')).read()
+            visualization = open(os.path.join(app.config['USER_DATA_DIR'], user_id, 'vis_lineage.html')).read()
         except:
             visualization = ''
         visualization = Markup(visualization)
@@ -438,13 +438,13 @@ def qual2quant_input():
 
 def qual2quant_thread(data, qual, user_id):
     centers = uncurl.qualNorm(data, qual)
-    path = os.path.join('/tmp/uncurl/', user_id)
+    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     with open(os.join(path, 'qual2quant_centers.txt'), 'w') as f:
         np.savetxt(f, centers)
 
 @app.route('/qual2quant/results/<user_id>')
 def qual2quant_result(user_id):
-    if os.path.exists(os.path.join('/tmp/uncurl/', user_id, 'qual2quant_centers.txt')):
+    if os.path.exists(os.path.join(app.config['USER_DATA_DIR'], user_id, 'qual2quant_centers.txt')):
        return render_template('qual2quant_user.html',
                 user_id=user_id, has_result=True,
                 visualization=None)

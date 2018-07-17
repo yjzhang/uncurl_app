@@ -17,11 +17,12 @@ class Summary(object):
     This object contains a summary for a single-cell RNASeq dataset.
     """
 
-    def __init__(self, data, path, is_gz=False):
-        try:
-            data = scipy.io.mmread(data)
-        except:
-            data = np.loadtxt(data)
+    def __init__(self, data, path, is_gz=False, is_data=False):
+        if not is_data:
+            try:
+                data = scipy.io.mmread(data)
+            except:
+                data = np.loadtxt(data)
         self.cell_read_counts = np.array(data.sum(0)).flatten()
         self.cells = data.shape[1]
         self.genes = data.shape[0]

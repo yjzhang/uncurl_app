@@ -8,6 +8,7 @@ import shutil
 import uuid
 
 import numpy as np
+import scipy.io
 from flask import request, render_template, redirect, url_for
 from uncurl_analysis import enrichr_api, sc_analysis
 
@@ -15,6 +16,7 @@ from app import app
 from . import generate_analysis
 from .cache import cache
 from .utils import SimpleEncoder
+from .views import state_estimation_preproc
 
 # map of user_id to SCAnalysis objects
 app.sc_analysis_dict = {}
@@ -148,6 +150,8 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
         color_to_index, index_to_color = color_track_map(labels)
         label_values = [index_to_color[c] for c in label_values]
         cluster_names = label_values
+    # cell_ids indicates the ids of the cells used...
+    cell_ids = np.arange(len(labels))
     if mode == 'cluster':
         color_values = label_values
         data =  [
@@ -161,6 +165,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                     'color': color_values[i],
                     'colorscale': colorscale,
                 },
+                'text': list(map(str, cell_ids[labels==c].tolist())),
             }
             for i, c in enumerate(label_values)
         ]
@@ -184,7 +189,8 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                     'cmax': cmax,
                     'showscale': True if c==0 else False,
                 },
-                'text': list(map(str, color_values[c]))
+                #'text': list(map(str, color_values[c])),
+                'text': list(map(str, cell_ids[labels==c].tolist())),
             }
             for c in range(len(set(labels)))
         ]
@@ -505,6 +511,9 @@ def upload_color_track(user_id):
 
 @app.route('/user/<user_id>/view/copy_dataset', methods=['POST'])
 def copy_dataset(user_id):
+    """
+    Copies the input dataset into a new user id.
+    """
     sca = get_sca(user_id)
     path = sca.data_dir
     try:
@@ -514,9 +523,37 @@ def copy_dataset(user_id):
     except:
         return 'Error: copy failed.'
 
+@app.route('/user/<user_id>/view/subset', methods=['POST'])
 def rerun_uncurl(user_id):
+    """
+    Given a list of cell ids, this creates a new uncurl data
+    preview for the data subset.
+    """
+    print('RUN SUBSET')
     sca = get_sca(user_id)
-    path = sca.data_dir
-    # TODO: implement re-running uncurl
+    # True if the input are cell_ids, False if the input are cluster ids
+    print(request.form.keys())
+    is_cells = request.form['is_cells']
 
+    # TODO: cluster ids is not currently implemented
+    cell_ids = request.form['cell_ids']
+    cell_ids = cell_ids.split(',')
+    print(len(cell_ids))
 
+    # create new user_id
+    new_user_id = str(uuid.uuid4())
+    new_path = os.path.join(app.config['USER_DATA_DIR'], new_user_id)
+
+    # get data subset from sca
+    if is_cells:
+        data_subset = sca.get_data_subset(cell_ids)
+    else:
+        data_subset = sca.get_clusters_subset(cell_ids)
+
+    new_data_path = os.path.join(new_path, 'data.mtx')
+    os.makedirs(new_path)
+    scipy.io.mmwrite(new_data_path, data_subset)
+
+    # run state_estimation_preproc - gets data summary stats 
+    state_estimation_preproc(new_user_id, new_path, new_data_path, '')
+    return new_user_id

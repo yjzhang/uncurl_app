@@ -26,6 +26,7 @@ var currently_selected_cluster = 0;
 var current_scatterplot_data = {};
 
 var all_selected_clusters = [];
+var current_selected_cells = [];
 var currently_merging = false;
 
 // use jquery for ajax calls
@@ -34,6 +35,10 @@ function bind_click() {
     var plot = $('#means-scatter-plot')[0];
     plot.on('plotly_click', function(data) {
         var cluster = data.points[0].curveNumber;
+        current_selected_cells = [];
+        for (var i = 0; i<data.points.length; i++) {
+            current_selected_cells.push(data.points[i].text);
+        }
         // TODO: update selected cluster
         currently_selected_cluster = cluster;
         console.log(cluster);
@@ -185,8 +190,11 @@ function on_select(data) {
         return false;
     }
     var clusters = new Set([]);
+    // TODO: identify selected cells
+    current_selected_cells = [];
     for (var i = 0; i<data.points.length; i++) {
         clusters.add(data.points[i].curveNumber);
+        current_selected_cells.push(data.points[i].text);
     }
     // find cluster lengths
     var cluster_lengths = [];
@@ -201,7 +209,8 @@ function on_select(data) {
     });
     // set update area...
     $("#update-area").empty();
-    $("#update-area").append("selected clusters: " + selection_string);
+    $("#update-area").append("selected clusters: " + selection_string + "<br>");
+    $("#update-area").append("Number of selected cells: " + current_selected_cells.length);
 };
 
 
@@ -273,6 +282,38 @@ function copy_data() {
     });
 };
 
+// Starts a new uncurl sub-analysis...
+function subset_cells(is_cells) {
+    var result = window.confirm("Do you wish to run a new analysis on the selected cells?");
+    if (result == false) {
+        return false;
+    }
+    $('#update-area').empty();
+    $("#update-area").append("Copying data, generating summary " + '<img src="/static/ajax-loader.gif"/>');
+    var cell_ids = current_selected_cells;
+    if (!is_cells) {
+        cell_ids = all_selected_clusters;
+    }
+    console.log(is_cells);
+    console.log(cell_ids);
+    $.ajax({url: window.location.pathname + "/subset",
+        data: {
+            'is_cells': is_cells,
+            'cell_ids': cell_ids.join(','),
+        },
+        method: 'POST'
+    }).done(function(data) {
+        if (data.startsWith('Error')) {
+            $('#update-area').empty();
+            $('#update-area').append(data);
+        } else {
+            var new_user_id = data;
+            $('#update-area').empty();
+            $('#update-area').append('New results page: <a href="/state_estimation/results/' + new_user_id + '">' + new_user_id + '</a>');
+        }
+    });
+};
+
 window.onload = function() {
     // activate tooltips
     $('[data-toggle="tooltip"]').tooltip();
@@ -321,6 +362,16 @@ window.onload = function() {
     });
     $('#copy').click(function() {
         copy_data();
+    });
+
+    $('#subset_cells').click(function() {
+        // TODO: subset
+        subset_cells(true);
+    });
+
+    $('#subset_clusters').click(function() {
+        // TODO: subset
+        subset_cells(false);
     });
 };
 
@@ -449,6 +500,8 @@ th {
                 <button id="split" style="margin-right: 2px;">Split selected clusters</button>
                 <button id="merge">Merge selected clusters</button>
                 <button id="copy">Copy dataset</button>
+                <button id="subset_cells">Sub-select cells</button>
+                <button id="subset_cluster">Sub-select clusters</button>
             </div>
         </div>
 
