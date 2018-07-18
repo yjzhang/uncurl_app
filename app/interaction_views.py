@@ -532,12 +532,12 @@ def rerun_uncurl(user_id):
     print('RUN SUBSET')
     sca = get_sca(user_id)
     # True if the input are cell_ids, False if the input are cluster ids
-    print(request.form.keys())
-    is_cells = request.form['is_cells']
+    print(request.form['is_cells'])
+    is_cells = bool(int(request.form['is_cells']))
 
     # TODO: cluster ids is not currently implemented
     cell_ids = request.form['cell_ids']
-    cell_ids = cell_ids.split(',')
+    cell_ids = [int(x) for x in cell_ids.split(',')]
     print(len(cell_ids))
 
     # create new user_id

@@ -298,7 +298,7 @@ function subset_cells(is_cells) {
     console.log(cell_ids);
     $.ajax({url: window.location.pathname + "/subset",
         data: {
-            'is_cells': is_cells,
+            'is_cells': is_cells ? 1 : 0,
             'cell_ids': cell_ids.join(','),
         },
         method: 'POST'
@@ -313,6 +313,11 @@ function subset_cells(is_cells) {
         }
     });
 };
+
+function toggle_reanalyze_area() {
+    $('#reanalyze-area').toggle();
+};
+
 
 window.onload = function() {
     // activate tooltips
@@ -499,9 +504,13 @@ th {
                 <div id="update-area"></div>
                 <button id="split" style="margin-right: 2px;">Split selected clusters</button>
                 <button id="merge">Merge selected clusters</button>
-                <button id="copy">Copy dataset</button>
-                <button id="subset_cells">Sub-select cells</button>
-                <button id="subset_cluster">Sub-select clusters</button>
+                <button id="reanalyze" onclick="toggle_reanalyze_area();">Reanalyze</button>
+                
+                <div id="reanalyze-area" style="display:none;">
+                    <button id="copy">Copy dataset</button>
+                    <button id="subset_cells">Sub-select cells</button>
+                    <button id="subset_clusters">Sub-select clusters</button>
+                </div>
             </div>
         </div>
 
