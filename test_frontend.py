@@ -6,6 +6,7 @@ import unittest
 from flask_testing import LiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.by import By
 
 from app import app
 from app import cache
@@ -135,6 +136,18 @@ class UncurlFrontendTest(LiveServerTestCase):
         self.driver.execute_script('window.all_selected_clusters = [0];')
         self.driver.find_element_by_id('split').click()
         time.sleep(55)
+
+    def test_reanalyze(self):
+        self.driver.find_element_by_link_text('Example results').click()
+        self.driver.find_element_by_link_text('10x_400_new').click()
+        self.driver.find_element_by_id('Baseline').click()
+        time.sleep(1)
+        self.driver.execute_script('window.current_selected_cells = [' + ','.join(str(x) for x in range(50)) + '];')
+        self.driver.find_element_by_id('reanalyze').click()
+        self.driver.find_element_by_id('subset_cluster').click()
+        alert = self.driver.switch_to_alert()
+        alert.accept()
+        time.sleep(10)
 
     def tearDown(self):
         self.driver.quit()
