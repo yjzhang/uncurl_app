@@ -48,6 +48,7 @@ def generate_uncurl_analysis(data, output_dir,
         gene_sub (bool): whether or not to use gene subset selection (max_variance_genes)
         **uncurl_kwargs: arguments to pass to uncurl.run_state_estimation..
     """
+    # TODO: what about init?
     try:
         os.makedirs(output_dir)
     except:

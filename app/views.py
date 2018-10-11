@@ -153,7 +153,7 @@ def state_estimation_input():
             user_id = user_id + '-' + username
     path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     os.makedirs(path)
-    # save state estimation params? save request.form
+    # save request.form
     with open(os.path.join(path, 'inputs.json'), 'w') as f:
         f.write(json.dumps(request.form))
     # TODO: if file is large, start a new thread. otherwise just
@@ -162,7 +162,8 @@ def state_estimation_input():
     request_form = request.form
     load_gene_names(path)
     data, output_filename, init = load_upload_data(request_file, request_form, path)
-    P = Process(target=state_estimation_preproc, args=(user_id, path, data, output_filename))
+    # TODO: deal with init
+    P = Process(target=state_estimation_preproc, args=(user_id, path, data, output_filename, init))
     P.start()
     #state_estimation_preproc(user_id, path)
     return redirect(url_for('state_estimation_result', user_id=user_id))
@@ -179,6 +180,9 @@ def state_estimation_start(user_id):
     gene_names = os.path.join(path, 'gene_names.txt')
     if not os.path.exists(gene_names):
         gene_names = None
+    # TODO: deal with init here - make note if it's qualitative or
+    # quantitative
+    # run qualNorm???
     init = os.path.join(path, 'init.txt')
     if not os.path.exists(init):
         init = None
@@ -321,6 +325,9 @@ def state_estimation_thread(user_id, gene_names=None, init=None, path=None, prep
     if 'normalize' in preprocess:
         normalize = True
     baseline_vismethod = preprocess['baseline_vismethod']
+    # TODO: deal with init
+    if init is not None:
+        pass
     # TODO: save params as json instead of having to pass them...
     # actually save params.json and pass params lol
     generate_uncurl_analysis(data, path, clusters=k, gene_names=gene_names,

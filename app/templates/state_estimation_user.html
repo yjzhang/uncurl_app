@@ -56,7 +56,7 @@ window.onload = function() {
         <h4>Basic Options</h4>
 
         <div class="form-group">
-            <label for="k" data-toggle="tooltip" title="How many cell types are present in the data. If this is unknown, we suggest using an overestimate.">Number of cell types (k):</label>
+            <label for="k" data-toggle="tooltip" title="How many cell types are present in the data. If this is set to 0, then it will be estimated using a gap score-based metric.">Number of cell types (if set to 0, this will be inferred from the data):</label>
             <input type=number id="k" name="k" value=10>
         </div>
 
