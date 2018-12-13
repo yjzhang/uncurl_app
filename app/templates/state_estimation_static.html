@@ -488,7 +488,7 @@ th {
                     </datalist>
                 </div>
                 <div class="col-auto">
-                    <button  id="gene_name_submit" onclick="update_scatterplot()">Submit</button>
+                    <button class="btn btn-default" id="gene_name_submit" onclick="update_scatterplot()">Submit</button>
                 </div>
             </div>
 
@@ -502,20 +502,20 @@ th {
                         <option value="discrete">Discrete</option>
                         <option value="table">Table</option>
                     </select>
-                    <button type="submit" id="submit_color_track" class="btn btn-default">Submit</button>
+                    <button class="btn btn-default" type="submit" id="submit_color_track" class="btn btn-default">Submit</button>
                 </form>
             </div>
 
             <div class="input-group" style="margin-top: 5px;">
                 <div class="form-row" id="update-area"></div>
-                <button  id="split" style="margin-right: 2px;">Split selected clusters</button>
-                <button  id="merge">Merge selected clusters</button>
-                <button  id="reanalyze" onclick="toggle_reanalyze_area();">Reanalyze</button>
+                <button class="btn btn-default" id="split" style="margin-right: 2px;">Split selected clusters</button>
+                <button class="btn btn-default" id="merge">Merge selected clusters</button>
+                <button class="btn btn-default" id="reanalyze" onclick="toggle_reanalyze_area();">Reanalyze</button>
                 
                 <div id="reanalyze-area" style="display:none;">
-                    <button  id="copy">Copy dataset</button>
-                    <button  id="subset_cells">Sub-select cells</button>
-                    <button  id="subset_clusters">Sub-select clusters</button>
+                    <button class="btn btn-default" id="copy">Copy dataset</button>
+                    <button class="btn btn-default" id="subset_cells">Sub-select cells</button>
+                    <button class="btn btn-default" id="subset_clusters">Sub-select clusters</button>
                 </div>
             </div>
         </div>
@@ -554,7 +554,7 @@ th {
                     {% endfor %}
                 </select>
             </div>
-            <button  id="enrichr-submit">Submit Enrichr query</button>
+            <button class="btn btn-default" id="enrichr-submit">Submit Enrichr query</button>
             <div id="enrichr-results"></div>
         </div>
 
