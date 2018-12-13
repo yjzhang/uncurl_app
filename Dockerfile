@@ -1,5 +1,5 @@
 FROM python:2.7
-MAINTAINER Yue Zhang <yjzhang@cs.washignton.edu>
+MAINTAINER Yue Zhang <yjzhang@cs.washington.edu>
 
 RUN apt-get update && apt-get install -y redis-server
 RUN pip install cython
