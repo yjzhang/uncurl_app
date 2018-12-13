@@ -334,8 +334,10 @@ window.onload = function() {
                 update_scatterplot();
             }
             $('#gene-name-area').css('display', 'block');
+            $('#color-track-upload-area').css('display', 'none');
         } else if (cell_color == "new") {
             $('#color-track-upload-area').css('display', 'block');
+            $('#gene-name-area').css('display', 'none');
         } else {
             $('#gene-name-area').css('display', 'none');
             $('#color-track-upload-area').css('display', 'none');
@@ -465,7 +467,7 @@ th {
 
 
             <label for="cell-color" data-toggle="tooltip" title="How the cells should be colored - either by their cluster label, or by their cluster label entropy.">Label scheme:</label>
-            <select id="cell-color">
+            <select class="form-control" id="cell-color" style="width: 500px;">
                 <option value="cluster" selected>Cluster</option>
                 <option value="entropy">Entropy</option>
                 <option value="gene">Gene</option>
@@ -475,23 +477,27 @@ th {
                 <option value="new">New color track</option>
             </select>
 
-            <div id="gene-name-area" style="display:none;">
-                <label for="gene_name">Gene name:</label>
-                <input list="gene_names" id="gene_name">
-                <datalist id="gene_names">
-                    {% for gene_name in gene_names %}
-                    <option value="{{ gene_name }}">
-                    {% endfor %}
-                </datalist>
-                <button id="gene_name_submit" onclick="update_scatterplot()">Submit</button>
+            <div id="gene-name-area" style="display:none;" class="form-row align-items-center">
+                <div class="col-auto">
+                    <label for="gene_name">Gene name:</label>
+                    <input list="gene_names" id="gene_name" class="form-control" style="width: 200px;">
+                    <datalist id="gene_names">
+                        {% for gene_name in gene_names %}
+                        <option value="{{ gene_name }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="col-auto">
+                    <button  id="gene_name_submit" onclick="update_scatterplot()">Submit</button>
+                </div>
             </div>
 
             <div id="color-track-upload-area" style="display:none; width: 700px;">
                 <form id="color-track-form" action="view/upload_color_track" method="post" enctype=multipart/form-data>
                     <label for="color_track_file" data-toggle="tooltip" title="File should contain one line for each cell.">Upload color track here</label>
-                    <input type="file" name="color_track_file" id="color_track_file">
-                    <label for="color_track_type" data-toggle="tooltip" title="Discrete: each line will be interpreted as a string/label; continuous: each line will be interpreted as a number.">Type of color track:</label>
-                    <select id="color_track_type" name="color_track_type" >
+                    <input type="file" name="color_track_file" id="color_track_file" class="form-control-file">
+                    <label for="color_track_type" data-toggle="tooltip" title="Discrete: each line will be interpreted as a string/label; continuous: each line will be interpreted as a number; table: TODO">Type of color track:</label>
+                    <select class="form-control" id="color_track_type" name="color_track_type" style="width: 200px;">
                         <option value="continuous" selected>Continuous</option>
                         <option value="discrete">Discrete</option>
                         <option value="table">Table</option>
@@ -500,22 +506,22 @@ th {
                 </form>
             </div>
 
-            <div style="margin-top: 5px;">
-                <div id="update-area"></div>
-                <button id="split" style="margin-right: 2px;">Split selected clusters</button>
-                <button id="merge">Merge selected clusters</button>
-                <button id="reanalyze" onclick="toggle_reanalyze_area();">Reanalyze</button>
+            <div class="input-group" style="margin-top: 5px;">
+                <div class="form-row" id="update-area"></div>
+                <button  id="split" style="margin-right: 2px;">Split selected clusters</button>
+                <button  id="merge">Merge selected clusters</button>
+                <button  id="reanalyze" onclick="toggle_reanalyze_area();">Reanalyze</button>
                 
                 <div id="reanalyze-area" style="display:none;">
-                    <button id="copy">Copy dataset</button>
-                    <button id="subset_cells">Sub-select cells</button>
-                    <button id="subset_clusters">Sub-select clusters</button>
+                    <button  id="copy">Copy dataset</button>
+                    <button  id="subset_cells">Sub-select cells</button>
+                    <button  id="subset_clusters">Sub-select clusters</button>
                 </div>
             </div>
         </div>
 
         <div class="top-right" id="right-hand-panel-1" style="width: 550px">
-            <select id="top-or-bulk" style="width: 300px;" data-toggle="tooltip" title="Which quantity to visualize in the barplot. C-score is the ratio of the mean expression in the given cluster to the cluster with the second-highest expression.">
+            <select class="form-control" id="top-or-bulk" style="width: 300px;" data-toggle="tooltip" title="Which quantity to visualize in the barplot. C-score is the ratio of the mean expression in the given cluster to the cluster with the second-highest expression.">
                 <option value="top" selected>Top genes (c-score)</option>
                 <option value="pval">Top genes (p-value)</option>
                 <option value="top_1_vs_rest">Top genes (1-vs-rest fold change)</option>
@@ -525,9 +531,9 @@ th {
                 <!--<option value="bulk">Bulk correlations</option>-->
             </select>
 
-            <div style="margin-top: 4; margin-bottom: 0">
+            <div style="margin-top: 4; margin-bottom: 0; width: 300px;">
                 Number of top genes: 
-                <input type="number" id="num-genes" value="10">
+                <input type="number" class="form-control" id="num-genes" value="10">
             </div>
 
             <!-- Plot of top gene/p-value bar plots goes here -->
@@ -535,20 +541,20 @@ th {
 
         </div>
 
-        <div class="bottom-left" id="bottom-panel" style="margin-top: 20px;">
+        <div class="bottom-left" id="bottom-panel" style="margin-top: 20px; width: 500px;">
             <h4 data-toggle="tooltip" title="Uses the Enrichr tool from http://amp.pharm.mssm.edu/Enrichr/">Call Enrichr on current top genes</h4>
             <div>Currently selected top genes:</div>
             <div>
-                <textarea id="top-genes-view" cols="50" rows="4">Top genes go here</textarea>
+                <textarea class="form-control" id="top-genes-view" cols="50" rows="4">Top genes go here</textarea>
             </div>
-            <div style="margin-top: 5px; margin-bottom: 5px;">
-                <select id="gene-set-library">
+            <div style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                <select class="form-control" id="gene-set-library">
                     {% for opt in gene_sets %}
                     <option value={{ opt }}>{{ opt }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <button id="enrichr-submit">Submit Enrichr query</button>
+            <button  id="enrichr-submit">Submit Enrichr query</button>
             <div id="enrichr-results"></div>
         </div>
 
