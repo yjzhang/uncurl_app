@@ -39,7 +39,7 @@ function bind_click() {
         for (var i = 0; i<data.points.length; i++) {
             current_selected_cells.push(data.points[i].text);
         }
-        // TODO: update selected cluster
+        // update selected cluster
         currently_selected_cluster = cluster;
         console.log(cluster);
         update_barplot(cluster);
@@ -113,10 +113,14 @@ function update_scatterplot() {
         $("#update-area").append('Scatterplot updated');
         return true;
     }
+    var gene_name_1 = $('#gene_name_1').val();
+    var gene_name_2 = $('#gene_name_2').val();
     $.ajax({url: window.location.pathname + "/update_scatterplot",
         type: "POST",
         data: {"scatter_type": plot_type, "cell_color": cell_color,
-               "gene_name": gene_name},
+               "gene_name": gene_name,
+               "gene_name_1": gene_name_1,
+               "gene_name_2": gene_name_2},
     }).done(function(data) {
         if (data.startsWith('Error')) {
             $("#update-area").empty();
@@ -190,7 +194,7 @@ function on_select(data) {
         return false;
     }
     var clusters = new Set([]);
-    // TODO: identify selected cells
+    // identify selected cells
     current_selected_cells = [];
     for (var i = 0; i<data.points.length; i++) {
         clusters.add(data.points[i].curveNumber);
@@ -237,7 +241,7 @@ function split_or_merge_cluster(split_or_merge) {
     console.log(selected_clusters);
     $("#update-area").append("<br>" + split_or_merge + " clusters in progress... (re-running UNCURL, recalculating differentially expressed genes) " + '<img src="/static/ajax-loader.gif"/>');
     currently_merging = true;
-    // TODO: make some indication that
+    // make some indication that split/merge has been called.
     $.ajax({url: window.location.pathname + "/split_or_merge_cluster",
         data: {'split_or_merge': split_or_merge,
                'selected_clusters': selected_clusters.join(',')},
@@ -372,12 +376,12 @@ window.onload = function() {
     });
 
     $('#subset_cells').click(function() {
-        // TODO: subset
+        // subset cells
         subset_cells(true);
     });
 
     $('#subset_clusters').click(function() {
-        // TODO: subset
+        // subset clusters
         subset_cells(false);
     });
 };
@@ -456,14 +460,34 @@ th {
     <div id="visualization" class="wrapper">
 
         <div class="top-left" id="left-hand-panel-1" style="width: 750px;">
-            <input type="radio" id="Means" value="Means" name="scatter-type" checked="checked">
-            <label for="Means" data-toggle="tooltip" title="Scatterplot of the cluster archetypes, plotted by MDS.">Cluster means</label>
-            <input type="radio" id="Cells" value="Cells" name="scatter-type">
-            <label for="Cells" data-toggle="tooltip" title="Scatterplot visualization of cells after processing with UNCURL.">Processed cells</label>
-            <input type="radio" id="Baseline" value="Baseline" name="scatter-type">
-            <label for="Baseline" data-toggle="tooltip" title="Scatterplot visualization of cells before processing with UNCURL.">Unprocessed cells</label>
+            <!-- controls for which types of plots to show -->
+            <div id="plot-type-options">
+                <input type="radio" id="Means" value="Means" name="scatter-type" checked="checked" onclick="$('#gene-gene-names-area').css('display', 'none');">
+                <label for="Means" data-toggle="tooltip" title="Scatterplot of the cluster archetypes, plotted by MDS.">Cluster means</label>
+                <input type="radio" id="Cells" value="Cells" name="scatter-type" onclick="$('#gene-gene-names-area').css('display', 'none');">
+                <label for="Cells" data-toggle="tooltip" title="Scatterplot visualization of cells after processing with UNCURL.">Processed cells</label>
+                <input type="radio" id="Baseline" value="Baseline" name="scatter-type" onclick="$('#gene-gene-names-area').css('display', 'none');">
+                <label for="Baseline" data-toggle="tooltip" title="Scatterplot visualization of cells before processing with UNCURL.">Unprocessed cells</label>
+                <input type="radio" id="Gene-gene" value="Gene-gene" name="scatter-type" onclick="$('#gene-gene-names-area').css('display', 'block');">
+                <label for="Gene-gene" data-toggle="tooltip" title="View expression levels of two genes.">Gene-gene</label>
+            </div>
+
+
+            <!-- controls for gene-gene plots -->
+            <div id="gene-gene-names-area" style="display:none;" class="form-row align-items-center">
+                <div class="col-auto">
+                    <label for="gene_name_1">Gene name 1:</label>
+                    <input list="gene_names" id="gene_name_1" name="gene_name_1" class="form-control" style="width: 200px;">
+                    <label for="gene_name_1">Gene name 2:</label>
+                    <input list="gene_names" id="gene_name_2"  name="gene_name_1" class="form-control" style="width: 200px;">
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-default" id="gene_gene_names_submit" onclick="update_scatterplot()">Submit</button>
+                </div>
+            </div>
 
             <div id="means-scatter-plot" style="width: 700px; margin-top: 5px"></div>
+
 
 
             <label for="cell-color" data-toggle="tooltip" title="How the cells should be colored - either by their cluster label, or by their cluster label entropy.">Label scheme:</label>

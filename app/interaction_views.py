@@ -120,6 +120,18 @@ def barplot_data(gene_values, gene_names, cluster_name, x_label,
             },
         }, cls=SimpleEncoder)
 
+def calc_size(labels):
+    size = 10
+    if len(labels) < 50:
+        size = 20
+    elif len(labels) > 1000:
+        size = 5
+    elif len(labels) > 5000:
+        size = 3
+    elif len(labels) > 10000:
+        size = 1
+    return size
+
 def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
         gene_expression_list=None, color_vals=None):
     """
@@ -133,15 +145,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
 
     """
     # have size depend on data shape
-    size = 10
-    if len(labels) < 50:
-        size = 20
-    elif len(labels) > 1000:
-        size = 5
-    elif len(labels) > 5000:
-        size = 3
-    elif len(labels) > 10000:
-        size = 1
+    size = calc_size(labels)
     data = []
     # label_values is a list 0...number of unique labels - 1
     label_values = list(range(len(set(labels))))
@@ -204,6 +208,43 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                 'showlegend': True if mode == 'cluster' else False
             },
     }, cls=SimpleEncoder)
+
+
+@cache.memoize()
+def gene_gene_data(user_id, gene_name, gene_name_2, labels, mode='cluster'):
+    """
+    Returns a plotly-formated json thing representing a gene-gene
+    scatterplot. Colorscheme based on labels.
+    """
+    size = calc_size(labels)
+    gene_1_data = get_gene_data(user_id, gene_name)
+    gene_2_data = get_gene_data(user_id, gene_name_2)
+    cell_ids = np.arange(len(labels))
+    data = [
+        {
+            'x': gene_1_data[labels==c].tolist(),
+            'y': gene_2_data[labels==c].tolist(),
+            'mode': 'markers',
+            'name': 'cluster ' + str(c),
+            'marker': {
+                'size': size,
+            },
+            #'text': list(map(str, color_values[c])),
+            'text': list(map(str, cell_ids[labels==c].tolist())),
+        }
+        for c in range(len(set(labels)))
+    ]
+    return json.dumps({
+            'data': data,
+            'layout': {
+                'title': 'Cells',
+                'xaxis': {'title': gene_name},
+                'yaxis': {'title': gene_name_2},
+                'margin': {'t':30},
+                'showlegend': True if mode == 'cluster' else False
+            },
+    }, cls=SimpleEncoder)
+
 
 
 
@@ -316,7 +357,7 @@ def update_scatterplot(user_id):
     """
     Updates the scatterplot view.
 
-    Returns:
+    Returns: a plotly-formated json
         {data: [{'cluster': c, 'x': x, 'y'; y}...],
          labels: [c1, c2, ...],
          colorscale: 'Viridis'}
@@ -326,11 +367,17 @@ def update_scatterplot(user_id):
     gene_name = None
     if 'gene_name' in request.form:
         gene_name = request.form['gene_name']
+    gene_name_1 = None
+    if 'gene_name_1' in request.form:
+        gene_name_1 = request.form['gene_name_1']
+    gene_name_2 = None
+    if 'gene_name_2' in request.form:
+        gene_name_2 = request.form['gene_name_2']
     return update_scatterplot_result(user_id, plot_type, cell_color_value,
-            gene_name)
+            gene_name, gene_name_1, gene_name_2)
 
 @cache.memoize()
-def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=None):
+def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=None, gene_name_1=None, gene_name_2=None):
     """
     Returns the plotly JSON representation of the scatterplot.
     """
@@ -339,6 +386,9 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
         labels = np.arange(sca.mds_means.shape[1])
         return scatterplot_data(sca.mds_means,
                 labels)
+    elif plot_type == 'Gene-gene':
+        print('gene names:', gene_name_1, gene_name_2)
+        return gene_gene_data(user_id, gene_name_1, gene_name_2, sca.labels)
     else:
         dim_red = None
         if plot_type == 'Cells':
