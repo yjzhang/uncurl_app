@@ -115,12 +115,14 @@ function update_scatterplot() {
     }
     var gene_name_1 = $('#gene_name_1').val();
     var gene_name_2 = $('#gene_name_2').val();
+    var use_mw = $('#use-mw').val();
     $.ajax({url: window.location.pathname + "/update_scatterplot",
         type: "POST",
         data: {"scatter_type": plot_type, "cell_color": cell_color,
                "gene_name": gene_name,
                "gene_name_1": gene_name_1,
-               "gene_name_2": gene_name_2},
+               "gene_name_2": gene_name_2,
+               "use_mw": use_mw},
     }).done(function(data) {
         if (data.startsWith('Error')) {
             $("#update-area").empty();
@@ -476,10 +478,16 @@ th {
             <!-- controls for gene-gene plots -->
             <div id="gene-gene-names-area" style="display:none;" class="form-row align-items-center">
                 <div class="col-auto">
-                    <label for="gene_name_1">Gene name 1:</label>
+                    <label for="gene_name_1">Gene 1:</label>
                     <input list="gene_names" id="gene_name_1" name="gene_name_1" class="form-control" style="width: 200px;">
-                    <label for="gene_name_1">Gene name 2:</label>
+                    <label for="gene_name_1">Gene 2:</label>
                     <input list="gene_names" id="gene_name_2"  name="gene_name_1" class="form-control" style="width: 200px;">
+                </div>
+                <div class="col-auto">
+                    <select id="use-mw">
+                        <option value="1">Processed</option>
+                        <option value="0">Unprocessed</option>
+                    </select>
                 </div>
                 <div class="col-auto">
                     <button class="btn btn-default" id="gene_gene_names_submit" onclick="update_scatterplot()">Submit</button>

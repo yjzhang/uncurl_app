@@ -211,14 +211,14 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
 
 
 @cache.memoize()
-def gene_gene_data(user_id, gene_name, gene_name_2, labels, mode='cluster'):
+def gene_gene_data(user_id, gene_name, gene_name_2, labels, mode='cluster', use_mw=False):
     """
     Returns a plotly-formated json thing representing a gene-gene
     scatterplot. Colorscheme based on labels.
     """
     size = calc_size(labels)
-    gene_1_data = get_gene_data(user_id, gene_name)
-    gene_2_data = get_gene_data(user_id, gene_name_2)
+    gene_1_data = get_gene_data(user_id, gene_name, use_mw=use_mw)
+    gene_2_data = get_gene_data(user_id, gene_name_2, use_mw=use_mw)
     cell_ids = np.arange(len(labels))
     data = [
         {
@@ -373,11 +373,14 @@ def update_scatterplot(user_id):
     gene_name_2 = None
     if 'gene_name_2' in request.form:
         gene_name_2 = request.form['gene_name_2']
+    use_mw = False
+    if 'use_mw' in request.form:
+        use_mw = bool(int(request.form['use_mw']))
     return update_scatterplot_result(user_id, plot_type, cell_color_value,
-            gene_name, gene_name_1, gene_name_2)
+            gene_name, gene_name_1, gene_name_2, use_mw)
 
 @cache.memoize()
-def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=None, gene_name_1=None, gene_name_2=None):
+def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=None, gene_name_1=None, gene_name_2=None, use_mw=False):
     """
     Returns the plotly JSON representation of the scatterplot.
     """
@@ -388,7 +391,7 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
                 labels)
     elif plot_type == 'Gene-gene':
         print('gene names:', gene_name_1, gene_name_2)
-        return gene_gene_data(user_id, gene_name_1, gene_name_2, sca.labels)
+        return gene_gene_data(user_id, gene_name_1, gene_name_2, sca.labels, use_mw=use_mw)
     else:
         dim_red = None
         if plot_type == 'Cells':
@@ -423,12 +426,12 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
                             mode='entropy', color_vals=color_track)
 
 @cache.memoize()
-def get_gene_data(user_id, gene_name):
+def get_gene_data(user_id, gene_name, use_mw=False):
     """
     Returns an array containing data for a given gene name.
     """
     sca = get_sca(user_id)
-    return sca.data_sampled_gene(gene_name)
+    return sca.data_sampled_gene(gene_name, use_mw=use_mw)
 
 @app.route('/user/<user_id>/view/update_enrichr', methods=['GET', 'POST'])
 def update_enrichr(user_id):
