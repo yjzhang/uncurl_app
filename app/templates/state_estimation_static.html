@@ -476,22 +476,22 @@ th {
 
 
             <!-- controls for gene-gene plots -->
-            <div id="gene-gene-names-area" style="display:none;" class="form-row align-items-center">
-                <div class="col-auto">
+            <div id="gene-gene-names-area" style="display:none;" class="form-inline align-items-center">
+                <div class="form-group">
                     <label for="gene_name_1">Gene 1:</label>
-                    <input list="gene_names" id="gene_name_1" name="gene_name_1" class="form-control" style="width: 200px;">
+                    <input list="gene_names" id="gene_name_1" name="gene_name_1" class="form-control" style="width: 100px;">
                     <label for="gene_name_1">Gene 2:</label>
-                    <input list="gene_names" id="gene_name_2"  name="gene_name_1" class="form-control" style="width: 200px;">
+                    <input list="gene_names" id="gene_name_2"  name="gene_name_1" class="form-control" style="width: 100px;">
                 </div>
-                <div class="col-auto">
-                    <select id="use-mw">
+                <div class="form-group" style="width:160px">
+                    <select id="use-mw" class="form-control" style="width:150px">
+                        <option value="0" selected>Unprocessed</option>
+                <!-- TODO: "processed" won't work, because m only contains a subset of genes.
                         <option value="1">Processed</option>
-                        <option value="0">Unprocessed</option>
+                -->
                     </select>
                 </div>
-                <div class="col-auto">
-                    <button class="btn btn-default" id="gene_gene_names_submit" onclick="update_scatterplot()">Submit</button>
-                </div>
+                <button class="btn btn-default" id="gene_gene_names_submit" onclick="update_scatterplot()">Submit</button>
             </div>
 
             <div id="means-scatter-plot" style="width: 700px; margin-top: 5px"></div>
@@ -509,19 +509,15 @@ th {
                 <option value="new">New color track</option>
             </select>
 
-            <div id="gene-name-area" style="display:none;" class="form-row align-items-center">
-                <div class="col-auto">
-                    <label for="gene_name">Gene name:</label>
-                    <input list="gene_names" id="gene_name" class="form-control" style="width: 200px;">
-                    <datalist id="gene_names">
-                        {% for gene_name in gene_names %}
-                        <option value="{{ gene_name }}">
-                        {% endfor %}
-                    </datalist>
-                </div>
-                <div class="col-auto">
-                    <button class="btn btn-default" id="gene_name_submit" onclick="update_scatterplot()">Submit</button>
-                </div>
+            <div id="gene-name-area" style="display:none;" class="form-inline align-items-center">
+                <label for="gene_name">Gene name:</label>
+                <input list="gene_names" id="gene_name" class="form-control" style="width: 200px;">
+                <datalist id="gene_names">
+                    {% for gene_name in gene_names %}
+                    <option value="{{ gene_name }}">
+                    {% endfor %}
+                </datalist>
+                <button class="btn btn-default" id="gene_name_submit" onclick="update_scatterplot()">Submit</button>
             </div>
 
             <div id="color-track-upload-area" style="display:none; width: 700px;">
