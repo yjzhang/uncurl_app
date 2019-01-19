@@ -211,34 +211,65 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
 
 
 @cache.memoize()
-def gene_gene_data(user_id, gene_name, gene_name_2, labels, mode='cluster', use_mw=False):
+def gene_gene_data(user_id, gene_name_1, gene_name_2, labels, mode='cluster', use_mw=False, color_vals=None, jitter=True, **params):
     """
     Returns a plotly-formated json thing representing a gene-gene
     scatterplot. Colorscheme based on labels.
     """
     size = calc_size(labels)
-    gene_1_data = get_gene_data(user_id, gene_name, use_mw=use_mw)
+    gene_1_data = get_gene_data(user_id, gene_name_1, use_mw=use_mw)
     gene_2_data = get_gene_data(user_id, gene_name_2, use_mw=use_mw)
+    if jitter:
+        gene_1_data += np.random.random(gene_1_data.shape)/2 - 0.25
+        gene_2_data += np.random.random(gene_2_data.shape)/2 - 0.25
+        gene_1_data[gene_1_data < 0] = 0
+        gene_2_data[gene_2_data < 0] = 0
     cell_ids = np.arange(len(labels))
-    data = [
-        {
-            'x': gene_1_data[labels==c].tolist(),
-            'y': gene_2_data[labels==c].tolist(),
-            'mode': 'markers',
-            'name': 'cluster ' + str(c),
-            'marker': {
-                'size': size,
-            },
-            #'text': list(map(str, color_values[c])),
-            'text': list(map(str, cell_ids[labels==c].tolist())),
-        }
-        for c in range(len(set(labels)))
-    ]
+    if color_vals is not None:
+        label_values = list(sorted(list(set(labels))))
+        colorscale = 'Reds'
+        color_values = [color_vals[labels==c] for c in label_values]
+        cmin = min(color_vals)
+        cmax = max(color_vals)
+        data = [
+            {
+                'x': gene_1_data[labels==c].tolist(),
+                'y': gene_2_data[labels==c].tolist(),
+                'mode': 'markers',
+                'name': 'cluster ' + str(c),
+                'marker': {
+                    'size': size,
+                    'color': color_values[c],
+                    'colorscale': colorscale,
+                    'cmin': cmin,
+                    'cmax': cmax,
+                    'showscale': True if c==0 else False,
+                },
+                #'text': list(map(str, color_values[c])),
+                'text': list(map(str, cell_ids[labels==c].tolist())),
+            }
+            for c in range(len(set(labels)))
+        ]
+    else:
+        data = [
+            {
+                'x': gene_1_data[labels==c].tolist(),
+                'y': gene_2_data[labels==c].tolist(),
+                'mode': 'markers',
+                'name': 'cluster ' + str(c),
+                'marker': {
+                    'size': size,
+                },
+                #'text': list(map(str, color_values[c])),
+                'text': list(map(str, cell_ids[labels==c].tolist())),
+            }
+            for c in range(len(set(labels)))
+        ]
     return json.dumps({
             'data': data,
             'layout': {
                 'title': 'Cells',
-                'xaxis': {'title': gene_name},
+                'xaxis': {'title': gene_name_1},
                 'yaxis': {'title': gene_name_2},
                 'margin': {'t':30},
                 'showlegend': True if mode == 'cluster' else False
@@ -391,7 +422,12 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
                 labels)
     elif plot_type == 'Gene-gene':
         print('gene names:', gene_name_1, gene_name_2)
-        return gene_gene_data(user_id, gene_name_1, gene_name_2, sca.labels, use_mw=use_mw)
+        color_vals = None
+        if cell_color_value == 'gene':
+            color_vals = get_gene_data(user_id, gene_name)
+        elif cell_color_value == 'entropy':
+            color_vals = sca.entropy
+        return gene_gene_data(user_id, gene_name_1, gene_name_2, sca.labels, use_mw=use_mw, mode=cell_color_value, color_vals=color_vals)
     else:
         dim_red = None
         if plot_type == 'Cells':
@@ -431,6 +467,8 @@ def get_gene_data(user_id, gene_name, use_mw=False):
     Returns an array containing data for a given gene name.
     """
     sca = get_sca(user_id)
+    if gene_name is None:
+        return None
     return sca.data_sampled_gene(gene_name, use_mw=use_mw)
 
 @app.route('/user/<user_id>/view/update_enrichr', methods=['GET', 'POST'])
