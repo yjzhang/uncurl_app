@@ -19,6 +19,8 @@ class Summary(object):
 
     def __init__(self, data, path, is_gz=False, is_data=False):
         if not is_data:
+            # a python2 thing for dealing with unicode...
+            data = str(data)
             try:
                 data = scipy.io.mmread(data)
             except:
