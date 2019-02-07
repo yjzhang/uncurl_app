@@ -144,7 +144,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         time.sleep(1)
         self.driver.execute_script('window.current_selected_cells = [' + ','.join(str(x) for x in range(50)) + '];')
         self.driver.find_element_by_id('reanalyze').click()
-        self.driver.find_element_by_id('subset_cluster').click()
+        self.driver.find_element_by_id('subset_clusters').click()
         alert = self.driver.switch_to_alert()
         alert.accept()
         time.sleep(10)
