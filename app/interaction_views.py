@@ -581,7 +581,7 @@ def upload_color_track(user_id):
             data = data.flatten()
             sca.add_color_track(output_filename, data, False)
         elif color_track_type == 'discrete':
-            data = np.loadtxt(f, dtype=str)
+            data = np.loadtxt(f, dtype=str, delimiter='\t')
             data = data.flatten()
             sca.add_color_track(output_filename, data, True)
         elif color_track_type == 'table':
