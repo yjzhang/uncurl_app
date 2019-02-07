@@ -261,11 +261,12 @@ def data_download(x, user_id):
             test_or_user=x,
             files=files)
 
-def state_estimation_preproc(user_id, path, data, output_filename):
+def state_estimation_preproc(user_id, path, data, output_filename, init=None):
     """
     Preprocessing for state estimation - generates summary statistics,
     etc...
     """
+    # TODO: deal with init
     #try:
     is_gz = False
     if output_filename.endswith('.gz'):
