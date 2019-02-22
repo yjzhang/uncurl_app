@@ -63,11 +63,15 @@ function update_barplot(cluster_number) {
     var cell_color = $("#cell-color").val();
     console.log('update_barplot');
     var key = top_or_bulk + String(input_value) + ' ' + String(num_genes);
+    $("#update-area").empty();
+    $("#update-area").append('Updating barplot <img src="/static/ajax-loader.gif"/>');
     if (cache.barplots.hasOwnProperty(key)) {
         var data = cache.barplots[key];
         var gene_names = data.data[0].y;
         $('#top-genes-view').val(gene_names.join('\n'));
         Plotly.newPlot("top-genes", data.data, data.layout);
+        $("#update-area").empty();
+        $("#update-area").append('Barplot updated');
         return true;
     }
     $.ajax({url: window.location.pathname + "/update_barplot",
@@ -88,6 +92,8 @@ function update_barplot(cluster_number) {
         data.data[0].x.reverse();
         data.data[0].y.reverse();
         Plotly.newPlot("top-genes", data.data, data.layout);
+        $("#update-area").empty();
+        $("#update-area").append('Barplot updated');
     });
     return true;
 };
