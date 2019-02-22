@@ -114,6 +114,9 @@ def get_progress(path):
     cell_frac = float(preproc['cell_frac'])
     cells = int(preproc['cells'])
     k = int(preproc['k'])
+    # if k is automatically selected, just guess 15 for now...
+    if k == 0:
+        k = 15
     # calculate time remaining using genes and cells
     # wow this is really arbitrary but better than nothing???
     uncurl_factor = 120.0/(8000.0*3000.0*8)
@@ -144,6 +147,7 @@ def get_progress(path):
         current_task = 'UNCURL progress: {0}/20'.format(i)
         time_remaining = pval_time + 2*visualization_time + uncurl_total_time*(20.0-i)/20.0
     else:
+        # TODO: loading data time is nonzero
         current_task = 'loading data'
         time_remaining = pval_time + 2*visualization_time + uncurl_total_time
     time_remaining_minutes = int(time_remaining/60) + 1
