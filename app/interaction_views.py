@@ -518,6 +518,42 @@ def update_enrichr_result(user_id, top_genes, gene_set):
             [[r[1], r[2], r[3], r[4]] for r in results]
     return json.dumps(app.last_enrichr_results, cls=SimpleEncoder)
 
+@app.route('/user/<user_id>/view/update_cellmarker', methods=['GET', 'POST'])
+def update_cellmarker(user_id):
+    # top_genes is a newline-separated string, representing the gene list.
+    top_genes = [x.strip().upper() for x in request.form['top_genes'].split('\n')]
+    print(top_genes)
+    # gene_set is a string.
+    test_type = request.form['test_type']
+    cells_or_tissues = request.form['cells_or_tissues']
+    return update_cellmarker_result(user_id, top_genes, test_type, cells_or_tissues)
+
+def update_cellmarker_result(user_id, top_genes, test, cells_or_tissues):
+    """
+    Gets the CellMarker result for a set of genes.
+
+    Args:
+        user_id (str)
+        top_genes (list of strings representing genes)
+        test (str, currently only 'hypergeom')
+        cells_or_tissues (str, either 'cells' or 'tissues')
+    """
+    def pmid_to_link(pmid):
+        return '<a href="https://www.ncbi.nlm.nih.gov/pubmed/{0}">{0}</a>'.format(pmid)
+    import cellmarker
+    result = []
+    if test == 'hypergeom':
+        result = cellmarker.hypergeometric_test(top_genes, cells_or_tissues, return_header=True)
+    cell_types = [result[0]]
+    for i in range(1, min(20, len(result))):
+        ri = result[i]
+        genes = ri[2]
+        gene_pmids = []
+        for g in genes:
+            gene_pmids.append('{0}: {1}'.format(g, ', '.join(pmid_to_link(x) for x in ri[3][g])))
+        cell_types.append((ri[0], ri[1], ', '.join(ri[2]), ', '.join(gene_pmids)))
+    return json.dumps(cell_types, cls=SimpleEncoder)
+
 @app.route('/user/<user_id>/view/split_or_merge_cluster', methods=['POST'])
 def split_or_merge_cluster(user_id):
     if user_id.startswith('test_'):

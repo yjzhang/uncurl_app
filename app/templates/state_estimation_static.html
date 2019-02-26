@@ -20,6 +20,7 @@ var cache = {};
 cache.barplots = {};
 cache.scatterplots = {};
 cache.enrichr = {};
+cache.cellmarker = {};
 
 var currently_selected_cluster = 0;
 
@@ -147,12 +148,17 @@ function update_scatterplot() {
     return true;
 };
 
-function set_enrichr_results(data) {
+function set_enrichr_results(data, query) {
     // create table
+    var results_view = $('#enrichr-results');
+    if (query == 'cellmarker') {
+        results_view = $('#cellmarker-results');
+    }
+    results_view.empty();
     var table = $('<table>');
     var header = $('<tr>');
     for (var j = 0; j<data[0].length; j++) {
-        header.append('<th>'+data[0][j]+'</td>');
+        header.append('<th>'+data[0][j]+'</th>');
     }
     table.append(header);
     for (var i = 1; i<data.length; i++) {
@@ -162,30 +168,43 @@ function set_enrichr_results(data) {
         }
         table.append(row);
     }
-    $('#enrichr-results').append(table);
+    results_view.append(table);
 }
 
-function update_enrichr() {
-    var top_genes = $('#top-genes-view').val();
-    var gene_set = $('#gene-set-library').val();
-    console.log('update_enrichr');
-    var key = top_genes + gene_set;
+function update_gene_query(query) {
+    // query is a string that can be 'enrichr', 'cellmarker', etc...
+    // TODO: do something that makes this work for 
+    var input_array = $('#gene-set-query-form').serializeArray();
+    var data = {};
+    $(input_array).each(function(index, obj){
+        data[obj.name] = obj.value;
+    });
+    console.log('update_gene_query');
+    console.log(data);
+    var key = JSON.stringify(data);
     if (cache.enrichr.hasOwnProperty(key)) {
         set_enrichr_results(cache.enrichr[key]);
+        return true;
     }
-    $('#enrichr-results').empty();
-    $("#enrichr-results").append("<br>" + "Enrichr query in progress..." + '<img src="/static/ajax-loader.gif"/>');
-    $.ajax({url: window.location.pathname + "/update_enrichr",
+    var results_view = $('#enrichr-results');
+    var update_url = '/update_enrichr';
+    if (query == 'cellmarker') {
+        results_view = $('#cellmarker-results');
+        update_url = '/update_cellmarker';
+    }
+    results_view.empty();
+    results_view.append("<br>" + "Query in progress..." + '<img src="/static/ajax-loader.gif"/>');
+    $.ajax({url: window.location.pathname + update_url,
         type: "POST",
-        data: {'top_genes': top_genes, 'gene_set': gene_set},
-    }).done(function(data) {
-        $('#enrichr-results').empty();
-        if (data.startsWith('Error')) {
-            $('#enrichr-results').append(data);
+        data: data,
+    }).done(function(results) {
+        results_view.empty();
+        if (results.startsWith('Error')) {
+            results_view.append(results);
         } else {
-            data = JSON.parse(data);
-            cache.enrichr[key] = data;
-            set_enrichr_results(data);
+            results = JSON.parse(results);
+            cache.enrichr[key] = results;
+            set_enrichr_results(results, query);
         }
     });
     return true;
@@ -294,6 +313,7 @@ function copy_data() {
     });
 };
 
+
 // Starts a new uncurl sub-analysis...
 function subset_cells(is_cells) {
     var result = window.confirm("Do you wish to run a new analysis on the selected cells?");
@@ -330,6 +350,17 @@ function toggle_reanalyze_area() {
     $('#reanalyze-area').toggle();
 };
 
+// toggles visibility of the bottom-left gene query view
+// 'toggle' is a jquery method that changes the visibility of the element.
+function toggle_query_visibility(value) {
+    if (value == "cellmarker") {
+        $('#cellmarker-view').toggle(true);
+        $('#enrichr-view').toggle(false);
+    } else if (value == "enrichr") {
+        $('#cellmarker-view').toggle(false);
+        $('#enrichr-view').toggle(true);
+    }
+};
 
 window.onload = function() {
     // activate tooltips
@@ -369,7 +400,7 @@ window.onload = function() {
 
     // bind update enrichr button to update_enrichr
     $('#enrichr-submit').click(function() {
-        update_enrichr();
+        update_gene_query('enrichr');
     });
 
     // bind merge and split buttons to split_or_merge_cluster
@@ -416,7 +447,7 @@ window.onload = function() {
 }
 
 .bottom-left {
-    grid-column: 1 / 2;
+    grid-column: 1 / 3;
     grid-row: 2;
     margin-top: 20px;
 }
@@ -575,32 +606,64 @@ th {
 
         </div>
 
-        <div class="bottom-left" id="bottom-panel" style="margin-top: 20px; width: 500px;">
-            <h4 data-toggle="tooltip" title="Uses the Enrichr tool from http://amp.pharm.mssm.edu/Enrichr/">Call Enrichr on current top genes</h4>
-            <div>Currently selected top genes:</div>
-            <div>
-                <textarea class="form-control" id="top-genes-view" cols="50" rows="4">Top genes go here</textarea>
-            </div>
-            <div style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
-                <select class="form-control" id="gene-set-library">
-                    {% for opt in gene_sets %}
-                    <option value={{ opt }}>{{ opt }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <button class="btn btn-default" id="enrichr-submit">Submit Enrichr query</button>
-            <div id="enrichr-results"></div>
-        </div>
+        <!-- Bottom left panel - for gene set queries on databases -->
+        <div class="bottom-left" id="bottom-panel" style="margin-top: 20px; width: 1000px;">
+            <h4>Gene set queries</h4>
+            <form id="gene-set-query-form">
+                <div>Currently selected top genes:</div>
+                <div class="form-inline">
+                    <textarea class="form-control" id="top-genes-view" cols="50" rows="4" name="top_genes">Top genes go here</textarea>
+                </div>
+                <!-- onchange: make the cellmarker view visible -->
+                <div class="form-inline">
+                    <label for="database-select">Database:</label>
+                    <select class="form-control" id="database-select" name="database_select" style="width:200px; margin-top: 5px;" onchange="toggle_query_visibility(this.value);">
+                        <option value="enrichr" selected>Enrichr</option>
+                        <option value="cellmarker">CellMarker</option>
+                    </select>
+                </div>
 
-        <div class="bottom-right">
+                <div id="enrichr-view">
+                    <h5 data-toggle="tooltip" title="Uses the Enrichr tool from http://amp.pharm.mssm.edu/Enrichr/">Call Enrichr on selected genes</h4>
+                    <div style="margin-top: 5px; margin-bottom: 5px; width: 300px;" class="form-inline">
+                        <label for="gene-set-library">Gene set:</label>
+                        <select class="form-control" id="gene-set-library" name="gene_set">
+                            {% for opt in gene_sets %}
+                            <option value={{ opt }}>{{ opt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button class="btn btn-default" id="enrichr-submit" type="button">Submit Enrichr query</button>
+                    <div id="enrichr-results"></div>
+                </div>
+
+                <div id="cellmarker-view" style="display:none;">
+                    <h5 data-toggle="tooltip" title="Uses the CellMarker database">Query CellMarker with selected genes</h4>
+                    <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                        <label for="test-type">Statistical test:</label>
+                        <select class="form-control" id="test-type" name="test_type">
+                            <option value="hypergeom" selected>Hypergeometric test</option>
+                        </select>
+                    </div>
+                    <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                        <label for="cells-or-tissues">Cells or tissues:</label>
+                        <select class="form-control" id="cells-or-tissues" name="cells_or_tissues">
+                            <option value="cells" selected>Cells</option>
+                            <option value="tissues">Tissues</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-default" id="cellmarker-submit" type="button" onclick="update_gene_query('cellmarker')">Submit CellMarker query</button>
+                    <div id="cellmarker-results"></div>
+                </div>
+            </form>
         </div>
 
     </div>
 
-
     <p>Results</p>
 
-    <!--display properties in this window... -->
+    <!-- TODO: display properties in this window... -->
     <div id="data_properties"></div>
 
 
