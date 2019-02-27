@@ -528,6 +528,7 @@ def update_cellmarker(user_id):
     cells_or_tissues = request.form['cells_or_tissues']
     return update_cellmarker_result(user_id, top_genes, test_type, cells_or_tissues)
 
+@cache.memoize()
 def update_cellmarker_result(user_id, top_genes, test, cells_or_tissues):
     """
     Gets the CellMarker result for a set of genes.

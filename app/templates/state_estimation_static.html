@@ -183,7 +183,7 @@ function update_gene_query(query) {
     console.log(data);
     var key = JSON.stringify(data);
     if (cache.enrichr.hasOwnProperty(key)) {
-        set_enrichr_results(cache.enrichr[key]);
+        set_enrichr_results(cache.enrichr[key], query);
         return true;
     }
     var results_view = $('#enrichr-results');
@@ -535,16 +535,18 @@ th {
 
 
 
-            <label for="cell-color" data-toggle="tooltip" title="How the cells should be colored - either by their cluster label, or by their cluster label entropy.">Label scheme:</label>
-            <select class="form-control" id="cell-color" style="width: 500px;">
-                <option value="cluster" selected>Cluster</option>
-                <option value="entropy">Entropy</option>
-                <option value="gene">Gene</option>
-                {% for track in color_tracks %}
-                <option value="{{ track }}">{{ track }}</option>
-                {% endfor %}
-                <option value="new">New color track</option>
-            </select>
+            <div class="form-inline">
+                <label for="cell-color" data-toggle="tooltip" title="How the cells should be colored - either by their cluster label, or by their cluster label entropy.">Label scheme:</label>
+                <select class="form-control form-inline" id="cell-color" style="width: 300px;">
+                    <option value="cluster" selected>Cluster</option>
+                    <option value="entropy">Entropy</option>
+                    <option value="gene">Gene</option>
+                    {% for track in color_tracks %}
+                    <option value="{{ track }}">{{ track }}</option>
+                    {% endfor %}
+                    <option value="new">New color track</option>
+                </select>
+            </div>
 
             <div id="gene-name-area" style="display:none;" class="form-inline align-items-center">
                 <label for="gene_name">Gene name:</label>
@@ -616,7 +618,7 @@ th {
                 </div>
                 <!-- onchange: make the cellmarker view visible -->
                 <div class="form-inline">
-                    <label for="database-select">Database:</label>
+                    <label for="database-select" data-toggle="tooltip" title="Which database to query for the given gene set. Current options are Enrichr and CellMarker.">Database:</label>
                     <select class="form-control" id="database-select" name="database_select" style="width:200px; margin-top: 5px;" onchange="toggle_query_visibility(this.value);">
                         <option value="enrichr" selected>Enrichr</option>
                         <option value="cellmarker">CellMarker</option>
@@ -638,9 +640,9 @@ th {
                 </div>
 
                 <div id="cellmarker-view" style="display:none;">
-                    <h5 data-toggle="tooltip" title="Uses the CellMarker database">Query CellMarker with selected genes</h4>
+                    <h5 data-toggle="tooltip" title="Query the CellMarker database for cell types matching the selected genes.">Query CellMarker with selected genes</h4>
                     <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
-                        <label for="test-type">Statistical test:</label>
+                        <label for="test-type" data-toggle="tooltip" title="Currently, only the hypergeometric test is available.">Statistical test:</label>
                         <select class="form-control" id="test-type" name="test_type">
                             <option value="hypergeom" selected>Hypergeometric test</option>
                         </select>
