@@ -237,18 +237,42 @@ def state_estimation_result(user_id):
                 user_id=user_id, uncurl_is_running=False,
                 has_result=False)
 
-@app.route('/<x>/results/<user_id>/<filename>')
-def state_estimation_file(x, user_id, filename):
+# this gzips the directory and returns
+@app.route('/<x>/results/<user_id>/download_all')
+def state_estimation_download_all(x, user_id):
     if x!='test':
         path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     else:
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                 'test_data', user_id)
-    print(path)
+    filename = user_id + '.tar.gz'
+    output_filename = os.path.join(path, filename)
+    create_tar = True
+    # update tarball if path is newer than output_filename
+    if os.path.exists(output_filename):
+        tar_mtime = os.stat(output_filename.st_mtime)
+        create_tar = False
+        for base, dirs, files in os.walk(path):
+            for f in files:
+                if os.stat(os.path.join(base, f)).st_mtime > tar_mtime:
+                    create_tar = True
+                    break
+    if create_tar:
+        import subprocess
+        subprocess.call(['tar', '-czf', output_filename, path])
+    return send_from_directory(path, filename)
+
+@app.route('/<x>/results/<user_id>/<filename>')
+def state_estimation_file(x, user_id, filename):
+    if x != 'test':
+        path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+    else:
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                'test_data', user_id)
+    print('download: ', path)
     return send_from_directory(path, filename)
 
 @app.route('/<x>/results/<user_id>/data_download')
-@cache.cached()
 def data_download(x, user_id):
     if x!='test':
         path = os.path.join(app.config['USER_DATA_DIR'], user_id)
