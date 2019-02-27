@@ -589,9 +589,9 @@ th {
 
         <div class="top-right" id="right-hand-panel-1" style="width: 550px">
             <select class="form-control" id="top-or-bulk" style="width: 300px;" data-toggle="tooltip" title="Which quantity to visualize in the barplot. C-score is the ratio of the mean expression in the given cluster to the cluster with the second-highest expression.">
-                <option value="top" selected>Top genes (c-score)</option>
-                <option value="pval">Top genes (p-value)</option>
-                <option value="top_1_vs_rest">Top genes (1-vs-rest fold change)</option>
+                <option value="top">Top genes (c-score)</option>
+                <option value="pval">Top genes (p-value of c-score)</option>
+                <option value="top_1_vs_rest" selected>Top genes (1-vs-rest fold change)</option>
                 <option value="pval_1_vs_rest">Top genes (p-value of fold change)</option>
                 <option value="sep">Most similar clusters (separation score)</option>
                 <option value="selected_color">Top genes for custom labels</option>
@@ -608,7 +608,7 @@ th {
 
         </div>
 
-        <!-- Bottom left panel - for gene set queries on databases -->
+        <!-- Bottom left panel - for gene set queries on databases. "bottom-left" actually covers the entire bottom row, since there's no bottom right. -->
         <div class="bottom-left" id="bottom-panel" style="margin-top: 20px; width: 1000px;">
             <h4>Gene set queries</h4>
             <form id="gene-set-query-form">
@@ -647,6 +647,16 @@ th {
                             <option value="hypergeom" selected>Hypergeometric test</option>
                         </select>
                     </div>
+
+                    <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                        <label for="species" data-toggle="tooltip" title="Which species to query for cell types. Currently human and mouse are available.">Species:</label>
+                        <select class="form-control" id="species" name="species">
+                            <option value="all" selected>All</option>
+                            <option value="Human" selected>Human</option>
+                            <option value="Mouse">Mouse</option>
+                        </select>
+                    </div>
+
                     <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
                         <label for="cells-or-tissues">Cells or tissues:</label>
                         <select class="form-control" id="cells-or-tissues" name="cells_or_tissues">

@@ -32,6 +32,8 @@ def initialize():
 @app.route('/data')
 def data_index():
     initialize()
+    if not app.config['SHOW_ALL_RESULTS']:
+        app.user_dirs = []
     return render_template('list_view.html',
             user_dirs=app.user_dirs,
             test_dirs=app.test_dirs)

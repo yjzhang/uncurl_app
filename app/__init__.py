@@ -21,5 +21,7 @@ app.config['BULK_DATA_DIR'] = 'bulk_data/'
 
 app.config['CACHE_TYPE'] = 'redis'
 
+app.config['SHOW_ALL_RESULTS'] = False
+
 from app import views, flask_router, interaction_views
 from .cache import cache

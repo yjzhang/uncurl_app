@@ -526,10 +526,11 @@ def update_cellmarker(user_id):
     # gene_set is a string.
     test_type = request.form['test_type']
     cells_or_tissues = request.form['cells_or_tissues']
-    return update_cellmarker_result(user_id, top_genes, test_type, cells_or_tissues)
+    species = request.form['species']
+    return update_cellmarker_result(user_id, top_genes, test_type, cells_or_tissues, species)
 
 @cache.memoize()
-def update_cellmarker_result(user_id, top_genes, test, cells_or_tissues):
+def update_cellmarker_result(user_id, top_genes, test, cells_or_tissues, species):
     """
     Gets the CellMarker result for a set of genes.
 
@@ -538,13 +539,14 @@ def update_cellmarker_result(user_id, top_genes, test, cells_or_tissues):
         top_genes (list of strings representing genes)
         test (str, currently only 'hypergeom')
         cells_or_tissues (str, either 'cells' or 'tissues')
+        species (str, one of 'all', 'Human', 'Mouse')
     """
     def pmid_to_link(pmid):
         return '<a href="https://www.ncbi.nlm.nih.gov/pubmed/{0}">{0}</a>'.format(pmid)
     import cellmarker
     result = []
     if test == 'hypergeom':
-        result = cellmarker.hypergeometric_test(top_genes, cells_or_tissues, return_header=True)
+        result = cellmarker.hypergeometric_test(top_genes, cells_or_tissues, return_header=True, species=species)
     cell_types = [result[0]]
     for i in range(1, min(20, len(result))):
         ri = result[i]
