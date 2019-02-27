@@ -2,21 +2,28 @@
 
 {% block content %}
 <div class="container container-main" role="main">
-    <h3>UNCURL</h3>
-    <p>UNCURL is a unified framework for various unsupervised learning tasks with single cell transcriptomic data that accounts for the read distribution due to the sequencing process. It can be used to perform a variety of tasks such as:</p>
+    <h3>UNCURL-App</h3>
+
+    <div style="margin-top: 20px; margin-bottom: 20px;">
+        <a type="button" class="btn btn-lg btn-primary" href="/state_estimation">Upload new dataset</a>
+        <a type="button" class="btn btn-lg btn-primary" href="/data">View existing datasets</a>
+    </div>
+
+    <p>UNCURL-App is a unified framework for interactively analyzing single-cell RNA-seq data. It is based on UNCURL for data preprocessing and clustering. It can be used to perform a variety of tasks such as:</p>
 
     <ul>
+        <li>Unsupervised or semi-supervised preprocessing</li>
         <li>Clustering</li>
-        <li>True transcriptomic state estimation</li>
         <li>Dimensionality reduction</li>
-        <li>Lineage estimation</li>
-        <li>Semi-supervision using any kind of binarizable prior information</li>
+        <li>Differential expression</li>
+        <li>Interactive data analysis and visualization</li>
     </ul>
 
-    <!-- TODO: make this better -->
 
     <p><a href="https://github.com/yjzhang/uncurl_app">Source code (web app)</a></p>
     <p><a href="https://github.com/yjzhang/uncurl_python">Source code (UNCURL)</a></p>
+
+    <!-- TODO: update figure -->
 
     <img src="{{ url_for('static', filename='ClusterWorkflowUNCURL.jpg') }}" height="400">
 
