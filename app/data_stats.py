@@ -32,6 +32,7 @@ class Summary(object):
             data = np.loadtxt(data_path)
             data_is_sparse = False
         if shape == 'cell_gene':
+            os.remove(data_path)
             data = data.T
             if data_is_sparse:
                 if is_gz:
