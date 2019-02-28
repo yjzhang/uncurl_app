@@ -469,7 +469,10 @@ def get_gene_data(user_id, gene_name, use_mw=False):
     sca = get_sca(user_id)
     if gene_name is None:
         return None
-    return sca.data_sampled_gene(gene_name, use_mw=use_mw)
+    gene_data = sca.data_sampled_gene(gene_name, use_mw=use_mw)
+    if len(gene_data) == 0:
+        return None
+    return gene_data
 
 @app.route('/user/<user_id>/view/update_enrichr', methods=['GET', 'POST'])
 def update_enrichr(user_id):

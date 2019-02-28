@@ -67,6 +67,10 @@ def load_gene_names(path=None):
 def index():
     return render_template('index.html')
 
+@app.route('/help')
+def help():
+    return render_template('help.html')
+
 @app.route('/cluster')
 def cluster():
     return render_template('clustering.html')
