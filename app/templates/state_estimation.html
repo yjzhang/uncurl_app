@@ -29,6 +29,13 @@ For details on the method, see <a href="https://www.biorxiv.org/content/early/20
             </select>
         </div>
 
+        <div class="form-group">
+            <label for="data-shape">Data shape:</label>
+            <select id="data-shape" name="data_shape">
+                <option value="gene_cell" selected>Genes by cells</option>
+                <option value="cell_gene">Cells by genes</option>
+            </select>
+        </div>
 
         <div class="form-group">
             <label for="genenames">Upload a list of gene names, with one name on each line, corresponding to the rows in the data matrix.</label>

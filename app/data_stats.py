@@ -17,14 +17,32 @@ class Summary(object):
     This object contains a summary for a single-cell RNASeq dataset.
     """
 
-    def __init__(self, data, path, is_gz=False, is_data=False):
-        if not is_data:
-            # a python2 thing for dealing with unicode...
-            data = str(data)
-            try:
-                data = scipy.io.mmread(data)
-            except:
-                data = np.loadtxt(data)
+    def __init__(self, data_path, base_path, is_gz=False, shape='gene_cell'):
+        """
+        Args:
+            data_path (str): path to data file
+            base_path (str): path to data dir
+        """
+        # a python2 thing for dealing with unicode...
+        data_path = str(data_path)
+        data_is_sparse = True
+        try:
+            data = scipy.io.mmread(data_path)
+        except:
+            data = np.loadtxt(data_path)
+            data_is_sparse = False
+        if shape == 'cell_gene':
+            data = data.T
+            if data_is_sparse:
+                if is_gz:
+                    data_path = data_path[:-3]
+                scipy.io.mmwrite(data_path, data)
+                if is_gz:
+                    import subprocess
+                    subprocess.call(['gzip', data_path])
+            else:
+                np.savetxt(data_path, data)
+            # save data...
         self.cell_read_counts = np.array(data.sum(0)).flatten()
         self.cells = data.shape[1]
         self.genes = data.shape[0]
@@ -40,7 +58,7 @@ class Summary(object):
             self.is_sparse = False
             self.gene_means = data.mean(1).flatten()
             self.gene_vars = data.var(1).flatten()
-        self.path = path
+        self.path = base_path
         self.is_gz = is_gz
         # TODO: try some k selection?
 

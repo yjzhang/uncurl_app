@@ -39,19 +39,20 @@ def load_upload_data(request_files, request_form, path=None):
         data_filename = 'data.txt'
         if output_filename.endswith('.gz'):
             data_filename = 'data.txt.gz'
-        data = os.path.join(path, data_filename)
-        f.save(data)
+        data_path = os.path.join(path, data_filename)
+        f.save(data_path)
     elif input_type == 'sparse':
         data_filename = 'data.mtx'
         if output_filename.endswith('.mtx.gz'):
             data_filename = 'data.mtx.gz'
-        data = os.path.join(path, data_filename)
-        f.save(data)
+        data_path = os.path.join(path, data_filename)
+        f.save(data_path)
+    shape = request_form['data_shape']
     init = None
     if init_f is not None and init_f.filename != '':
         init = os.path.join(path, 'init.txt')
         init_f.save(init)
-    return data, output_filename, init
+    return data_path, output_filename, init, shape
 
 
 def load_gene_names(path=None):
@@ -78,7 +79,7 @@ def cluster():
 @app.route('/cluster/input', methods=['POST'])
 def cluster_input():
     try:
-        data, output_filename, init = load_upload_data()
+        data, output_filename, init, shape = load_upload_data()
     except:
         return error('Error: no file found', 400)
     k = int(request.form['k'])
@@ -155,19 +156,19 @@ def state_estimation_input():
             username = request.form['username'].strip()[:25]
             username = ''.join([c for c in username if c.isalnum() or (c in keep_chars)])
             user_id = user_id + '-' + username
-    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
-    os.makedirs(path)
+    base_path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+    os.makedirs(base_path)
     # save request.form
-    with open(os.path.join(path, 'inputs.json'), 'w') as f:
+    with open(os.path.join(base_path, 'inputs.json'), 'w') as f:
         f.write(json.dumps(request.form))
     # TODO: if file is large, start a new thread. otherwise just
     # run the thing
     request_file = request.files
     request_form = request.form
-    load_gene_names(path)
-    data, output_filename, init = load_upload_data(request_file, request_form, path)
+    load_gene_names(base_path)
+    data_path, output_filename, init, shape = load_upload_data(request_file, request_form, base_path)
     # TODO: deal with init
-    P = Process(target=state_estimation_preproc, args=(user_id, path, data, output_filename, init))
+    P = Process(target=state_estimation_preproc, args=(user_id, base_path, data_path, output_filename, init))
     P.start()
     #state_estimation_preproc(user_id, path)
     return redirect(url_for('state_estimation_result', user_id=user_id))
@@ -289,7 +290,8 @@ def data_download(x, user_id):
             test_or_user=x,
             files=files)
 
-def state_estimation_preproc(user_id, path, data, output_filename, init=None):
+def state_estimation_preproc(user_id, base_path, data_path, output_filename, init=None,
+        shape='gene_cell'):
     """
     Preprocessing for state estimation - generates summary statistics,
     etc...
@@ -301,9 +303,9 @@ def state_estimation_preproc(user_id, path, data, output_filename, init=None):
         is_gz = True
     #except:
     #    return error('Error: no file found', 400)
-    if path is None:
-        path = os.path.join(app.config['USER_DATA_DIR'], user_id)
-    summary = Summary(data, path, is_gz)
+    if base_path is None:
+        base_path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+    summary = Summary(data_path, base_path, is_gz, shape=shape)
     script, div = summary.visualize()
     summary.preprocessing_params()
 
@@ -388,7 +390,7 @@ def lineage_input():
         P.start()
         return redirect(url_for('lineage_input_user_id', user_id=user_id))
     elif 'fileinput' in request.files:
-        data, output_filename, init = load_upload_data()
+        data, output_filename, init, shape = load_upload_data()
         k = request.form['k']
         user_id = str(uuid.uuid4())
         P = Process(target=lineage_thread, args=(data, k, None, None, user_id))
