@@ -168,7 +168,8 @@ def state_estimation_input():
     load_gene_names(base_path)
     data_path, output_filename, init, shape = load_upload_data(request_file, request_form, base_path)
     # TODO: deal with init
-    P = Process(target=state_estimation_preproc, args=(user_id, base_path, data_path, output_filename, init))
+    P = Process(target=state_estimation_preproc, args=(user_id, base_path, data_path, output_filename, init,
+        shape))
     P.start()
     #state_estimation_preproc(user_id, path)
     return redirect(url_for('state_estimation_result', user_id=user_id))
