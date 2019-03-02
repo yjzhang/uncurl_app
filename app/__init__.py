@@ -15,7 +15,11 @@ app.config['UNCURL_ARGS'] = {
 }
 app.config['NMF_ARGS'] = {
 }
-app.config['TEST_DATA_DIR'] = 'test_data/'
+# TODO: set the test data dir correctly
+# find current directory, go up
+import os
+app.config['TEST_DATA_DIR'] = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                'test_data')
 app.config['USER_DATA_DIR'] = '/tmp/uncurl/'
 app.config['BULK_DATA_DIR'] = 'bulk_data/'
 

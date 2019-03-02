@@ -249,10 +249,9 @@ def state_estimation_download_all(x, user_id):
     if x!='test':
         path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     else:
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                'test_data', user_id)
+        path = os.path.join(app.config['TEST_DATA_DIR'], user_id)
     filename = user_id + '.tar.gz'
-    output_filename = os.path.join(path, filename)
+    output_filename = os.path.join(app.config['USER_DATA_DIR'], filename)
     create_tar = True
     # update tarball if path is newer than output_filename
     if os.path.exists(output_filename):
@@ -266,15 +265,15 @@ def state_estimation_download_all(x, user_id):
     if create_tar:
         import subprocess
         subprocess.call(['tar', '-czf', output_filename, path])
-    return send_from_directory(path, filename)
+    print('download_all', path, filename)
+    return send_from_directory(app.config['USER_DATA_DIR'], filename)
 
 @app.route('/<x>/results/<user_id>/<filename>')
 def state_estimation_file(x, user_id, filename):
     if x != 'test':
         path = os.path.join(app.config['USER_DATA_DIR'], user_id)
     else:
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                'test_data', user_id)
+        path = os.path.join(app.config['TEST_DATA_DIR'], user_id)
     print('download: ', path)
     return send_from_directory(path, filename)
 
