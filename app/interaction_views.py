@@ -474,6 +474,23 @@ def get_gene_data(user_id, gene_name, use_mw=False):
         return None
     return gene_data
 
+
+@app.route('/user/<user_id>/view/cell_info', methods=['GET', 'POST'])
+def cell_info(user_id):
+    """
+    Gets basic statistics about a cell:
+        - cell_id (int, 0-indexed)
+        - read_count (number)
+        - genes_count (int)
+        - expressed_genes (list of strings)
+        - expressed_genes_values (list of numbers)
+        - cluster (int)
+        - values for all of the uploaded color maps
+    """
+    # TODO: is this really necessary?
+    pass
+
+
 @app.route('/user/<user_id>/view/update_enrichr', methods=['GET', 'POST'])
 def update_enrichr(user_id):
     # top_genes is a newline-separated string, representing the gene list.
