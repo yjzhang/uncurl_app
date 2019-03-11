@@ -2,31 +2,56 @@
 
 {% block content %}
 <div class="container container-main" role="main">
-    <h3>Help</h3>
+    <h2>Help</h2>
 
     <!--TODO: write some documentation... -->
 
-    TODO
+    <h3 id="uploading_datasets">Uploading datasets</h3>
 
-    <h4>Uploading datasets</h4>
+    TODO: insert screenshot
+
+    <p>To upload a new dataset, select a data file containing a gene expression matrix. This file can be a sparse matrix file in Matrix Market format (.mtx, as produced by scipy.io.mmwrite) or a dense matrix as a space or tab-delimited file (as produced by np.savetxt). The file should not contain any headers. Make sure to indicate whether the file is genes-by-cells or cells-by-genes.</p>
+
+    <h3 id="running_uncurl">Running uncurl</h3>
+
+    TODO: insert screenshot
+
+    <p>After updating the data, you will eventually be redirected to a view that looks like the one above. On the top, there are two plots. The plot on the left shows the distribution of total read counts per cell. The plot on the right shows the relationship between mean and variance for all genes.</p>
+
+    <h4>Uncurl options</h4>
+
+    <ul>
+        <li>Number of clusters: If the number of cell types is known, use the number of cell types here. Otherwise, this can be set to 0, which automatically infers the number of clusters using a gap score metric. Alternatively, setting this to between 10 and 20 usually produces reasonable results (clusters can be merged or split later on).</li>
+        <li>Visualization method:</li>
+        <li>Baseline visualization method:</li>
+        <li>Remove cells with read counts greater/less than: This should be self-explanatory.</li>
+        <li>Distribution: For UMI or count-valued data, Poisson usually is best. For normalized counts (FPKM, RPKM,...), use log-normal. If the data has already been log-transformed, Gaussian might be best.</li>
+        <li>Fraction of genes to include:</li>
+        <li>Fraction of cells to include for visualization:</li>
+        <li>Normalize cells by read count:</li>
+    </ul>
+
+    <h3 id="user_interface">User interface</h3>
+
+    TODO: insert screenshot
+
+    <p>After Uncurl has finished running, you will be redirected to a page that looks like the one above. The graph on the left is a scatterplot that shows a dimensionally reduced view of the cells or cluster means. The graph on the right shows the top genes for the selected cluster, or relationships between clusters.</p>
+
+    <p>To change the scatterplot view, click on the radio buttons above the plot. The default view shows the cluster means.</p>
+    
+    <h3>Gene set databases</h3>
 
     <p></p>
 
-    <h4>Running uncurl</h4>
+    <h3>New cell annotations</h3>
 
     <p></p>
 
-    <h4>The user interface</h4>
+    <h3>Merging, splitting, re-analysis</h3>
 
     <p></p>
 
-    <h4>New cell annotations</h4>
 
-    <p></p>
-
-    <h4>Gene set databases</h4>
-
-    <p></p>
 </div>
 
 {% endblock %}
