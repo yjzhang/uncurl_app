@@ -8,36 +8,67 @@
 
     <h3 id="uploading_datasets">Uploading datasets</h3>
 
-    TODO: insert screenshot
+    <figure class="figure">
+        <img src="{{ url_for('static', filename='upload_1.png') }}" style="width: 600px;" class="figure-img center-block" alt="upload screen">
+        <figcaption class="figure-caption text-center">Upload screen</figcaption>
+    </figure>
 
     <p>To upload a new dataset, select a data file containing a gene expression matrix. This file can be a sparse matrix file in Matrix Market format (.mtx, as produced by scipy.io.mmwrite) or a dense matrix as a space or tab-delimited file (as produced by np.savetxt). The file should not contain any headers. Make sure to indicate whether the file is genes-by-cells or cells-by-genes.</p>
 
     <h3 id="running_uncurl">Running uncurl</h3>
 
-    TODO: insert screenshot
+
+    <figure class="figure">
+        <img src="{{ url_for('static', filename='data_preview.png') }}" style="width: 600px;" class="figure-img center-block" alt="Data preview">
+        <figcaption class="figure-caption text-center">Data preview</figcaption>
+    </figure>
 
     <p>After updating the data, you will eventually be redirected to a view that looks like the one above. On the top, there are two plots. The plot on the left shows the distribution of total read counts per cell. The plot on the right shows the relationship between mean and variance for all genes.</p>
 
     <h4>Uncurl options</h4>
 
+    <figure class="figure">
+        <img src="{{ url_for('static', filename='uncurl_params.png') }}" style="width: 600px;" class="figure-img center-block" alt="Uncurl parameters">
+        <figcaption class="figure-caption text-center">Uncurl parameters</figcaption>
+    </figure>
+
     <ul>
         <li>Number of clusters: If the number of cell types is known, use the number of cell types here. Otherwise, this can be set to 0, which automatically infers the number of clusters using a gap score metric. Alternatively, setting this to between 10 and 20 usually produces reasonable results (clusters can be merged or split later on).</li>
-        <li>Visualization method:</li>
-        <li>Baseline visualization method:</li>
-        <li>Remove cells with read counts greater/less than: This should be self-explanatory.</li>
+        <li>Visualization method: How to create a scatterplot of cells using the output of Uncurl. One of MDS, PCA, tSNE, or UMAP. Default: tSNE.</li>
+        <li>Baseline visualization method: How to create a scatterplot of cells without using Uncurl. One of PCA, tSNE, or UMAP. Default: tSNE.</li>
+        <li>Remove cells with read counts greater/less than: This should be self-explanatory. Cells removed this way will not be used in Uncurl. The default is to remove the top and bottom 5% of cells by total read count.</li>
         <li>Distribution: For UMI or count-valued data, Poisson usually is best. For normalized counts (FPKM, RPKM,...), use log-normal. If the data has already been log-transformed, Gaussian might be best.</li>
-        <li>Fraction of genes to include:</li>
-        <li>Fraction of cells to include for visualization:</li>
-        <li>Normalize cells by read count:</li>
+        <li>Fraction of genes to include: As a preprocessing step, Uncurl selects a subset of genes for inference using variance-based selection. By default, this is 0.2.</li>
+        <li>Fraction of cells to include for visualization: If there is a large number of cells, then the number of cells can be subsampled for the dimensionality reduction, to reduce computational and data transfer requirements. By default, this sets it so that the number of cells retained is at most about 1500.</li>
+        <li>Normalize cells by read count: If this is set to true, then for all cells, the read counts will be divided by the total read count for that cell, and then multiplied by the median read count for all cells.</li>
     </ul>
 
     <h3 id="user_interface">User interface</h3>
 
-    TODO: insert screenshot
+    <figure class="figure">
+        <img src="{{ url_for('static', filename='scatterplot_1.png') }}" style="width: 600px;" class="figure-img center-block" alt="Scatterplot + barplot">
+        <figcaption class="figure-caption text-center">Visualization: scatterplot of means + barplot</figcaption>
+    </figure>
 
     <p>After Uncurl has finished running, you will be redirected to a page that looks like the one above. The graph on the left is a scatterplot that shows a dimensionally reduced view of the cells or cluster means. The graph on the right shows the top genes for the selected cluster, or relationships between clusters.</p>
 
-    <p>To change the scatterplot view, click on the radio buttons above the plot. The default view shows the cluster means.</p>
+    <p>To change the scatterplot view, click on the radio buttons above the plot, circled in red. The default view shows the cluster means. The "Processed cells" option shows a scatterplot with all cells.</p>
+
+    <p>To change the top genes on the barplot, click on any cell or cluster mean.</p>
+
+    <figure class="figure">
+        <img src="{{ url_for('static', filename='scatterplot_3.png') }}" style="width: 600px;" class="figure-img center-block" alt="Scatterplot + barplot">
+        <figcaption class="figure-caption text-center">Visualization: scatterplot of all cells + barplot</figcaption>
+    </figure>
+
+    <p>To</p>
+
+    <h3>Interacting with the plot</h3>
+
+    <p>Double click on a cluster name to see only that cluster. Single click on a cluster name to toggle its visibility.</p>
+
+    <p>Mousing over the top right of the plot will show a control panel.</p>
+
     
     <h3>Gene set databases</h3>
 
