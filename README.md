@@ -13,15 +13,24 @@ To deploy on a server (requires redis): run `sh start-gunicorn.sh`
 
 Main code is located in `app/`
 
-## Building with Docker
+## Building/Deploying with Docker
 
-(still working on this...)
+To build a new image from the repository's root directory:
 
 `docker build . -t uncurl-app`
+
+To run the server:
 
 `docker run uncurl-app -p 8888:<port>`
 
 This exposes the given port.
+
+Alternatively, we have built reasonably up-to-date images at https://cloud.docker.com/repository/docker/ayuezhang27/uncurl-app. To run the server using these images (does not require cloning this repository):
+
+    docker pull ayuezhang27/uncurl-app
+    docker run -p 8888:<port> ayuezhang/uncurl-app
+
+When deploying on AWS, make sure to allow HTTP requests to and from the selected port in the security group.
 
 ## Testing
 
@@ -38,4 +47,4 @@ See `user_guide.md`
 
 loading gif from http://www.ajaxload.info/
 
-Includes plotly, jquery, poppler
+Javascript libraries: plotly, jquery, poppler
