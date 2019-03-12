@@ -23,7 +23,7 @@ To run the server:
 
 `docker run uncurl-app -p 8888:<port>`
 
-This exposes the given port.
+This exposes the given port, and then the uncurl-app website can be visited in the browser at http://your-ip-address:port. To stop the server, run `sudo killall gunicorn` in another terminal.
 
 Alternatively, we have built reasonably up-to-date images at https://cloud.docker.com/repository/docker/ayuezhang27/uncurl-app. To run the server using these images (does not require cloning this repository):
 
@@ -31,6 +31,7 @@ Alternatively, we have built reasonably up-to-date images at https://cloud.docke
     docker run -p 8888:<port> ayuezhang/uncurl-app
 
 When deploying on AWS, make sure to allow HTTP requests to and from the selected port in the security group.
+
 
 ## Testing
 
@@ -40,7 +41,7 @@ When deploying on AWS, make sure to allow HTTP requests to and from the selected
 
 ## Usage
 
-See `user_guide.md`
+See `user_guide.md`, or http://uncurl-app.yjzhang.com:8888/help
 
 
 ## Included resources
