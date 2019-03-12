@@ -541,11 +541,20 @@ th {
                     <option value="cluster" selected>Cluster</option>
                     <option value="entropy">Entropy</option>
                     <option value="gene">Gene</option>
+                    <!-- TODO: add a view to show each cluster's W values --> 
+                    <option value="weights">Cluster weights</option>
                     {% for track in color_tracks %}
                     <option value="{{ track }}">{{ track }}</option>
                     {% endfor %}
                     <option value="new">New color track</option>
                 </select>
+            </div>
+
+            <div id="cluster-select-area" style="display:none;" class="form-inline align-items-center">
+                <label for="cluster_input" data-toggle="tooltip" title="This shows the weights for one specified cluster.">Cluster:</label>
+                <!-- TODO: only allow ints? -->
+                <input id="cluster_input" name="cluster_input" class="form-control" style="width:200px;">
+                <button type="button" class="btn btn-default" id="cluster_submit" onclick="update_scatterplot()">Submit</button>
             </div>
 
             <div id="gene-name-area" style="display:none;" class="form-inline align-items-center">
