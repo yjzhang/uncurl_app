@@ -395,23 +395,11 @@ def update_scatterplot(user_id):
     """
     plot_type = request.form['scatter_type']
     cell_color_value = request.form['cell_color']
-    gene_name = None
-    if 'gene_name' in request.form:
-        gene_name = request.form['gene_name']
-    gene_name_1 = None
-    if 'gene_name_1' in request.form:
-        gene_name_1 = request.form['gene_name_1']
-    gene_name_2 = None
-    if 'gene_name_2' in request.form:
-        gene_name_2 = request.form['gene_name_2']
-    use_mw = False
-    if 'use_mw' in request.form:
-        use_mw = bool(int(request.form['use_mw']))
     return update_scatterplot_result(user_id, plot_type, cell_color_value,
-            gene_name, gene_name_1, gene_name_2, use_mw)
+            request.form.copy())
 
 @cache.memoize()
-def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=None, gene_name_1=None, gene_name_2=None, use_mw=False):
+def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
     """
     Returns the plotly JSON representation of the scatterplot.
     """
@@ -421,7 +409,17 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
         return scatterplot_data(sca.mds_means,
                 labels)
     elif plot_type == 'Gene-gene':
-        print('gene names:', gene_name_1, gene_name_2)
+        if 'gene_name_1' not in data_form or 'gene_name_2' not in data_form:
+            return None
+        use_mw = False
+        if use_mw in data_form:
+            use_mw = data_form['use_mw']
+        gene_name = ''
+        if gene_name in data_form:
+            gene_name = data_form['gene_name']
+        gene_name_1 = data_form['gene_name_1']
+        gene_name_2 = data_form['gene_name_2']
+        print('gene-gene plot - gene names:', gene_name_1, gene_name_2)
         color_vals = None
         if cell_color_value == 'gene':
             color_vals = get_gene_data(user_id, gene_name)
@@ -439,6 +437,10 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
                     colorscale='Viridis',
                     mode='entropy', color_vals=sca.entropy)
         elif cell_color_value == 'gene':
+            gene_name = data_form['gene_name']
+            use_mw = False
+            if use_mw in data_form:
+                use_mw = data_form['use_mw']
             gene_data = get_gene_data(user_id, gene_name)
             if len(gene_data)==0:
                 return 'Error: gene not found'
@@ -449,6 +451,14 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
         elif cell_color_value == 'new':
             # this usually happens by mistake...
             return scatterplot_data(dim_red, sca.labels)
+        # if the mode is 'cluster', color based on w
+        elif cell_color_value == 'weights':
+            cluster = int(data_form['cluster_input'])
+            w = sca.w_sampled
+            if cluster < 0 or cluster >= w.shape[0]:
+                return 'Error: invalid cluster ID'
+            return scatterplot_data(dim_red, sca.labels,
+                    mode='entropy', color_vals=w[cluster, :])
         else:
             # try to get color track
             color_track, is_discrete = get_sca_color_track(user_id, cell_color_value)
@@ -473,6 +483,43 @@ def get_gene_data(user_id, gene_name, use_mw=False):
     if len(gene_data) == 0:
         return None
     return gene_data
+
+
+@app.route('/user/<user_id>/view/cell_info', methods=['GET', 'POST'])
+def cell_info(user_id):
+    """
+    Gets basic statistics about a cell:
+        - cell_id (int, 0-indexed)
+        - read_count (number)
+        - genes_count (int)
+        - expressed_genes (list of strings)
+        - expressed_genes_values (list of numbers)
+        - cluster (int)
+        - values for all of the uploaded color maps
+    """
+    # TODO: is this really necessary?
+    print('cell_info: ', request.form)
+    selected_cells = request.form['selected_cells']
+    selected_cells = selected_cells.split(',')
+    selected_cells = [int(x) for x in selected_cells]
+    selected_clusters = request.form['selected_clusters']
+    selected_clusters = selected_clusters.split(',')
+    selected_clusters = [int(x) for x in selected_clusters]
+    return cell_info_result(user_id, selected_cells)
+
+@cache.memoize()
+def cell_info_result(user_id, selected_cells):
+    # get read count + gene count for all cells
+    sca = get_sca(user_id)
+    read_counts = []
+    gene_counts = []
+    for cell in selected_cells:
+        cell_data = sca.data_sampled_all_genes[:, cell]
+        gene_counts.append(cell_data.count_nonzero())
+        read_counts.append(cell_data.sum())
+    return json.dumps({'gene_counts': gene_counts,
+        'read_counts': read_counts}, cls=SimpleEncoder)
+
 
 @app.route('/user/<user_id>/view/update_enrichr', methods=['GET', 'POST'])
 def update_enrichr(user_id):
@@ -525,7 +572,7 @@ def update_enrichr_result(user_id, top_genes, gene_set):
 def update_cellmarker(user_id):
     # top_genes is a newline-separated string, representing the gene list.
     top_genes = [x.strip().upper() for x in request.form['top_genes'].split('\n')]
-    print(top_genes)
+    print('update_cellmarker:', top_genes)
     # gene_set is a string.
     test_type = request.form['test_type']
     cells_or_tissues = request.form['cells_or_tissues']
@@ -568,8 +615,8 @@ def split_or_merge_cluster(user_id):
     selected_clusters = request.form['selected_clusters']
     selected_clusters = selected_clusters.split(',')
     selected_clusters = [int(x) for x in selected_clusters]
-    print(split_or_merge)
-    print(selected_clusters)
+    print('split_or_merge:', split_or_merge)
+    print('selected_clusters:', selected_clusters)
     sca = get_sca(user_id)
     selected_clusters = list(set(selected_clusters))
     if len(selected_clusters) == 0:
@@ -611,7 +658,7 @@ def split_or_merge_cluster(user_id):
 def upload_color_track(user_id):
     from werkzeug import secure_filename
     sca = get_sca(user_id)
-    print(request.form)
+    print('upload_color_track:', request.form)
     print(request.files)
     if 'color_track_file' in request.files:
         f = request.files['color_track_file']

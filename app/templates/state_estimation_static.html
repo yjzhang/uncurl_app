@@ -108,10 +108,23 @@ function update_scatterplot() {
     var gene_name = $('#gene_name').val();
     console.log(plot_type);
     console.log(cell_color);
+    var gene_name_1 = $('#gene_name_1').val();
+    var gene_name_2 = $('#gene_name_2').val();
+    var use_mw = $('#use-mw').val();
+    var cluster = $('#cluster_input').val();
+    var upload_data = {"scatter_type": plot_type, "cell_color": cell_color,
+               "gene_name": gene_name,
+               "gene_name_1": gene_name_1,
+               "gene_name_2": gene_name_2,
+               "use_mw": use_mw,
+               "cluster_input": cluster,
+    };
     $("#update-area").empty();
     $("#update-area").append('Updating scatterplot <img src="/static/ajax-loader.gif"/>');
-    if (cache.scatterplots.hasOwnProperty(plot_type + cell_color + gene_name)) {
-        var data = cache.scatterplots[plot_type + cell_color];
+    var key = JSON.stringify(upload_data);
+    // if the plot parameters have been used before, we retrieve them from the cache...
+    if (cache.scatterplots.hasOwnProperty(key)) {
+        var data = cache.scatterplots[key];
         Plotly.newPlot("means-scatter-plot", data.data, data.layout);
         current_scatterplot_data = data;
         bind_click();
@@ -120,16 +133,9 @@ function update_scatterplot() {
         $("#update-area").append('Scatterplot updated');
         return true;
     }
-    var gene_name_1 = $('#gene_name_1').val();
-    var gene_name_2 = $('#gene_name_2').val();
-    var use_mw = $('#use-mw').val();
     $.ajax({url: window.location.pathname + "/update_scatterplot",
         type: "POST",
-        data: {"scatter_type": plot_type, "cell_color": cell_color,
-               "gene_name": gene_name,
-               "gene_name_1": gene_name_1,
-               "gene_name_2": gene_name_2,
-               "use_mw": use_mw},
+        data: upload_data,
     }).done(function(data) {
         if (data.startsWith('Error')) {
             $("#update-area").empty();
@@ -137,7 +143,7 @@ function update_scatterplot() {
             return false;
         }
         data = JSON.parse(data);
-        cache.scatterplots[plot_type + cell_color] = data;
+        cache.scatterplots[key] = data;
         Plotly.newPlot("means-scatter-plot", data.data, data.layout);
         current_scatterplot_data = data;
         bind_click();
@@ -244,6 +250,38 @@ function on_select(data) {
     $("#update-area").append("Number of selected cells: " + current_selected_cells.length);
 };
 
+// Gets basic cell info - read counts and gene counts
+function get_cell_info() {
+    var selected_clusters = all_selected_clusters;
+    var selected_cells = current_selected_cells;
+    // TODO: can't send an array
+    var upload_data = {
+        selected_clusters: String(selected_clusters),
+        selected_cells: String(selected_cells),
+    };
+    console.log(upload_data);
+    $.ajax({url: window.location.pathname + "/cell_info",
+        data: upload_data,
+        method: 'POST',
+    }).done(function(data) {
+        var results = JSON.parse(data);
+        var selection_string = "";
+        selected_clusters.forEach(function(x) {
+            var l = current_scatterplot_data.data[x].x.length;
+            selection_string += "cluster " + String(x) + 
+                " (" + String(l) + " cells), ";
+        });
+        var cell_string = "";
+        for (var i = 0; i < selected_cells.length; i++) {
+            cell_string += "cell " + String(selected_cells[i]) + " (" + String(results.gene_counts[i])
+                +  " genes, " + String(results.read_counts[i]) + " reads), ";
+        };
+        $("#update-area").empty();
+        $("#update-area").append("Selected cells: " + cell_string + "<br>");
+        // TODO: what are the stats that we need?
+        $("#update-area").append("Selected clusters: " + selection_string + "<br>");
+    });
+};
 
 function split_or_merge_cluster(split_or_merge) {
     if (currently_merging) {
@@ -378,12 +416,19 @@ window.onload = function() {
             }
             $('#gene-name-area').css('display', 'block');
             $('#color-track-upload-area').css('display', 'none');
+            $('#cluster-select-area').css('display', 'none');
         } else if (cell_color == "new") {
             $('#color-track-upload-area').css('display', 'block');
             $('#gene-name-area').css('display', 'none');
+            $('#cluster-select-area').css('display', 'none');
+        } else if (cell_color == "weights") {
+            $('#cluster-select-area').css('display', 'block');
+            $('#gene-name-area').css('display', 'none');
+            $('#color-track-upload-area').css('display', 'none');
         } else {
             $('#gene-name-area').css('display', 'none');
             $('#color-track-upload-area').css('display', 'none');
+            $('#cluster-select-area').css('display', 'none');
             update_scatterplot();
         }
     });
@@ -541,11 +586,20 @@ th {
                     <option value="cluster" selected>Cluster</option>
                     <option value="entropy">Entropy</option>
                     <option value="gene">Gene</option>
+                    <!-- TODO: add a view to show each cluster's W values --> 
+                    <option value="weights">Cluster weights</option>
                     {% for track in color_tracks %}
                     <option value="{{ track }}">{{ track }}</option>
                     {% endfor %}
                     <option value="new">New color track</option>
                 </select>
+            </div>
+
+            <div id="cluster-select-area" style="display:none;" class="form-inline align-items-center">
+                <label for="cluster_input" data-toggle="tooltip" title="This shows the weights for one specified cluster.">Cluster ID:</label>
+                <!-- TODO: only allow ints? -->
+                <input type="number" min="0" step="1" id="cluster_input" name="cluster_input" class="form-control" style="width:200px;">
+                <button type="button" class="btn btn-default" id="cluster_submit" onclick="update_scatterplot()">Submit</button>
             </div>
 
             <div id="gene-name-area" style="display:none;" class="form-inline align-items-center">
@@ -577,10 +631,12 @@ th {
 
             <div class="input-group" style="margin-top: 5px;">
                 <div class="form-row" id="update-area"></div>
-                <button class="btn btn-default" id="split" style="margin-right: 2px;">Split selected clusters</button>
-                <button class="btn btn-default" id="merge">Merge selected clusters</button>
-                <button class="btn btn-default" id="reanalyze" onclick="toggle_reanalyze_area();">Reanalyze</button>
-                
+
+                <button type="button" class="btn btn-default" id="cell-info" onclick="get_cell_info();">Get cell/cluster info</button>
+                <button type="button" class="btn btn-default" id="split" style="margin-right: 2px;">Split selected clusters</button>
+                <button type="button" class="btn btn-default" id="merge">Merge selected clusters</button>
+                <button type="button" class="btn btn-default" id="reanalyze" onclick="toggle_reanalyze_area();">Reanalyze</button>
+
                 <div id="reanalyze-area" style="display:none;">
                     <button class="btn btn-default" id="copy">Copy dataset</button>
                     <button class="btn btn-default" id="subset_cells">Sub-select cells</button>
