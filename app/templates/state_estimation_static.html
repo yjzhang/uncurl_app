@@ -124,7 +124,7 @@ function update_scatterplot() {
     var key = JSON.stringify(upload_data);
     // if the plot parameters have been used before, we retrieve them from the cache...
     if (cache.scatterplots.hasOwnProperty(key)) {
-        var data = cache.scatterplots[plot_type + cell_color];
+        var data = cache.scatterplots[key];
         Plotly.newPlot("means-scatter-plot", data.data, data.layout);
         current_scatterplot_data = data;
         bind_click();
