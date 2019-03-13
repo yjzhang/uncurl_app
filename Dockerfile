@@ -7,9 +7,11 @@ RUN pip install numpy
 
 WORKDIR /app
 
-ADD . /app
+ADD requirements.txt /app
 
 RUN pip install -r requirements.txt
+
+ADD . /app
 
 EXPOSE 8888
 
