@@ -498,7 +498,28 @@ def cell_info(user_id):
         - values for all of the uploaded color maps
     """
     # TODO: is this really necessary?
-    pass
+    print('cell_info: ', request.form)
+    selected_cells = request.form['selected_cells']
+    selected_cells = selected_cells.split(',')
+    selected_cells = [int(x) for x in selected_cells]
+    selected_clusters = request.form['selected_clusters']
+    selected_clusters = selected_clusters.split(',')
+    selected_clusters = [int(x) for x in selected_clusters]
+    return cell_info_result(user_id, selected_cells)
+
+@cache.memoize()
+def cell_info_result(user_id, selected_cells):
+    print(selected_cells)
+    # get read count + gene count for all cells
+    sca = get_sca(user_id)
+    read_counts = []
+    gene_counts = []
+    for cell in selected_cells:
+        cell_data = sca.data_sampled_all_genes[:, cell]
+        gene_counts.append(cell_data.count_nonzero())
+        read_counts.append(cell_data.sum())
+    return json.dumps({'gene_counts': gene_counts,
+        'read_counts': read_counts}, cls=SimpleEncoder)
 
 
 @app.route('/user/<user_id>/view/update_enrichr', methods=['GET', 'POST'])

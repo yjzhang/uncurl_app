@@ -143,7 +143,7 @@ function update_scatterplot() {
             return false;
         }
         data = JSON.parse(data);
-        cache.scatterplots[plot_type + cell_color] = data;
+        cache.scatterplots[key] = data;
         Plotly.newPlot("means-scatter-plot", data.data, data.layout);
         current_scatterplot_data = data;
         bind_click();
@@ -250,6 +250,38 @@ function on_select(data) {
     $("#update-area").append("Number of selected cells: " + current_selected_cells.length);
 };
 
+// Gets basic cell info - read counts and gene counts
+function get_cell_info() {
+    var selected_clusters = all_selected_clusters;
+    var selected_cells = current_selected_cells;
+    // TODO: can't send an array
+    var upload_data = {
+        selected_clusters: String(selected_clusters),
+        selected_cells: String(selected_cells),
+    };
+    console.log(upload_data);
+    $.ajax({url: window.location.pathname + "/cell_info",
+        data: upload_data,
+        method: 'POST',
+    }).done(function(data) {
+        var results = JSON.parse(data);
+        var selection_string = "";
+        selected_clusters.forEach(function(x) {
+            var l = current_scatterplot_data.data[x].x.length;
+            selection_string += "cluster " + String(x) + 
+                " (" + String(l) + " cells), ";
+        });
+        var cell_string = "";
+        for (var i = 0; i < selected_cells.length; i++) {
+            cell_string += "cell " + String(selected_cells[i]) + " (" + String(results.gene_counts[i])
+                +  " genes, " + String(results.read_counts[i]) + " reads), ";
+        };
+        $("#update-area").empty();
+        $("#update-area").append("Selected cells: " + cell_string + "<br>");
+        // TODO: what are the stats that we need?
+        $("#update-area").append("Selected clusters: " + selection_string + "<br>");
+    });
+};
 
 function split_or_merge_cluster(split_or_merge) {
     if (currently_merging) {
@@ -600,10 +632,10 @@ th {
             <div class="input-group" style="margin-top: 5px;">
                 <div class="form-row" id="update-area"></div>
 
-                <button type="button" class="btn btn-default" id="cell-info">Get cell/cluster info</button>
-                <button class="btn btn-default" id="split" style="margin-right: 2px;">Split selected clusters</button>
-                <button class="btn btn-default" id="merge">Merge selected clusters</button>
-                <button class="btn btn-default" id="reanalyze" onclick="toggle_reanalyze_area();">Reanalyze</button>
+                <button type="button" class="btn btn-default" id="cell-info" onclick="get_cell_info();">Get cell/cluster info</button>
+                <button type="button" class="btn btn-default" id="split" style="margin-right: 2px;">Split selected clusters</button>
+                <button type="button" class="btn btn-default" id="merge">Merge selected clusters</button>
+                <button type="button" class="btn btn-default" id="reanalyze" onclick="toggle_reanalyze_area();">Reanalyze</button>
 
                 <div id="reanalyze-area" style="display:none;">
                     <button class="btn btn-default" id="copy">Copy dataset</button>
