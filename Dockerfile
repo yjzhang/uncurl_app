@@ -1,4 +1,4 @@
-FROM python:2.7
+FROM python:3.6
 MAINTAINER Yue Zhang <yjzhang@cs.washington.edu>
 
 RUN apt-get update && apt-get install -y redis-server
