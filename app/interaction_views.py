@@ -395,23 +395,11 @@ def update_scatterplot(user_id):
     """
     plot_type = request.form['scatter_type']
     cell_color_value = request.form['cell_color']
-    gene_name = None
-    if 'gene_name' in request.form:
-        gene_name = request.form['gene_name']
-    gene_name_1 = None
-    if 'gene_name_1' in request.form:
-        gene_name_1 = request.form['gene_name_1']
-    gene_name_2 = None
-    if 'gene_name_2' in request.form:
-        gene_name_2 = request.form['gene_name_2']
-    use_mw = False
-    if 'use_mw' in request.form:
-        use_mw = bool(int(request.form['use_mw']))
     return update_scatterplot_result(user_id, plot_type, cell_color_value,
-            gene_name, gene_name_1, gene_name_2, use_mw)
+            request.form.copy())
 
 @cache.memoize()
-def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=None, gene_name_1=None, gene_name_2=None, use_mw=False):
+def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
     """
     Returns the plotly JSON representation of the scatterplot.
     """
@@ -421,6 +409,16 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
         return scatterplot_data(sca.mds_means,
                 labels)
     elif plot_type == 'Gene-gene':
+        if 'gene_name_1' not in data_form or 'gene_name_2' not in data_form:
+            return None
+        use_mw = False
+        if use_mw in data_form:
+            use_mw = data_form['use_mw']
+        gene_name = ''
+        if gene_name in data_form:
+            gene_name = data_form['gene_name']
+        gene_name_1 = data_form['gene_name_1']
+        gene_name_2 = data_form['gene_name_2']
         print('gene names:', gene_name_1, gene_name_2)
         color_vals = None
         if cell_color_value == 'gene':
@@ -439,6 +437,10 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
                     colorscale='Viridis',
                     mode='entropy', color_vals=sca.entropy)
         elif cell_color_value == 'gene':
+            gene_name = data_form['gene_name']
+            use_mw = False
+            if use_mw in data_form:
+                use_mw = data_form['use_mw']
             gene_data = get_gene_data(user_id, gene_name)
             if len(gene_data)==0:
                 return 'Error: gene not found'
@@ -449,6 +451,14 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, gene_name=No
         elif cell_color_value == 'new':
             # this usually happens by mistake...
             return scatterplot_data(dim_red, sca.labels)
+        # if the mode is 'cluster', color based on w
+        elif cell_color_value == 'weights':
+            cluster = int(data_form['cluster_input'])
+            w = sca.w_sampled
+            if cluster < 0 or cluster >= w.shape[0]:
+                return 'Error: invalid cluster ID'
+            return scatterplot_data(dim_red, sca.labels,
+                    mode='entropy', color_vals=w[cluster, :])
         else:
             # try to get color track
             color_track, is_discrete = get_sca_color_track(user_id, cell_color_value)
