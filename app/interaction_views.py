@@ -419,7 +419,7 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
             gene_name = data_form['gene_name']
         gene_name_1 = data_form['gene_name_1']
         gene_name_2 = data_form['gene_name_2']
-        print('gene names:', gene_name_1, gene_name_2)
+        print('gene-gene plot - gene names:', gene_name_1, gene_name_2)
         color_vals = None
         if cell_color_value == 'gene':
             color_vals = get_gene_data(user_id, gene_name)
@@ -509,7 +509,6 @@ def cell_info(user_id):
 
 @cache.memoize()
 def cell_info_result(user_id, selected_cells):
-    print(selected_cells)
     # get read count + gene count for all cells
     sca = get_sca(user_id)
     read_counts = []
@@ -573,7 +572,7 @@ def update_enrichr_result(user_id, top_genes, gene_set):
 def update_cellmarker(user_id):
     # top_genes is a newline-separated string, representing the gene list.
     top_genes = [x.strip().upper() for x in request.form['top_genes'].split('\n')]
-    print(top_genes)
+    print('update_cellmarker:', top_genes)
     # gene_set is a string.
     test_type = request.form['test_type']
     cells_or_tissues = request.form['cells_or_tissues']
@@ -616,8 +615,8 @@ def split_or_merge_cluster(user_id):
     selected_clusters = request.form['selected_clusters']
     selected_clusters = selected_clusters.split(',')
     selected_clusters = [int(x) for x in selected_clusters]
-    print(split_or_merge)
-    print(selected_clusters)
+    print('split_or_merge:', split_or_merge)
+    print('selected_clusters:', selected_clusters)
     sca = get_sca(user_id)
     selected_clusters = list(set(selected_clusters))
     if len(selected_clusters) == 0:
@@ -659,7 +658,7 @@ def split_or_merge_cluster(user_id):
 def upload_color_track(user_id):
     from werkzeug import secure_filename
     sca = get_sca(user_id)
-    print(request.form)
+    print('upload_color_track:', request.form)
     print(request.files)
     if 'color_track_file' in request.files:
         f = request.files['color_track_file']
