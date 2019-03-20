@@ -254,11 +254,13 @@ function on_select(data) {
 function get_cell_info() {
     var selected_clusters = all_selected_clusters;
     var selected_cells = current_selected_cells;
-    // TODO: can't send an array
+    // can't send an array... have to convert to string
     var upload_data = {
         selected_clusters: String(selected_clusters),
         selected_cells: String(selected_cells),
     };
+    $("#update-area").empty();
+    $("#update-area").append("<br>" + "Query in progress..." + '<img src="/static/ajax-loader.gif"/>');
     console.log(upload_data);
     $.ajax({url: window.location.pathname + "/cell_info",
         data: upload_data,

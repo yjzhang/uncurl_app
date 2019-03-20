@@ -58,8 +58,10 @@ def load_upload_data(request_files, request_form, path=None):
 def load_gene_names(path=None):
     if 'genenames' in request.files:
         f = request.files['genenames']
+        gene_filename = secure_filename(f.filename)
         if path is not None:
             f.save(os.path.join(path, 'gene_names.txt'))
+        return gene_filename
     else:
         return None
 
@@ -189,9 +191,9 @@ def state_estimation_start(user_id):
     # TODO: deal with init here - make note if it's qualitative or
     # quantitative
     # run qualNorm???
-    init = os.path.join(path, 'init.txt')
-    if not os.path.exists(init):
-        init = None
+    init_path= os.path.join(path, 'init.txt')
+    if not os.path.exists(init_path):
+        init_path = None
     # load json params
     with open(os.path.join(path, 'preprocess.json')) as f:
         preprocess = json.load(f)
@@ -200,7 +202,7 @@ def state_estimation_start(user_id):
     # params.json contains all input parameters to the state estimation
     with open(os.path.join(path, 'params.json'), 'w') as f:
         json.dump(preprocess, f)
-    P = Process(target=state_estimation_thread, args=(user_id, gene_names, init, path, preprocess))
+    P = Process(target=state_estimation_thread, args=(user_id, gene_names, init_path, path, preprocess))
     P.start()
     return redirect(url_for('state_estimation_result', user_id=user_id))
 
@@ -309,14 +311,14 @@ def state_estimation_preproc(user_id, base_path, data_path, output_filename, ini
     script, div = summary.visualize()
     summary.preprocessing_params()
 
-def state_estimation_thread(user_id, gene_names=None, init=None, path=None, preprocess=None):
+def state_estimation_thread(user_id, gene_names=None, init_path=None, path=None, preprocess=None):
     """
     Uses a new process to do state estimation. Assumes that the input data is already saved in a directory named /tmp/uncurl/<user_id>/.
 
     Args:
         user_id (str)
         gene_names (str or array, optional): path to a list of gene names, or an array of gene names. Default: None
-        init (array, optional): init_means- shape is (genes, k). Default: None.
+        init_path (str, optional): path to txt matrix of shape (genes, k). Default: None.
         path (str, optional): Path where data and results are saved.
         preprocess (dict): dict containing additional parameters: min_reads, max_reads, normalize, is_sparse, is_gz, disttype, genes_frac, cell_frac, vismethod, baseline_vismethod
     """
@@ -331,7 +333,7 @@ def state_estimation_thread(user_id, gene_names=None, init=None, path=None, prep
         if preprocess['is_gz']:
             data += '.gz'
     # TODO: it's really confusing where the param names come from in
-    # the preprocess dict - they come from the input ids in
+    # the preprocess dict - they come from the input names in
     # state_estimation_user.html.
     dist_type = preprocess['disttype']
     if dist_type=='Poisson':
@@ -346,7 +348,6 @@ def state_estimation_thread(user_id, gene_names=None, init=None, path=None, prep
     if dist_type == 'Poisson':
         uncurl_args['write_progress_file'] = os.path.join(path, 'progress.txt')
     uncurl_args['dist'] = dist_type
-    uncurl_args['init_means'] = init
     k = int(preprocess['k'])
     vismethod = preprocess['vismethod']
     gene_frac = float(preprocess['genes_frac'])
@@ -357,7 +358,7 @@ def state_estimation_thread(user_id, gene_names=None, init=None, path=None, prep
         normalize = True
     baseline_vismethod = preprocess['baseline_vismethod']
     # TODO: deal with init
-    if init is not None:
+    if init_path is not None:
         pass
     # TODO: save params as json instead of having to pass them...
     # actually save params.json and pass params lol
