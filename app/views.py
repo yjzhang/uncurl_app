@@ -224,9 +224,14 @@ def state_estimation_result(user_id):
         with open(os.path.join(path, 'vis_summary.html')) as f:
             v = f.read()
         v = Markup(v)
+        uncurl_has_error = False
+        if time_remaining == 'error':
+            # TODO: if there is an error here...
+            uncurl_has_error = True
         return render_template('state_estimation_user.html',
                 user_id=user_id, has_preview=True,
                 uncurl_is_running=uncurl_is_running,
+                uncurl_has_error=uncurl_has_error,
                 visualization=v,
                 current_task=current_task,
                 time_remaining=time_remaining,
@@ -298,18 +303,21 @@ def state_estimation_preproc(user_id, base_path, data_path, output_filename, ini
     Preprocessing for state estimation - generates summary statistics,
     etc...
     """
-    # TODO: deal with init
-    #try:
     is_gz = False
     if output_filename.endswith('.gz'):
         is_gz = True
-    #except:
-    #    return error('Error: no file found', 400)
     if base_path is None:
         base_path = os.path.join(app.config['USER_DATA_DIR'], user_id)
-    summary = Summary(data_path, base_path, is_gz, shape=shape)
-    script, div = summary.visualize()
-    summary.preprocessing_params()
+    try:
+        summary = Summary(data_path, base_path, is_gz, shape=shape)
+        script, div = summary.visualize()
+        summary.preprocessing_params()
+    except:
+        import traceback
+        text = traceback.format_exc()
+        with open(os.path.join(base_path, 'error.txt'), 'w') as f:
+            f.write(text)
+
 
 def state_estimation_thread(user_id, gene_names=None, init_path=None, path=None, preprocess=None):
     """

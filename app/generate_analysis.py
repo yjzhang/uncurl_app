@@ -78,7 +78,15 @@ def generate_uncurl_analysis(data, output_dir,
             dim_red_option=dim_red_option,
             baseline_dim_red=baseline_dim_red,
             **uncurl_kwargs)
-    sca.run_full_analysis()
+    try:
+        sca.run_full_analysis()
+    except Exception as e:
+        import traceback
+        text = traceback.format_exc()
+        # TODO
+        with open(os.path.join(output_dir, 'error.txt'), 'w') as f:
+            f.write(text)
+        return
     sca.save_json_reset()
     print('done with generate_analysis')
 
@@ -107,6 +115,10 @@ def get_progress(path):
         current_task (str): a description of what step the preprocessing is on.
         time_remaining (str): a description of the time remaining.
     """
+    if os.path.exists(os.path.join(path, 'error.txt')):
+        with open(os.path.join(path, 'error.txt')) as f:
+            text = f.read()
+        return text, 'error'
     with open(os.path.join(path, 'params.json')) as f:
         preproc = json.load(f)
     genes = int(preproc['genes'])
