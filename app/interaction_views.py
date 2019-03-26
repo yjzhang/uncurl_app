@@ -653,6 +653,13 @@ def split_or_merge_cluster(user_id):
             return 'Finished merging selected clusters: ' + ' '.join(map(str, selected_clusters))
         except:
             return 'Error in merging clusters.'
+    elif split_or_merge == 'new':
+        try:
+            generate_analysis.generate_analysis_resubmit(sca,
+                    'new', selected_clusters)
+            return 'Finished creating new cluster from selected cells: ' + ' '.join(map(str, selected_clusters))
+        except:
+            return 'Error in creating new cluster.'
 
 @app.route('/user/<user_id>/view/upload_color_track', methods=['POST'])
 def upload_color_track(user_id):

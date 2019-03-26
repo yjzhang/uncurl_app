@@ -285,7 +285,7 @@ function get_cell_info() {
     });
 };
 
-function split_or_merge_cluster(split_or_merge) {
+function split_or_merge_cluster(split_or_merge, cells_or_clusters) {
     if (currently_merging) {
         window.alert('Already running ' + split_or_merge + ' cluster');
         return false;
@@ -295,6 +295,9 @@ function split_or_merge_cluster(split_or_merge) {
         return false;
     }
     var selected_clusters = all_selected_clusters;
+    if (cells_or_clusters == "cells") {
+        selected_clusters = current_selected_cells;
+    }
     if (all_selected_clusters.length == 0) {
         window.alert('Warning: no selected clusters.');
         return false;
@@ -452,10 +455,13 @@ window.onload = function() {
 
     // bind merge and split buttons to split_or_merge_cluster
     $('#split').click(function() {
-        split_or_merge_cluster('split');
+        split_or_merge_cluster('split', 'clusters');
     });
     $('#merge').click(function() {
-        split_or_merge_cluster('merge');
+        split_or_merge_cluster('merge', 'clusters');
+    });
+    $('#new-cluster').click(function() {
+        split_or_merge_cluster('new', 'cells');
     });
     $('#copy').click(function() {
         copy_data();
@@ -635,8 +641,9 @@ th {
                 <div class="form-row" id="update-area"></div>
 
                 <button type="button" class="btn btn-default" id="cell-info" onclick="get_cell_info();">Get cell/cluster info</button>
-                <button type="button" class="btn btn-default" id="split" style="margin-right: 2px;">Split selected clusters</button>
-                <button type="button" class="btn btn-default" id="merge">Merge selected clusters</button>
+                <button type="button" class="btn btn-default" id="split" style="margin-right: 2px;" data-toggle="tooltip" title="Split the selected cluster into two clusters">Split clusters</button>
+                <button type="button" class="btn btn-default" id="merge" data-toggle="tooltip" title="Merge the selected clusters into one cluster">Merge clusters</button>
+                <button type="button" class="btn btn-default" id="new-cluster" data-toggle="tooltip" title="Create a new cluster from the selected clusters">Create new cluster</button>
                 <button type="button" class="btn btn-default" id="reanalyze" onclick="toggle_reanalyze_area();">Reanalyze</button>
 
                 <div id="reanalyze-area" style="display:none;">
