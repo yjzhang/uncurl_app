@@ -150,9 +150,10 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
     # label_values is a list 0...number of unique labels - 1
     label_values = list(range(len(set(labels))))
     cluster_names = ['cluster ' + str(c) for c in label_values]
-    if type(labels[0]) is str or type(labels[0]) is np.string_:
+    if isinstance(labels[0], str):
         color_to_index, index_to_color = color_track_map(labels)
         label_values = [index_to_color[c] for c in label_values]
+        print('label_values: ', label_values)
         cluster_names = label_values
     # cell_ids indicates the ids of the cells used...
     cell_ids = np.arange(len(labels))
@@ -367,9 +368,10 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
     elif top_or_bulk == 'selected_color':
         if colormap is None:
             return None
-        # TODO: map input_value to cluster name
+        print('getting diffexp for selected color')
+        print('barplot cell_color: ', colormap)
         color_track, is_discrete = get_sca_color_track(user_id, colormap)
-        selected_diffexp = get_sca_top_genes_custom(user_id, colormap)
+        selected_diffexp, selected_pvals = get_sca_top_genes_custom(user_id, colormap)
         _, color_map = color_track_map(color_track)
         input_label = color_map[input_value]
         selected_top_genes = selected_diffexp[input_label][:num_genes]
@@ -380,7 +382,6 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                 title='Top genes for label {0}'.format(input_label),
                 x_label='Fold change (1 vs rest)')
     else:
-        # TODO: show bulk correlations
         pass
 
 @app.route('/user/<user_id>/view/update_scatterplot', methods=['GET', 'POST'])

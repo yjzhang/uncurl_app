@@ -42,6 +42,11 @@ function bind_click() {
         }
         // update selected cluster
         currently_selected_cluster = cluster;
+        var top_or_bulk = $("#top-or-bulk").val();
+        // TODO: selected value
+        if (top_or_bulk.contains('pairwise')) {
+            $('barplot_cluster_select_1').value = cluster;
+        }
         console.log(cluster);
         update_barplot(cluster);
         // update barplot
@@ -441,7 +446,26 @@ window.onload = function() {
 
     // bind dropdowns to update_barplot
     $('#top-or-bulk').change(function() {
-        update_barplot(currently_selected_cluster);
+        var option = $('#top-or-bulk').val();
+        // if the selected option has "pairwise":
+        if (option.includes('pairwise')) {
+            $('#barplot-cluster-select-view').css('display', 'block');
+            // set the select values for the current color scheme...
+            var select_1 = $('#barplot_cluster_select_1');
+            var select_2 = $('#barplot_cluster_select_2');
+            // clear select children
+            select_1.empty();
+            select_2.empty();
+            // get all cluster values
+            for (var i in current_scatterplot_data.data) {
+                console.log('cluster ' + i);
+                select_1.append($("<option>").attr('value', i).text(i));
+                select_2.append($("<option>").attr('value', i).text(i));
+            }
+        } else {
+            $('#barplot-cluster-select-view').css('display', 'none');
+            update_barplot(currently_selected_cluster);
+        }
     });
     $('#num-genes').change(function() {
         update_barplot(currently_selected_cluster);
@@ -660,14 +684,28 @@ th {
                 <option value="pval">Top genes (p-value of c-score)</option>
                 <option value="top_1_vs_rest" selected>Top genes (1-vs-rest fold change)</option>
                 <option value="pval_1_vs_rest">Top genes (p-value of fold change)</option>
+                <option value="selected_color">Top genes for custom labels (1 vs rest)</option>
+                <option value="selected_color_cluster">Top genes for custom labels (1 vs rest)</option>
                 <option value="sep">Most similar clusters (separation score)</option>
-                <option value="selected_color">Top genes for custom labels</option>
+                <option value="top_pairwise">Pairwise fold change</option>
+                <option value="pval_pairwise">Pairwise p-value</option>
                 <!--<option value="bulk">Bulk correlations</option>-->
             </select>
 
-            <div style="margin-top: 4; margin-bottom: 0; width: 300px;">
-                Number of top genes: 
-                <input type="number" class="form-control" id="num-genes" value="10">
+            <div style="display:none;" id="barplot-cluster-select-view" class="form-inline align-items-center">
+                <!-- TODO: this contains an interface to select a cluster to do pairwise diffexp against. -->
+                <!-- This can either be clusters or custom labels -->
+                <label for="barplot_cluster_select_1">Cluster 1:</label>
+                <select class="form-inline form-control" id="barplot_cluster_select_1" name="barplot_cluster_select_1">
+                </select>
+                <label for="barplot_cluster_select_2">Cluster 2:</label>
+                <select class="form-inline form-control" id="barplot_cluster_select_2" name="barplot_cluster_select_2">
+                </select>
+            </div>
+
+            <div style="margin-top: 4; margin-bottom: 0; width: 300px;" class="form-inline align-items-center">
+                <label for="num-genes">Number of top genes:</label>
+                <input type="number" class="form-inline form-control" id="num-genes" value="10">
             </div>
 
             <!-- Plot of top gene/p-value bar plots goes here -->
