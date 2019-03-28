@@ -45,6 +45,16 @@ def get_sca_pvals(user_id):
     return sca.pvals
 
 @cache.memoize()
+def get_sca_pairwise_ratios(user_id):
+    sca = get_sca(user_id)
+    return sca.t_scores
+
+@cache.memoize()
+def get_sca_pairwise_pvals(user_id):
+    sca = get_sca(user_id)
+    return sca.t_pvals
+
+@cache.memoize()
 def get_sca_pval_1vr(user_id):
     sca = get_sca(user_id)
     return sca.pvals_1_vs_rest
@@ -55,9 +65,9 @@ def get_sca_top_1vr(user_id):
     return sca.top_genes_1_vs_rest
 
 @cache.memoize()
-def get_sca_top_genes_custom(user_id, color_track):
+def get_sca_top_genes_custom(user_id, color_track, mode='1_vs_rest'):
     sca = get_sca(user_id)
-    return sca.calculate_diffexp(color_track)
+    return sca.calculate_diffexp(color_track, mode=mode)
 
 @cache.memoize()
 def get_sca_gene_names(user_id):
@@ -76,6 +86,19 @@ def color_track_map(color_track):
     colors = sorted(list(set(color_track)))
     return {c: i for i, c in enumerate(colors)}, {i: c for i, c in enumerate(colors)}
 
+def array_to_top_genes(data_array, cluster1, cluster2, is_pvals=False, num_genes=10):
+    """
+    Given a data_array of shape (k, k, genes), this returns two arrays:
+        genes and values.
+    """
+    data_cluster = data_array[cluster1, cluster2, :]
+    if is_pvals:
+        order = data_cluster.argsort()
+    else:
+        order = data_cluster.argsort()[::-1]
+    genes = order[:num_genes]
+    values = data_cluster[order[:num_genes]]
+    return genes, values
 
 def user_id_to_path(user_id):
     if user_id.startswith('test_'):
@@ -311,15 +334,24 @@ def update_barplot(user_id):
     top_or_bulk = str(request.form['top_or_bulk'])
     input_value = int(request.form['input_value'])
     num_genes = int(request.form['num_genes'])
-    colormap = None
-    if 'cell_color' in request.form:
-        colormap = str(request.form['cell_color'])
+    data_form = request.form.copy()
     return update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
-            colormap)
+            data_form)
 
 @cache.memoize()
 def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
-        colormap=None):
+        data_form=None):
+    """
+    Generates a json-encoded string representing a plotly barplot.
+
+    Args:
+        user_id
+        top_or_bulk (str): barplot option
+        input_value (int): cell id
+        num_genes (int): number of genes to include
+        data_form (dict): copy of request.form
+    """
+
     sca = get_sca(user_id)
     if top_or_bulk == 'top':
         selected_top_genes = get_sca_top_genes(user_id)[int(input_value)][:num_genes]
@@ -365,9 +397,8 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                 selected_gene_names, input_value,
                 title='Top genes for cluster {0}'.format(input_value),
                 x_label='p-value of log-fold change (1 vs rest)')
-    elif top_or_bulk == 'selected_color':
-        if colormap is None:
-            return None
+    elif top_or_bulk == 'selected_color' or top_or_bulk == 'selected_color_pval':
+        colormap = str(request.form['cell_color'])
         print('getting diffexp for selected color')
         print('barplot cell_color: ', colormap)
         color_track, is_discrete = get_sca_color_track(user_id, colormap)
@@ -381,6 +412,61 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                 selected_gene_names, input_label,
                 title='Top genes for label {0}'.format(input_label),
                 x_label='Fold change (1 vs rest)')
+    elif top_or_bulk == 'top_pairwise' or top_or_bulk == 'pval_pairwise':
+        colormap = str(request.form['cell_color'])
+        cluster1 = int(request.form['cluster1'])
+        cluster2 = int(request.form['cluster2'])
+        print('getting pairwise diffexp')
+        print('colormap: ', str(colormap))
+        print('clusters: ', cluster1, ' ', cluster2)
+        use_baseline_clusters = True
+        if colormap is not None and colormap not in ['cluster', 'gene', 'entropy', 'weights']:
+            try:
+                color_track, is_discrete = get_sca_color_track(user_id, colormap)
+                if is_discrete:
+                    use_baseline_clusters = False
+            except:
+                pass
+        # get the selected clusters
+        if use_baseline_clusters:
+            print('using default clustering')
+            # Data is a numpy array of shape (k, k, genes)
+            if top_or_bulk == 'top_pairwise':
+                data = get_sca_pairwise_ratios(user_id)
+                genes, values = array_to_top_genes(data, cluster1, cluster2, is_pvals=False, num_genes=num_genes)
+                desc = 'ratios'
+            else:
+                data = get_sca_pairwise_pvals(user_id)
+                genes, values = array_to_top_genes(data, cluster1, cluster2, is_pvals=True, num_genes=num_genes)
+                desc = 'p-values of ratios'
+            # generate barplot
+            gene_names = get_sca_gene_names(user_id)
+            selected_gene_names = [gene_names[x] for x in genes]
+            gene_data = list(zip(genes, values))
+            return barplot_data(gene_data,
+                    selected_gene_names, None,
+                    title='Top genes for cluster {0} vs cluster {1}'.format(cluster1, cluster2),
+                    x_label='Pairwise {0}'.format(desc))
+        else:
+            # TODO: get label names
+            color_track, is_discrete = get_sca_color_track(user_id, colormap)
+            color_to_index, index_to_color = color_track_map(color_track)
+            print('using custom clustering')
+            selected_diffexp, selected_pvals = get_sca_top_genes_custom(user_id, colormap, 'pairwise')
+            desc = ''
+            if top_or_bulk == 'top_pairwise':
+                genes, values = array_to_top_genes(selected_diffexp, cluster1, cluster2, is_pvals=False, num_genes=num_genes)
+                desc = 'ratios'
+            else:
+                genes, values = array_to_top_genes(selected_pvals, cluster1, cluster2, is_pvals=True, num_genes=num_genes)
+                desc = 'p-values of ratios'
+            gene_names = get_sca_gene_names(user_id)
+            selected_gene_names = [gene_names[x] for x in genes]
+            gene_data = list(zip(genes, values))
+            return barplot_data(gene_data,
+                    selected_gene_names, None,
+                    title='Top genes for label {0} vs label {1}'.format(index_to_color[cluster1], index_to_color[cluster2]),
+                    x_label='Pairwise {0}'.format(desc))
     else:
         pass
 
