@@ -91,6 +91,11 @@ function update_barplot(cluster_number) {
                "cluster1": cluster1,
                "cluster2": cluster2},
     }).done(function(data) {
+        if (data.startsWith('Error')) {
+            $("#update-area").empty();
+            $("#update-area").append(data);
+            return false;
+        }
         data = JSON.parse(data);
         cache.barplots[key] = data;
         var gene_names = data.data[0].y;
@@ -570,9 +575,10 @@ th {
 
 <div class="container container-main" role="main">
     <h3>Results for query id {{ user_id }}</h3>
+
+    <p><a href="{{ url_for('data_stats', user_id=data_user_id) }}">Data stats</a></p>
     Results are available:
     {% block file_downloads %}
-
     <a href="{{ url_for('data_download', x=test_or_user, user_id=data_user_id) }}">Data downloads</a>
 
     {% endblock %}
@@ -586,9 +592,9 @@ th {
                 <input type="radio" id="Means" value="Means" name="scatter-type" checked="checked" onclick="$('#gene-gene-names-area').css('display', 'none');">
                 <label for="Means" data-toggle="tooltip" title="Scatterplot of the cluster archetypes, plotted by MDS.">Cluster means</label>
                 <input type="radio" id="Cells" value="Cells" name="scatter-type" onclick="$('#gene-gene-names-area').css('display', 'none');">
-                <label for="Cells" data-toggle="tooltip" title="Scatterplot visualization of cells after processing with UNCURL.">Processed cells</label>
+                <label for="Cells" data-toggle="tooltip" title="Scatterplot visualization of cells after processing with UNCURL.">Post-processed cells</label>
                 <input type="radio" id="Baseline" value="Baseline" name="scatter-type" onclick="$('#gene-gene-names-area').css('display', 'none');">
-                <label for="Baseline" data-toggle="tooltip" title="Scatterplot visualization of cells before processing with UNCURL.">Unprocessed cells</label>
+                <label for="Baseline" data-toggle="tooltip" title="Scatterplot visualization of cells before processing with UNCURL.">Pre-processed cells</label>
                 <input type="radio" id="Gene-gene" value="Gene-gene" name="scatter-type" onclick="$('#gene-gene-names-area').css('display', 'block');">
                 <label for="Gene-gene" data-toggle="tooltip" title="View expression levels of two genes.">Gene-gene</label>
             </div>
@@ -709,8 +715,7 @@ th {
             </div>
 
             <div style="display:none;" id="barplot_gene_select_view" class="form-inline align-items-center">
-                <!-- TODO: this contains an interface to select a cluster to do pairwise diffexp against. -->
-                <!-- This can either be clusters or custom labels -->
+                <!-- TODO: this contains an interface to select a gene for comparing the selected cluster vs all. -->
                 <label for="barplot_gene_select">Gene:</label>
                 <select class="form-inline form-control" id="barplot_gene_input" name="barplot_gene_input">
                 </select>

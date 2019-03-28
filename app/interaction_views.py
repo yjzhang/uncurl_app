@@ -5,6 +5,7 @@
 import json
 import os
 import shutil
+import traceback
 import uuid
 
 import numpy as np
@@ -301,6 +302,30 @@ def gene_gene_data(user_id, gene_name_1, gene_name_2, labels, mode='cluster', us
     }, cls=SimpleEncoder)
 
 
+@app.route('/user/<user_id>/stats')
+def data_stats(user_id):
+    """
+    Returns html view showing data stats
+    """
+    from flask import Markup
+    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+    try:
+        with open(os.path.join(path, 'params.json')) as f:
+            params = json.load(f)
+    except:
+        params = {}
+    try:
+        with open(os.path.join(path, 'vis_summary.html')) as f:
+            v = f.read()
+        v = Markup(v)
+    except:
+        v = ''
+    return render_template('state_estimation_user.html',
+            user_id=user_id, has_preview=True,
+            uncurl_is_running=False,
+            uncurl_is_done=True,
+            visualization=v,
+            **params)
 
 
 @app.route('/user/<user_id>/view')
@@ -335,8 +360,13 @@ def update_barplot(user_id):
     input_value = int(request.form['input_value'])
     num_genes = int(request.form['num_genes'])
     data_form = request.form.copy()
-    return update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
-            data_form)
+    try:
+        return update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
+                data_form)
+    except Exception as e:
+        text = traceback.format_exc()
+        print(text)
+        return 'Error: ' + str(e)
 
 @cache.memoize()
 def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
@@ -417,8 +447,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         cluster1 = int(request.form['cluster1'])
         cluster2 = int(request.form['cluster2'])
         print('getting pairwise diffexp')
-        print('colormap: ', str(colormap))
-        print('clusters: ', cluster1, ' ', cluster2)
+        print('colormap: ', str(colormap), ' clusters: ', cluster1, ' ', cluster2)
         use_baseline_clusters = True
         if colormap is not None and colormap not in ['cluster', 'gene', 'entropy', 'weights']:
             try:
@@ -468,7 +497,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                     title='Top genes for label {0} vs label {1}'.format(index_to_color[cluster1], index_to_color[cluster2]),
                     x_label='Pairwise {0}'.format(desc))
     else:
-        pass
+        return ''
 
 @app.route('/user/<user_id>/view/update_scatterplot', methods=['GET', 'POST'])
 def update_scatterplot(user_id):
@@ -482,8 +511,13 @@ def update_scatterplot(user_id):
     """
     plot_type = request.form['scatter_type']
     cell_color_value = request.form['cell_color']
-    return update_scatterplot_result(user_id, plot_type, cell_color_value,
-            request.form.copy())
+    try:
+        return update_scatterplot_result(user_id, plot_type, cell_color_value,
+                request.form.copy())
+    except Exception as e:
+        text = traceback.format_exc()
+        print(text)
+        return 'Error: ' + str(e)
 
 @cache.memoize()
 def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):

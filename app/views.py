@@ -230,16 +230,13 @@ def state_estimation_result(user_id):
             uncurl_has_error = True
         return render_template('state_estimation_user.html',
                 user_id=user_id, has_preview=True,
+                uncurl_is_done=False,
                 uncurl_is_running=uncurl_is_running,
                 uncurl_has_error=uncurl_has_error,
                 visualization=v,
                 current_task=current_task,
                 time_remaining=time_remaining,
-                cell_frac=preprocess['cell_frac'],
-                min_reads=preprocess['min_reads'],
-                max_reads=preprocess['max_reads'],
-                cells=preprocess['cells'],
-                genes=preprocess['genes'])
+                **preprocess)
     elif os.path.exists(os.path.join(path, 'error.txt')):
         error_txt = ''
         with open(os.path.join(path, 'error.txt')) as f:
@@ -248,6 +245,7 @@ def state_estimation_result(user_id):
     else:
         return render_template('state_estimation_user.html',
                 user_id=user_id, uncurl_is_running=False,
+                uncurl_is_done=False,
                 has_result=False)
 
 # this gzips the directory and returns

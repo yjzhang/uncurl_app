@@ -27,6 +27,10 @@ class UncurlFrontendTest(LiveServerTestCase):
         self.driver.get(self.get_server_url())
 
     def test_submit(self):
+        """
+        Test submitting a new dataset to uncurl, as well as interacting
+        with the dataset.
+        """
         self.driver.find_element_by_id('state-estimation-link').click()
         time.sleep(1)
         self.driver.find_element_by_id('fileinput').send_keys(
@@ -59,19 +63,36 @@ class UncurlFrontendTest(LiveServerTestCase):
         # initial processing be completed by now
         print(self.driver.current_url)
         self.assertTrue('view' in self.driver.current_url)
-        # testing various UI elements
+        # testing scatterplot options
         self.driver.find_element_by_id('visualization')
         self.driver.find_element_by_id('means-scatter-plot')
         self.driver.find_element_by_id('Cells').click()
         time.sleep(1)
         self.driver.find_element_by_id('Baseline').click()
         time.sleep(1)
+        # test all barplot options
         select = Select(self.driver.find_element_by_id('top-or-bulk'))
         select.select_by_value('pval')
-        time.sleep(1)
-        # test cell color
+        time.sleep(0.5)
+        select.select_by_value('top_1_vs_rest')
+        time.sleep(0.5)
+        select.select_by_value('pval_1_vs_rest')
+        time.sleep(0.5)
+        select.select_by_value('top_pairwise')
+        cluster1_select = Select(self.driver.find_element_by_id('barplot_cluster_select_1'))
+        cluster1_select.select_by_value(4)
+        cluster2_select = Select(self.driver.find_element_by_id('barplot_cluster_select_2'))
+        cluster2_select.select_by_value(1)
+        time.sleep(1.0)
+        # test cell color options
         select = Select(self.driver.find_element_by_id('cell-color'))
         select.select_by_value('entropy')
+        time.sleep(1)
+        select.select_by_value('gene')
+        # test coloring by gene
+        self.driver.find_element_by_id('gene_names').send_keys('CD3D')
+        time.sleep(1)
+        self.driver.find_element_by_id('gene_names').send_keys('CD33,CD34')
         time.sleep(1)
         # upload custom color map
         select.select_by_value('new')
@@ -88,9 +109,12 @@ class UncurlFrontendTest(LiveServerTestCase):
         # check that custom color track has been uploaded
         select = Select(self.driver.find_element_by_id('cell-color'))
         select.select_by_value('labels_400_cells')
+        # TODO: test pairwise custom cluster
         # test split cluster
         self.driver.execute_script('window.all_selected_clusters = [0];')
         self.driver.find_element_by_id('split').click()
+        alert = self.driver.switch_to_alert()
+        alert.accept()
         time.sleep(55)
         select = Select(self.driver.find_element_by_id('top-or-bulk'))
         select.select_by_value('top_1_vs_rest')
@@ -144,6 +168,11 @@ class UncurlFrontendTest(LiveServerTestCase):
         time.sleep(55)
 
     def test_reanalyze(self):
+        """
+        Test using an existing dataset
+        """
+        # TODO: test some more features - change visualizations,...
+        # test all scatterplot and barplot options
         self.driver.find_element_by_link_text('Example results').click()
         self.driver.find_element_by_link_text('10x_400_new').click()
         self.driver.find_element_by_id('Baseline').click()

@@ -48,13 +48,18 @@ window.onload = function() {
     <!-- TODO: submit revisions? -->
 
 
-    {% if not uncurl_is_running %}
     <form action="start" method="post" enctype="multipart/form-data">
+        {% if not uncurl_is_running %}
+        <fieldset>
+        {% else %}
+        <fieldset disabled="disabled">
+        {% endif %}
 
         <!--TODO: split into basic and advanced options. -->
 
+        <!-- hide some options if uncurl is -->
         <h4>Basic Options</h4>
-
+        {% if not uncurl_is_running and not uncurl_is_done %}
         <div class="form-group">
             <label for="k" data-toggle="tooltip" title="How many cell types are present in the data. If this is set to 0, then it will be estimated using a gap score-based metric.">Number of cell types (if set to 0, this will be inferred from the data):</label>
             <input type=number id="k" name="k" value=10>
@@ -80,6 +85,7 @@ window.onload = function() {
                 <option>UMAP</option>
             </select>
         </div>
+        {% endif %}
 
 
         <h4>Advanced Options</h4>
@@ -124,23 +130,30 @@ window.onload = function() {
                 <input type="checkbox" id="cell-norm" name="normalize" value="1" checked>
             </div>
         </div>
+        </fieldset>
+
+        {% if not uncurl_is_running and not uncurl_is_done %}
 
         <div class="form-group">
             <button type="submit" id="submit" class="btn btn-default">Submit</button>
         </div>
 
+        {% endif %}
+
     </form>
 
-    {% else %}
+    {% if uncurl_is_running %}
 
     <script>
         setTimeout(function(){
            window.location.reload(1);
         }, 60000);
     </script>
+    
+    {% endif %}
 {% endif %}
 
-{% elif uncurl_is_running %}
+{% if uncurl_is_running %}
     <p>Results</p>
     Results not yet available. Will refresh every 60 seconds.
 
@@ -149,15 +162,18 @@ window.onload = function() {
            window.location.reload(1);
         }, 60000);
     </script>
-{% elif uncurl_has_error %}
+{% endif %}
+
+{% if uncurl_has_error %}
 <!-- TODO -->
     <p>Error</p>
 
     <p><pre>
         {{  current_task }}
     </pre></p>
+{% endif %}
 
-{% else %}
+{% if not has_preview and not uncurl_has_error %}
     <p>Data preview</p>
     Data preview not yet available. Will refresh every 20 seconds.
 
