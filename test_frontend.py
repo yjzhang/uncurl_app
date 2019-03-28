@@ -80,9 +80,9 @@ class UncurlFrontendTest(LiveServerTestCase):
         time.sleep(0.5)
         select.select_by_value('top_pairwise')
         cluster1_select = Select(self.driver.find_element_by_id('barplot_cluster_select_1'))
-        cluster1_select.select_by_value(4)
+        cluster1_select.select_by_value('4')
         cluster2_select = Select(self.driver.find_element_by_id('barplot_cluster_select_2'))
-        cluster2_select.select_by_value(1)
+        cluster2_select.select_by_value('1')
         time.sleep(1.0)
         # test cell color options
         select = Select(self.driver.find_element_by_id('cell-color'))
@@ -90,9 +90,12 @@ class UncurlFrontendTest(LiveServerTestCase):
         time.sleep(1)
         select.select_by_value('gene')
         # test coloring by gene
-        self.driver.find_element_by_id('gene_names').send_keys('CD3D')
+        self.driver.find_element_by_id('gene_name').send_keys('CD3D')
+        self.driver.find_element_by_id('gene_name_submit').click()
         time.sleep(1)
-        self.driver.find_element_by_id('gene_names').send_keys('CD33,CD34')
+        self.driver.find_element_by_id('gene_name').clear()
+        self.driver.find_element_by_id('gene_name').send_keys('CD33,CD34')
+        self.driver.find_element_by_id('gene_name_submit').click()
         time.sleep(1)
         # upload custom color map
         select.select_by_value('new')
@@ -109,7 +112,14 @@ class UncurlFrontendTest(LiveServerTestCase):
         # check that custom color track has been uploaded
         select = Select(self.driver.find_element_by_id('cell-color'))
         select.select_by_value('labels_400_cells')
-        # TODO: test pairwise custom cluster
+        # test pairwise custom cluster
+        select = Select(self.driver.find_element_by_id('top-or-bulk'))
+        select.select_by_value('top_pairwise')
+        cluster1_select = Select(self.driver.find_element_by_id('barplot_cluster_select_1'))
+        cluster1_select.select_by_value('2')
+        cluster2_select = Select(self.driver.find_element_by_id('barplot_cluster_select_2'))
+        cluster2_select.select_by_value('0')
+        time.sleep(1.0)
         # test split cluster
         self.driver.execute_script('window.all_selected_clusters = [0];')
         self.driver.find_element_by_id('split').click()
