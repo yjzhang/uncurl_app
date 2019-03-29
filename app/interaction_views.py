@@ -175,7 +175,9 @@ def histogram_data(gene_values_cluster, gene_values_all, cluster_name, gene_name
         'layout': {
             'title': title,
             'barmode': 'overlay',
-            'showlegend': True
+            'showlegend': True,
+            'xaxis': {'title': 'Count'},
+            'yaxis': {'title': 'Fraction'},
         },
     }, cls=SimpleEncoder)
 
