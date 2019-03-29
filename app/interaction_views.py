@@ -144,6 +144,41 @@ def barplot_data(gene_values, gene_names, cluster_name, x_label,
             },
         }, cls=SimpleEncoder)
 
+def histogram_data(gene_values_cluster, gene_values_all, cluster_name, gene_name, title=None):
+    """
+    Creates a plotly histogram
+
+    Args:
+        gene_values_cluster (array): 1d array for a given gene, within cluster
+        gene_values_all (array): 1d array for a given gene, all clusters
+    """
+    # TODO: plot a histogram using plotly
+    if title is None:
+        title = 'Histogram for gene {0}'.format(gene_name)
+    return json.dumps({
+        'data': [{
+            'x': gene_values_cluster.tolist(),
+            'type': 'histogram',
+            'histnorm': 'probability',
+            'opacity': 0.5,
+            'name': str(cluster_name),
+            'marker': {'color': 'green'},
+        },
+        {
+            'x': gene_values_all.tolist(),
+            'type': 'histogram',
+            'histnorm': 'probability',
+            'opacity': 0.5,
+            'name': 'all cells',
+            'marker': {'color': 'blue'},
+        }],
+        'layout': {
+            'title': title,
+            'barmode': 'overlay',
+            'showlegend': True
+        },
+    }, cls=SimpleEncoder)
+
 def calc_size(labels):
     size = 10
     if len(labels) < 50:
@@ -230,7 +265,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                 'xaxis': {'title': 'dim1'},
                 'yaxis': {'title': 'dim2'},
                 'margin': {'t':30},
-                'showlegend': True if mode == 'cluster' else False
+                'showlegend': True,
             },
     }, cls=SimpleEncoder)
 
@@ -297,7 +332,7 @@ def gene_gene_data(user_id, gene_name_1, gene_name_2, labels, mode='cluster', us
                 'xaxis': {'title': gene_name_1},
                 'yaxis': {'title': gene_name_2},
                 'margin': {'t':30},
-                'showlegend': True if mode == 'cluster' else False
+                'showlegend': True
             },
     }, cls=SimpleEncoder)
 
@@ -428,7 +463,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                 title='Top genes for cluster {0}'.format(input_value),
                 x_label='p-value of log-fold change (1 vs rest)')
     elif top_or_bulk == 'selected_color' or top_or_bulk == 'selected_color_pval':
-        colormap = str(request.form['cell_color'])
+        colormap = str(data_form['cell_color'])
         print('getting diffexp for selected color')
         print('barplot cell_color: ', colormap)
         color_track, is_discrete = get_sca_color_track(user_id, colormap)
@@ -443,9 +478,10 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                 title='Top genes for label {0}'.format(input_label),
                 x_label='Fold change (1 vs rest)')
     elif top_or_bulk == 'top_pairwise' or top_or_bulk == 'pval_pairwise':
-        colormap = str(request.form['cell_color'])
-        cluster1 = int(request.form['cluster1'])
-        cluster2 = int(request.form['cluster2'])
+        # gets pairwise diffexp for a pair of clusters
+        colormap = str(data_form['cell_color'])
+        cluster1 = int(data_form['cluster1'])
+        cluster2 = int(data_form['cluster2'])
         print('getting pairwise diffexp')
         print('colormap: ', str(colormap), ' clusters: ', cluster1, ' ', cluster2)
         use_baseline_clusters = True
@@ -477,7 +513,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                     title='Top genes for cluster {0} vs cluster {1}'.format(cluster1, cluster2),
                     x_label='Pairwise {0}'.format(desc))
         else:
-            # TODO: get label names
+            # get barplot for pairwise custom labels
             color_track, is_discrete = get_sca_color_track(user_id, colormap)
             color_to_index, index_to_color = color_track_map(color_track)
             print('using custom clustering')
@@ -496,8 +532,31 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                     selected_gene_names, None,
                     title='Top genes for label {0} vs label {1}'.format(index_to_color[cluster1], index_to_color[cluster2]),
                     x_label='Pairwise {0}'.format(desc))
+    elif top_or_bulk == 'hist':
+        # generates a histogram
+        selected_gene = data_form['selected_gene']
+        use_baseline_clusters = True
+        colormap = str(data_form['cell_color'])
+        cluster_id = input_value
+        if colormap is not None and colormap not in ['cluster', 'gene', 'entropy', 'weights']:
+            try:
+                color_track, is_discrete = get_sca_color_track(user_id, colormap)
+                if is_discrete:
+                    use_baseline_clusters = False
+            except:
+                pass
+        gene_data = get_gene_data(user_id, selected_gene)
+        # TODO: get selected cluster
+        if use_baseline_clusters:
+            gene_cluster_data = gene_data[sca.labels == cluster_id]
+            return histogram_data(gene_cluster_data, gene_data, cluster_id, selected_gene)
+        else:
+            color_track, is_discrete = get_sca_color_track(user_id, colormap)
+            color_to_index, index_to_color = color_track_map(color_track)
+            gene_cluster_data = gene_data[color_track == index_to_color[cluster_id]]
+            return histogram_data(gene_cluster_data, gene_data, index_to_color[cluster_id], selected_gene)
     else:
-        return ''
+        return 'Error: '
 
 @app.route('/user/<user_id>/view/update_scatterplot', methods=['GET', 'POST'])
 def update_scatterplot(user_id):

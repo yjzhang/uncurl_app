@@ -70,13 +70,16 @@ function update_barplot(cluster_number) {
     console.log('update_barplot');
     var cluster1 = $("#barplot_cluster_select_1").val();
     var cluster2 = $("#barplot_cluster_select_2").val();
-    var key = top_or_bulk + String(input_value) + ' ' + String(num_genes) + ' ' + String(cluster1) + ' ' + String(cluster2) + ' ' + String(cell_color);
+    var selected_gene = $("#barplot_gene_select").val();
+    var key = top_or_bulk + String(input_value) + ' ' + String(num_genes) + ' ' + String(cluster1) + ' ' + String(cluster2) + ' ' + String(cell_color) + ' ' + selected_gene;
     $("#update-area").empty();
     $("#update-area").append('Updating barplot <img src="/static/ajax-loader.gif"/>');
     if (cache.barplots.hasOwnProperty(key)) {
         var data = cache.barplots[key];
-        var gene_names = data.data[0].y;
-        $('#top-genes-view').val(gene_names.join('\n'));
+        if (data.data[0].type != 'histogram') {
+            var gene_names = data.data[0].y;
+            $('#top-genes-view').val(gene_names.join('\n'));
+        }
         Plotly.newPlot("top-genes", data.data, data.layout);
         $("#update-area").empty();
         $("#update-area").append('Barplot updated');
@@ -89,7 +92,8 @@ function update_barplot(cluster_number) {
                "num_genes": num_genes,
                "cell_color": cell_color,
                "cluster1": cluster1,
-               "cluster2": cluster2},
+               "cluster2": cluster2,
+               "selected_gene": selected_gene},
     }).done(function(data) {
         if (data.startsWith('Error')) {
             $("#update-area").empty();
@@ -98,14 +102,16 @@ function update_barplot(cluster_number) {
         }
         data = JSON.parse(data);
         cache.barplots[key] = data;
-        var gene_names = data.data[0].y;
-        $('#top-genes-view').val(gene_names.join('\n'));
-        if (gene_names.length > 20) {
-            data.layout.yaxis = {};
-            data.layout.yaxis.showticklabels = false;
+        if (data.data[0].type != 'histogram') {
+            var gene_names = data.data[0].y;
+            $('#top-genes-view').val(gene_names.join('\n'));
+            if (gene_names.length > 20) {
+                data.layout.yaxis = {};
+                data.layout.yaxis.showticklabels = false;
+            }
+            data.data[0].x.reverse();
+            data.data[0].y.reverse();
         }
-        data.data[0].x.reverse();
-        data.data[0].y.reverse();
         Plotly.newPlot("top-genes", data.data, data.layout);
         $("#update-area").empty();
         $("#update-area").append('Barplot updated');
@@ -458,6 +464,7 @@ window.onload = function() {
         var option = $('#top-or-bulk').val();
         // if the selected option has "pairwise":
         if (option.includes('pairwise')) {
+            $('#barplot_gene_select_view').css('display', 'none');
             $('#barplot-cluster-select-view').css('display', 'block');
             // set the select values for the current color scheme...
             var select_1 = $('#barplot_cluster_select_1');
@@ -474,7 +481,12 @@ window.onload = function() {
             }
         } else {
             $('#barplot-cluster-select-view').css('display', 'none');
-            update_barplot(currently_selected_cluster);
+            if (option == "hist") {
+                $('#barplot_gene_select_view').css('display', 'block');
+            } else {
+                $('#barplot_gene_select_view').css('display', 'none');
+                update_barplot(currently_selected_cluster);
+            }
         }
     });
     $('#num-genes').change(function() {
@@ -700,6 +712,7 @@ th {
                 <option value="sep">Most similar clusters (separation score)</option>
                 <option value="top_pairwise">Pairwise fold change</option>
                 <option value="pval_pairwise">Pairwise p-value</option>
+                <option value="hist">Histogram for a gene</option>
                 <!--<option value="bulk">Bulk correlations</option>-->
             </select>
 
@@ -715,10 +728,10 @@ th {
             </div>
 
             <div style="display:none;" id="barplot_gene_select_view" class="form-inline align-items-center">
-                <!-- TODO: this contains an interface to select a gene for comparing the selected cluster vs all. -->
+                <!--  this contains an interface to select a gene for comparing the selected cluster vs all. -->
                 <label for="barplot_gene_select">Gene:</label>
-                <select class="form-inline form-control" id="barplot_gene_input" name="barplot_gene_input">
-                </select>
+                <input list="gene_names" id="barplot_gene_select" class="form-control" style="width: 200px;">
+                <button type="button" class="btn btn-default" id="barplot_gene_submit" onclick="update_barplot(0);">Submit</button>
             </div>
 
             <div style="margin-top: 4; margin-bottom: 0; width: 300px;" class="form-inline align-items-center">
