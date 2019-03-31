@@ -1,16 +1,12 @@
 import json
 from multiprocessing.dummy import Process
 import os
-import pickle
 import uuid
 
-import bokeh
 from flask import Markup, render_template, request, redirect, send_from_directory, url_for
 from werkzeug import secure_filename
 
 import numpy as np
-import scipy.io
-from scipy import sparse
 import uncurl
 
 from app import app
@@ -59,8 +55,12 @@ def load_gene_names(path=None):
     if 'genenames' in request.files:
         f = request.files['genenames']
         gene_filename = secure_filename(f.filename)
-        if path is not None:
-            f.save(os.path.join(path, 'gene_names.txt'))
+        if gene_filename == 'genes.csv':
+            if path is not None:
+                f.save(os.path.join(path, 'genes.csv'))
+        else:
+            if path is not None:
+                f.save(os.path.join(path, 'gene_names.txt'))
         return gene_filename
     else:
         return None
