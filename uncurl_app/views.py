@@ -9,7 +9,7 @@ from werkzeug import secure_filename
 import numpy as np
 import uncurl
 
-from app import app
+from . import app
 from .cache import cache
 
 from . import vis

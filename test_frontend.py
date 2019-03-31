@@ -8,8 +8,8 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
 
-from app import app
-from app import cache
+from uncurl_app import app
+from uncurl_app import cache
 
 
 class UncurlFrontendTest(LiveServerTestCase):

@@ -13,7 +13,7 @@ import scipy.io
 from flask import request, render_template, redirect, url_for
 from uncurl_analysis import enrichr_api, sc_analysis
 
-from app import app
+from . import app
 from . import generate_analysis
 from .cache import cache
 from .utils import SimpleEncoder

@@ -2,9 +2,9 @@ import json
 import os
 import unittest
 
-from app import generate_analysis
-from app import app
-from app import cache
+from uncurl_app import generate_analysis
+from uncurl_app import app
+from uncurl_app import cache
 
 
 class UncurlAppTest(unittest.TestCase):

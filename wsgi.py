@@ -1,5 +1,5 @@
-from app import app
-from app import cache
+from uncurl_app import app
+from uncurl_app import cache
 
 app.config['DEPLOY'] = True
 
