@@ -34,9 +34,9 @@ class UncurlFrontendTest(LiveServerTestCase):
         self.driver.find_element_by_id('state-estimation-link').click()
         time.sleep(1)
         self.driver.find_element_by_id('fileinput').send_keys(
-                os.path.join(os.getcwd(), 'app/static/data_400_cells.mtx.gz'))
+                os.path.join(os.getcwd(), 'uncurl_app/static/data_400_cells.mtx.gz'))
         self.driver.find_element_by_id('genenames').send_keys(
-                os.path.join(os.getcwd(), 'app/static/gene_names_400.tsv'))
+                os.path.join(os.getcwd(), 'uncurl_app/static/gene_names_400.tsv'))
         self.driver.find_element_by_id('username').send_keys('testing')
         self.driver.find_element_by_id('submit').click()
         time.sleep(2)
@@ -100,7 +100,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         # upload custom color map
         select.select_by_value('new')
         self.driver.find_element_by_id('color_track_file').send_keys(
-                os.path.join(os.getcwd(), 'app/static/labels_400_cells.txt'))
+                os.path.join(os.getcwd(), 'uncurl_app/static/labels_400_cells.txt'))
         select = Select(self.driver.find_element_by_id('color_track_type'))
         select.select_by_value('discrete')
         time.sleep(1)
@@ -135,7 +135,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         self.driver.find_element_by_id('state-estimation-link').click()
         time.sleep(1)
         self.driver.find_element_by_id('fileinput').send_keys(
-                os.path.join(os.getcwd(), 'app/static/GSE60361_sub.mtx.gz'))
+                os.path.join(os.getcwd(), 'uncurl_app/static/GSE60361_sub.mtx.gz'))
         self.driver.find_element_by_id('username').send_keys('testing-2')
         self.driver.find_element_by_id('submit').click()
         time.sleep(2)

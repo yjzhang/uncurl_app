@@ -694,6 +694,7 @@ th {
                 <button type="button" class="btn btn-default" id="reanalyze" onclick="toggle_reanalyze_area();">Reanalyze</button>
 
                 <div id="reanalyze-area" style="display:none;">
+                    <a class="btn btn-default" id="delete_rerun" href="{{ url_for('delete_rerun', user_id=data_user_id) }}" data-toggle="tooltip" title="Deletes stored results, and go back to the parameters screen.">Re-run pipeline</a>
                     <button class="btn btn-default" id="copy">Copy dataset</button>
                     <button class="btn btn-default" id="subset_cells">Sub-select cells</button>
                     <button class="btn btn-default" id="subset_clusters">Sub-select clusters</button>

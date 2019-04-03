@@ -892,6 +892,25 @@ def copy_dataset(user_id):
     except:
         return 'Error: copy failed.'
 
+@app.route('/user/<user_id>/view/delete_rerun', methods=['GET'])
+def delete_rerun(user_id):
+    """
+    Deletes all stored results and re-starts the uncurl_analysis pipeline
+    on this same dataset, possibly with different parameters.
+    """
+    if user_id.startswith('test_'):
+        return 'Error: unable to delete test results'
+    sca = get_sca(user_id)
+    path = sca.data_dir
+    try:
+        os.remove(os.path.join(path, 'sc_analysis.json'))
+        sca.delete_uncurl_results()
+        return redirect(url_for('state_estimation_result', user_id=user_id))
+    except Exception as e:
+        text = traceback.format_exc()
+        print(text)
+        return 'Error: ' + str(e)
+
 @app.route('/user/<user_id>/view/subset', methods=['POST'])
 def rerun_uncurl(user_id):
     """
