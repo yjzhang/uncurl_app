@@ -8,13 +8,14 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
 
-from uncurl_app import app
+from uncurl_app import create_app
 from uncurl_app import cache
 
 
 class UncurlFrontendTest(LiveServerTestCase):
 
     def create_app(self):
+        app = create_app()
         app.config['DEPLOY'] = False
         app.config['LIVESERVER_PORT'] = 0
         cache.config = {'CACHE_TYPE': 'simple'}
@@ -187,7 +188,13 @@ class UncurlFrontendTest(LiveServerTestCase):
         self.driver.find_element_by_link_text('10x_400_new').click()
         self.driver.find_element_by_id('Baseline').click()
         time.sleep(1)
-        self.driver.execute_script('window.current_selected_cells = [' + ','.join(str(x) for x in range(50)) + '];')
+        # test CellMarker
+        select = Select(self.driver.find_element_by_id('database-select'))
+        select.select_by_value('cellmarker')
+        self.driver.find_element_by_id('cellmarker-submit').click()
+        time.sleep(1)
+        # TODO - this test is not currently working
+        self.driver.execute_script('window.current_selected_cells = [' + ','.join("'" + str(x) + "'" for x in range(50)) + '];')
         self.driver.find_element_by_id('reanalyze').click()
         self.driver.find_element_by_id('subset_clusters').click()
         alert = self.driver.switch_to_alert()

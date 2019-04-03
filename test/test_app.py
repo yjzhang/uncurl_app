@@ -3,13 +3,14 @@ import os
 import unittest
 
 from uncurl_app import generate_analysis
-from uncurl_app import app
+from uncurl_app import create_app
 from uncurl_app import cache
 
 
 class UncurlAppTest(unittest.TestCase):
 
     def setUp(self):
+        app = create_app()
         app.config['DEPLOY'] = False
         cache.config = {'CACHE_TYPE': 'simple'}
         self.app = app.test_client()
