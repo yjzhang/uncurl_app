@@ -1,6 +1,7 @@
-from uncurl_app import app
+from uncurl_app import create_app
 from uncurl_app import cache
 
+app = create_app()
 app.config['BOOTSTRAP_SERVE_LOCAL'] = True
 app.config['DEPLOY'] = False
 app.config['SHOW_ALL_RESULTS'] = True

@@ -1,11 +1,13 @@
 import os
 
-from flask import render_template
+from flask import render_template, current_app, Blueprint
 
-from . import app
+flask_router = Blueprint('flask_router', __name__, template_folder='templates',
+        url_prefix='/')
 
-app.user_dirs = []
-app.test_dirs = []
+
+flask_router.user_dirs = []
+flask_router.test_dirs = []
 
 def get_test_dirs(base='test_data'):
     subdirectories = os.listdir(base)
@@ -26,18 +28,15 @@ def initialize():
         user_dirs = get_test_dirs('/tmp/uncurl')
     except:
         user_dirs = []
-    app.user_dirs = user_dirs
-    app.test_dirs = test_dirs
+    flask_router.user_dirs = user_dirs
+    flask_router.test_dirs = test_dirs
 
-@app.route('/data')
+@flask_router.route('/data')
 def data_index():
     initialize()
-    if not app.config['SHOW_ALL_RESULTS']:
-        app.user_dirs = []
+    if not current_app.config['SHOW_ALL_RESULTS']:
+        flask_router.user_dirs = []
     return render_template('list_view.html',
-            user_dirs=app.user_dirs,
-            test_dirs=app.test_dirs)
+            user_dirs=flask_router.user_dirs,
+            test_dirs=flask_router.test_dirs)
 
-
-if __name__ == '__main__':
-    app.run(debug=True)

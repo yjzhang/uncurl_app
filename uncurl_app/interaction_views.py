@@ -10,25 +10,28 @@ import uuid
 
 import numpy as np
 import scipy.io
-from flask import request, render_template, redirect, url_for
+from flask import request, render_template, redirect, url_for, Blueprint, current_app
 from uncurl_analysis import enrichr_api, sc_analysis
 
-from . import app
 from . import generate_analysis
 from .cache import cache
 from .utils import SimpleEncoder
 from .views import state_estimation_preproc
 
+interaction_views = Blueprint('interaction_views', __name__,
+        template_folder='templates',
+        url_prefix='/')
+
 # map of user_id to SCAnalysis objects
-app.sc_analysis_dict = {}
+interaction_views.sc_analysis_dict = {}
 # map of gene lists (strings of newline-separated gene names) to enrichr IDs
-app.enrichr_gene_list_ids = {}
+interaction_views.enrichr_gene_list_ids = {}
 # map of tuples (top_genes, gene_set) to enrichr results
-app.enrichr_results = {}
+interaction_views.enrichr_results = {}
 
 def get_sca(user_id):
-    if user_id in app.sc_analysis_dict:
-        return app.sc_analysis_dict[user_id]
+    if user_id in interaction_views.sc_analysis_dict:
+        return interaction_views.sc_analysis_dict[user_id]
     else:
         path = user_id_to_path(user_id)
         sca = sc_analysis.SCAnalysis(path)
@@ -104,10 +107,10 @@ def array_to_top_genes(data_array, cluster1, cluster2, is_pvals=False, num_genes
 def user_id_to_path(user_id):
     if user_id.startswith('test_'):
         user_id = user_id[5:]
-        path = os.path.join(app.config['TEST_DATA_DIR'], user_id)
+        path = os.path.join(current_app.config['TEST_DATA_DIR'], user_id)
         return path
     else:
-        return os.path.join(app.config['USER_DATA_DIR'], user_id)
+        return os.path.join(current_app.config['USER_DATA_DIR'], user_id)
 
 def barplot_data(gene_values, gene_names, cluster_name, x_label,
         title=None):
@@ -339,13 +342,13 @@ def gene_gene_data(user_id, gene_name_1, gene_name_2, labels, mode='cluster', us
     }, cls=SimpleEncoder)
 
 
-@app.route('/user/<user_id>/stats')
+@interaction_views.route('/user/<user_id>/stats')
 def data_stats(user_id):
     """
     Returns html view showing data stats
     """
     from flask import Markup
-    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+    path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     try:
         with open(os.path.join(path, 'params.json')) as f:
             params = json.load(f)
@@ -365,7 +368,7 @@ def data_stats(user_id):
             **params)
 
 
-@app.route('/user/<user_id>/view')
+@interaction_views.route('/user/<user_id>/view')
 #@cache.memoize()
 def view_plots(user_id):
     """
@@ -385,7 +388,7 @@ def view_plots(user_id):
             color_tracks=sca.get_color_track_names())
 
 
-@app.route('/user/<user_id>/view/update_barplot', methods=['GET', 'POST'])
+@interaction_views.route('/user/<user_id>/view/update_barplot', methods=['GET', 'POST'])
 def update_barplot(user_id):
     """
     Updates barplot data.
@@ -560,7 +563,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
     else:
         return 'Error: '
 
-@app.route('/user/<user_id>/view/update_scatterplot', methods=['GET', 'POST'])
+@interaction_views.route('/user/<user_id>/view/update_scatterplot', methods=['GET', 'POST'])
 def update_scatterplot(user_id):
     """
     Updates the scatterplot view.
@@ -667,7 +670,7 @@ def get_gene_data(user_id, gene_name, use_mw=False):
     return gene_data
 
 
-@app.route('/user/<user_id>/view/cell_info', methods=['GET', 'POST'])
+@interaction_views.route('/user/<user_id>/view/cell_info', methods=['GET', 'POST'])
 def cell_info(user_id):
     """
     Gets basic statistics about a cell:
@@ -703,7 +706,7 @@ def cell_info_result(user_id, selected_cells):
         'read_counts': read_counts}, cls=SimpleEncoder)
 
 
-@app.route('/user/<user_id>/view/update_enrichr', methods=['GET', 'POST'])
+@interaction_views.route('/user/<user_id>/view/update_enrichr', methods=['GET', 'POST'])
 def update_enrichr(user_id):
     # top_genes is a newline-separated string, representing the gene list.
     top_genes = request.form['top_genes']
@@ -714,43 +717,43 @@ def update_enrichr(user_id):
 # TODO: cache this function??? but we don't want to cache timeouts
 def update_enrichr_result(user_id, top_genes, gene_set):
     user_list_id = 0
-    if top_genes not in app.enrichr_gene_list_ids:
+    if top_genes not in interaction_views.enrichr_gene_list_ids:
         gene_list = top_genes.strip().split()
         user_list_id = enrichr_api.enrichr_add_list(gene_list)
         if user_list_id == 'timeout':
             return 'Error: Enrichr query timed out'
-        app.enrichr_gene_list_ids[top_genes] = user_list_id
+        interaction_views.enrichr_gene_list_ids[top_genes] = user_list_id
     else:
-        user_list_id = app.enrichr_gene_list_ids[top_genes]
+        user_list_id = interaction_views.enrichr_gene_list_ids[top_genes]
     results = []
-    if (top_genes, gene_set) in app.enrichr_results:
-        results = app.enrichr_results[(top_genes, gene_set)]
+    if (top_genes, gene_set) in interaction_views.enrichr_results:
+        results = interaction_views.enrichr_results[(top_genes, gene_set)]
     else:
         try:
             results = enrichr_api.enrichr_query(user_list_id, gene_set)
             if results == 'timeout':
                 return 'Error: Enrichr query timed out'
-            app.enrichr_results[(top_genes, gene_set)] = results[:10]
+            interaction_views.enrichr_results[(top_genes, gene_set)] = results[:10]
         except:
             gene_list = top_genes.strip().split()
             user_list_id = enrichr_api.enrichr_add_list(gene_list)
             if user_list_id == 'timeout':
                 return 'Error: Enrichr query timed out'
-            app.enrichr_gene_list_ids[top_genes] = user_list_id
+            interaction_views.enrichr_gene_list_ids[top_genes] = user_list_id
             results = enrichr_api.enrichr_query(user_list_id, gene_set)
             if results == 'timeout':
                 return 'Error: Enrichr query timed out'
-            app.enrichr_results[(top_genes, gene_set)] = results[:10]
+            interaction_views.enrichr_results[(top_genes, gene_set)] = results[:10]
     # only take top 10 results (maybe have this value be variable?)
     results = results[:10]
-    app.last_enrichr_results = [['gene set name',
+    interaction_views.last_enrichr_results = [['gene set name',
                                  'p-value',
                                  'z-score',
                                  'combined score']] + \
             [[r[1], r[2], r[3], r[4]] for r in results]
-    return json.dumps(app.last_enrichr_results, cls=SimpleEncoder)
+    return json.dumps(interaction_views.last_enrichr_results, cls=SimpleEncoder)
 
-@app.route('/user/<user_id>/view/update_cellmarker', methods=['GET', 'POST'])
+@interaction_views.route('/user/<user_id>/view/update_cellmarker', methods=['GET', 'POST'])
 def update_cellmarker(user_id):
     # top_genes is a newline-separated string, representing the gene list.
     top_genes = [x.strip().upper() for x in request.form['top_genes'].split('\n')]
@@ -789,7 +792,7 @@ def update_cellmarker_result(user_id, top_genes, test, cells_or_tissues, species
         cell_types.append((ri[0], ri[1], ', '.join(ri[2]), ', '.join(gene_pmids)))
     return json.dumps(cell_types, cls=SimpleEncoder)
 
-@app.route('/user/<user_id>/view/split_or_merge_cluster', methods=['POST'])
+@interaction_views.route('/user/<user_id>/view/split_or_merge_cluster', methods=['POST'])
 def split_or_merge_cluster(user_id):
     if user_id.startswith('test_'):
         return 'Error: test datasets cannot be modified. Copy the dataset if you wish to modify it.'
@@ -805,7 +808,7 @@ def split_or_merge_cluster(user_id):
         return 'Error: no selected clusters.'
     # TODO: have a more fine-grained key control. don't just clear the entire
     # cache, but clear some keys selectively from redis.
-    if 'DEPLOY' in app.config and app.config['DEPLOY']:
+    if 'DEPLOY' in current_app.config and current_app.config['DEPLOY']:
         print('clearing cache')
         cache.delete_memoized(get_sca_top_genes, user_id)
         cache.delete_memoized(get_sca_top_1vr, user_id)
@@ -843,7 +846,7 @@ def split_or_merge_cluster(user_id):
         except:
             return 'Error in creating new cluster.'
 
-@app.route('/user/<user_id>/view/upload_color_track', methods=['POST'])
+@interaction_views.route('/user/<user_id>/view/upload_color_track', methods=['POST'])
 def upload_color_track(user_id):
     from werkzeug import secure_filename
     sca = get_sca(user_id)
@@ -878,7 +881,7 @@ def upload_color_track(user_id):
     # return new color tracks
     return redirect(url_for('view_plots', user_id=user_id))
 
-@app.route('/user/<user_id>/view/copy_dataset', methods=['POST'])
+@interaction_views.route('/user/<user_id>/view/copy_dataset', methods=['POST'])
 def copy_dataset(user_id):
     """
     Copies the input dataset into a new user id.
@@ -887,12 +890,12 @@ def copy_dataset(user_id):
     path = sca.data_dir
     try:
         new_user_id = str(uuid.uuid4())
-        shutil.copytree(path, os.path.join(app.config['USER_DATA_DIR'], new_user_id))
+        shutil.copytree(path, os.path.join(current_app.config['USER_DATA_DIR'], new_user_id))
         return new_user_id
     except:
         return 'Error: copy failed.'
 
-@app.route('/user/<user_id>/view/delete_rerun', methods=['GET'])
+@interaction_views.route('/user/<user_id>/view/delete_rerun', methods=['GET'])
 def delete_rerun(user_id):
     """
     Deletes all stored results and re-starts the uncurl_analysis pipeline
@@ -911,7 +914,7 @@ def delete_rerun(user_id):
         print(text)
         return 'Error: ' + str(e)
 
-@app.route('/user/<user_id>/view/subset', methods=['POST'])
+@interaction_views.route('/user/<user_id>/view/subset', methods=['POST'])
 def rerun_uncurl(user_id):
     """
     Given a list of cell ids, this creates a new uncurl data
@@ -930,7 +933,7 @@ def rerun_uncurl(user_id):
 
     # create new user_id
     new_user_id = str(uuid.uuid4())
-    new_path = os.path.join(app.config['USER_DATA_DIR'], new_user_id)
+    new_path = os.path.join(current_app.config['USER_DATA_DIR'], new_user_id)
 
     # get data subset from sca
     if is_cells:

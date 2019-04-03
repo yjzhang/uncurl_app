@@ -3,18 +3,20 @@ from multiprocessing.dummy import Process
 import os
 import uuid
 
-from flask import Markup, render_template, request, redirect, send_from_directory, url_for
+from flask import Markup, render_template, request, redirect, send_from_directory, url_for, Blueprint, current_app
 from werkzeug import secure_filename
 
 import numpy as np
 import uncurl
 
-from . import app
 from .cache import cache
+from .flask_router import flask_router
 
-from . import vis
 from .generate_analysis import generate_uncurl_analysis, get_progress
 from .data_stats import Summary
+
+views = Blueprint('views', __name__, template_folder='templates',
+        url_prefix='/')
 
 def load_upload_data(request_files, request_form, path=None):
     if 'fileinput' in request_files:
@@ -65,90 +67,21 @@ def load_gene_names(path=None):
     else:
         return None
 
-@app.route('/')
+@views.route('/')
 @cache.cached()
 def index():
     return render_template('index.html')
 
-@app.route('/help')
+@views.route('/help')
 def help():
     return render_template('help.html')
 
-@app.route('/cluster')
-def cluster():
-    return render_template('clustering.html')
-
-@app.route('/cluster/input', methods=['POST'])
-def cluster_input():
-    try:
-        data, output_filename, init, shape = load_upload_data()
-    except:
-        return error('Error: no file found', 400)
-    k = int(request.form['k'])
-    user_id = str(uuid.uuid4())
-    dist_type = request.form['disttype']
-    P = Process(target=cluster_thread, args=(data, k, user_id, init, dist_type))
-    P.start()
-    return redirect(url_for('clustering_result', user_id=user_id))
-
-def cluster_thread(data, k, user_id, init=None, dist_type='Poisson'):
-    """
-    Thread for performing the clustering operation - currently unused.
-    """
-    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
-    try:
-        os.mkdir(path)
-        print(path)
-    except:
-        pass
-    if dist_type=='Poisson':
-        assignments, centers = uncurl.poisson_cluster(data, k, init)
-        with open(os.path.join(path, 'centers.txt'), 'w') as output_file:
-            np.savetxt(output_file, centers)
-        vis.vis_clustering(data, assignments, user_id)
-    elif dist_type=='Negative binomial':
-        assignments, P, R = uncurl.nb_cluster(data, k)
-        with open(os.path.join(path, 'P.txt'), 'w') as output_file:
-            np.savetxt(output_file, P)
-        with open(os.path.join(path, 'R.txt'), 'w') as output_file:
-            np.savetxt(output_file, R)
-        vis.vis_clustering(data, assignments, user_id)
-    elif dist_type=='Zero-inflated Poisson':
-        assignments, L, M = uncurl.zip_cluster(data, k)
-        with open(os.path.join(path, 'L.txt'), 'w') as output_file:
-            np.savetxt(output_file, L)
-        with open(os.path.join(path, 'M.txt'), 'w') as output_file:
-            np.savetxt(output_file, M)
-        vis.vis_clustering(data, assignments, user_id)
-    with open(os.path.join(path, 'assignments.txt'), 'w') as output_file:
-        np.savetxt(output_file, assignments, fmt='%1.0f')
-
-@app.route('/clustering/results/<user_id>')
-def clustering_result(user_id):
-    if os.path.exists(os.path.join(app.config['USER_DATA_DIR'], user_id, 'assignments.txt')):
-        try:
-            visualization = open(os.path.join(app.config['USER_DATA_DIR'], user_id, 'vis_clustering.html')).read()
-        except:
-            visualization = ''
-        poisson = True
-        if os.path.exists(os.path.join(app.config['USER_DATA_DIR'], user_id, 'centers.txt')):
-            pass
-        else:
-            poisson=False
-        visualization = Markup(visualization)
-        return render_template('clustering_user.html',
-                user_id=user_id, has_result=True,
-                visualization=visualization, poisson=poisson)
-    else:
-        return render_template('clustering_user.html',
-                user_id=user_id, has_result=False)
-
-@app.route('/state_estimation')
+@views.route('/state_estimation')
 @cache.cached()
 def state_estimation():
     return render_template('state_estimation.html')
 
-@app.route('/state_estimation/input', methods=['POST'])
+@views.route('/state_estimation/input', methods=['POST'])
 def state_estimation_input():
     user_id = str(uuid.uuid4())
     if 'username' in request.form:
@@ -158,7 +91,7 @@ def state_estimation_input():
             username = request.form['username'].strip()[:25]
             username = ''.join([c for c in username if c.isalnum() or (c in keep_chars)])
             user_id = user_id + '-' + username
-    base_path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+    base_path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     os.makedirs(base_path)
     # save request.form
     with open(os.path.join(base_path, 'inputs.json'), 'w') as f:
@@ -176,7 +109,7 @@ def state_estimation_input():
     #state_estimation_preproc(user_id, path)
     return redirect(url_for('state_estimation_result', user_id=user_id))
 
-@app.route('/state_estimation/results/<user_id>/start', methods=['POST'])
+@views.route('/state_estimation/results/<user_id>/start', methods=['POST'])
 def state_estimation_start(user_id):
     """
     Actually start the process of state estimation.
@@ -184,7 +117,7 @@ def state_estimation_start(user_id):
     This saves a file called 'params.json' in /tmp/uncurl/<user_id>
     containing all parameters used in state estimation.
     """
-    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+    path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     gene_names = os.path.join(path, 'gene_names.txt')
     if not os.path.exists(gene_names):
         gene_names = None
@@ -207,9 +140,9 @@ def state_estimation_start(user_id):
     return redirect(url_for('state_estimation_result', user_id=user_id))
 
 
-@app.route('/state_estimation/results/<user_id>/')
+@views.route('/state_estimation/results/<user_id>/')
 def state_estimation_result(user_id):
-    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+    path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     if os.path.exists(os.path.join(path, 'sc_analysis.json')):
         return redirect(url_for('view_plots', user_id=user_id))
     elif os.path.exists(os.path.join(path, 'preprocess.json')):
@@ -249,14 +182,14 @@ def state_estimation_result(user_id):
                 has_result=False)
 
 # this gzips the directory and returns
-@app.route('/<x>/results/<user_id>/download_all')
+@views.route('/<x>/results/<user_id>/download_all')
 def state_estimation_download_all(x, user_id):
     if x!='test':
-        path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+        path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     else:
-        path = os.path.join(app.config['TEST_DATA_DIR'], user_id)
+        path = os.path.join(current_app.config['TEST_DATA_DIR'], user_id)
     filename = user_id + '.tar.gz'
-    output_filename = os.path.join(app.config['USER_DATA_DIR'], filename)
+    output_filename = os.path.join(current_app.config['USER_DATA_DIR'], filename)
     create_tar = True
     # update tarball if path is newer than output_filename
     if os.path.exists(output_filename):
@@ -271,21 +204,21 @@ def state_estimation_download_all(x, user_id):
         import subprocess
         subprocess.call(['tar', '-czf', output_filename, path])
     print('download_all', path, filename)
-    return send_from_directory(app.config['USER_DATA_DIR'], filename)
+    return send_from_directory(current_app.config['USER_DATA_DIR'], filename)
 
-@app.route('/<x>/results/<user_id>/<filename>')
+@views.route('/<x>/results/<user_id>/<filename>')
 def state_estimation_file(x, user_id, filename):
     if x != 'test':
-        path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+        path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     else:
-        path = os.path.join(app.config['TEST_DATA_DIR'], user_id)
+        path = os.path.join(current_app.config['TEST_DATA_DIR'], user_id)
     print('download: ', path)
     return send_from_directory(path, filename)
 
-@app.route('/<x>/results/<user_id>/data_download')
+@views.route('/<x>/results/<user_id>/data_download')
 def data_download(x, user_id):
     if x!='test':
-        path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+        path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     else:
         path = os.path.join('test_data', user_id)
     files = os.listdir(path)
@@ -305,7 +238,7 @@ def state_estimation_preproc(user_id, base_path, data_path, output_filename, ini
     if output_filename.endswith('.gz'):
         is_gz = True
     if base_path is None:
-        base_path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+        base_path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     try:
         summary = Summary(data_path, base_path, is_gz, shape=shape)
         script, div = summary.visualize()
@@ -329,7 +262,7 @@ def state_estimation_thread(user_id, gene_names=None, init_path=None, path=None,
         preprocess (dict): dict containing additional parameters: min_reads, max_reads, normalize, is_sparse, is_gz, disttype, genes_frac, cell_frac, vismethod, baseline_vismethod
     """
     if path is None:
-        path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+        path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     # get correct data names
     data = os.path.join(path, 'data.mtx')
     if preprocess['is_gz']:
@@ -348,9 +281,9 @@ def state_estimation_thread(user_id, gene_names=None, init_path=None, path=None,
         dist_type = 'nb'
     elif dist_type == 'Log-Normal':
         dist_type = 'lognorm'
-    uncurl_args = app.config['UNCURL_ARGS']
+    uncurl_args = current_app.config['UNCURL_ARGS']
     if dist_type != 'Poisson':
-        uncurl_args = app.config['NMF_ARGS']
+        uncurl_args = current_app.config['NMF_ARGS']
     if dist_type == 'Poisson':
         uncurl_args['write_progress_file'] = os.path.join(path, 'progress.txt')
     uncurl_args['dist'] = dist_type
@@ -379,96 +312,12 @@ def state_estimation_thread(user_id, gene_names=None, init_path=None, path=None,
             baseline_dim_red=baseline_vismethod,
             **uncurl_args)
 
-@app.route('/lineage')
-def lineage():
-    return render_template('lineage.html')
 
-@app.route('/lineage/input', methods=['POST'])
-def lineage_input():
-    """
-    Note: how do we implement this? is it a view from the state estimation folder? do we have a previous
-    """
-    if 'useridinput' in request.form and request.form['useridinput']:
-        user_id = request.form['useridinput']
-        # Try to load m/w data, or return an error if you can't
-        if not os.path.exists(os.path.join(app.config['USER_DATA_DIR'], user_id, 'm.txt')):
-            return error('Data for user id not found', 400)
-        P = Process(target=lineage_thread, args=(None, None, None, None, user_id))
-        P.start()
-        return redirect(url_for('lineage_input_user_id', user_id=user_id))
-    elif 'fileinput' in request.files:
-        data, output_filename, init, shape = load_upload_data()
-        k = request.form['k']
-        user_id = str(uuid.uuid4())
-        P = Process(target=lineage_thread, args=(data, k, None, None, user_id))
-        P.start()
-        return redirect(url_for('lineage_input_user_id', user_id=user_id))
-    elif 'mfileinput' in request.files and 'wfileinput' in request.files:
-        m_file = request.files['mfileinput']
-        w_file = request.files['wfileinput']
-        M = np.loadtxt(m_file)
-        W = np.loadtxt(w_file)
-        user_id = str(uuid.uuid4())
-        P = Process(target=lineage_thread, args=(None, None, M, W, user_id))
-        P.start()
-        return redirect(url_for('lineage_input_user_id', user_id=user_id))
-    else:
-        return error('Missing data input', 400)
-
-def lineage_thread(data, k, M, W, user_id):
-    """
-    Thread to do lineage calculation...
-    """
-    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
-    if data is not None:
-        # run state estimation then lineage estimation
-        os.mkdir(path)
-        M, W, ll = uncurl.poisson_estimate_state(data, k, max_iters=10, inner_max_iters=400, disp=False)
-        np.savetxt(os.path.join(path, 'm.txt'), M)
-        np.savetxt(os.path.join(path, 'w.txt'), W)
-        curve_params, smoothed_data, edges, clusters = uncurl.lineage(M, W)
-    elif M is not None and W is not None:
-        # M and W provided as arguments
-        os.mkdir(path)
-        np.savetxt(os.path.join(path, 'm.txt'), M)
-        np.savetxt(os.path.join(path, 'w.txt'), W)
-        curve_params, smoothed_data, edges, clusters = uncurl.lineage(M, W)
-    else:
-        # try to read M, W from user_id
-        M = np.loadtxt(os.path.join(path, 'm.txt'))
-        W = np.loadtxt(os.path.join(path, 'w.txt'))
-        curve_params, smoothed_data, edges, clusters = uncurl.lineage(M, W)
-    # TODO: save curve params
-    np.savetxt(os.path.join(path, 'smoothed_data.txt'), smoothed_data)
-    with open(os.path.join(path, 'edges.txt'), 'w') as f:
-        f.write(repr(edges))
-    with open(os.path.join(path, 'clusters.txt'), 'w') as f:
-        f.write(repr(clusters))
-    vis.vis_lineage(M, W, smoothed_data, edges, clusters, user_id)
-
-@app.route('/lineage/results/<user_id>')
-def lineage_input_user_id(user_id):
-    """
-    Lineage input from a user's perspective
-    """
-    if os.path.exists(os.path.join(app.config['USER_DATA_DIR'], user_id, 'smoothed_data.txt')):
-        try:
-            visualization = open(os.path.join(app.config['USER_DATA_DIR'], user_id, 'vis_lineage.html')).read()
-        except:
-            visualization = ''
-        visualization = Markup(visualization)
-        return render_template('lineage_user.html',
-                user_id=user_id, has_result=True,
-                visualization=visualization)
-    else:
-        return render_template('lineage_user.html',
-                user_id=user_id, has_result=False)
-
-@app.route('/qual2quant')
+@views.route('/qual2quant')
 def qual2quant():
     return render_template('qual2quant.html')
 
-@app.route('/qual2quant/input')
+@views.route('/qual2quant/input')
 def qual2quant_input():
     if 'fileinput' not in request.files or 'qualinput' not in request.files:
         return error('Missing data input', 400)
@@ -483,13 +332,13 @@ def qual2quant_input():
 
 def qual2quant_thread(data, qual, user_id):
     centers = uncurl.qualNorm(data, qual)
-    path = os.path.join(app.config['USER_DATA_DIR'], user_id)
+    path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     with open(os.join(path, 'qual2quant_centers.txt'), 'w') as f:
         np.savetxt(f, centers)
 
-@app.route('/qual2quant/results/<user_id>')
+@views.route('/qual2quant/results/<user_id>')
 def qual2quant_result(user_id):
-    if os.path.exists(os.path.join(app.config['USER_DATA_DIR'], user_id, 'qual2quant_centers.txt')):
+    if os.path.exists(os.path.join(current_app.config['USER_DATA_DIR'], user_id, 'qual2quant_centers.txt')):
        return render_template('qual2quant_user.html',
                 user_id=user_id, has_result=True,
                 visualization=None)

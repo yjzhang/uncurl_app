@@ -1,5 +1,7 @@
-from uncurl_app import app
+from uncurl_app import create_app
 from uncurl_app import cache
+
+app = create_app()
 
 app.config['DEPLOY'] = True
 

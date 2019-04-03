@@ -588,10 +588,10 @@ th {
 <div class="container container-main" role="main">
     <h3>Results for query id {{ user_id }}</h3>
 
-    <p><a href="{{ url_for('data_stats', user_id=data_user_id) }}">Data stats</a></p>
+    <p><a href="{{ url_for('interaction_views.data_stats', user_id=data_user_id) }}">Data stats</a></p>
     Results are available:
     {% block file_downloads %}
-    <a href="{{ url_for('data_download', x=test_or_user, user_id=data_user_id) }}">Data downloads</a>
+    <a href="{{ url_for('views.data_download', x=test_or_user, user_id=data_user_id) }}">Data downloads</a>
 
     {% endblock %}
 
@@ -694,7 +694,7 @@ th {
                 <button type="button" class="btn btn-default" id="reanalyze" onclick="toggle_reanalyze_area();">Reanalyze</button>
 
                 <div id="reanalyze-area" style="display:none;">
-                    <a class="btn btn-default" id="delete_rerun" href="{{ url_for('delete_rerun', user_id=data_user_id) }}" data-toggle="tooltip" title="Deletes stored results, and go back to the parameters screen.">Re-run pipeline</a>
+                    <a class="btn btn-default" id="delete_rerun" href="{{ url_for('interaction_views.delete_rerun', user_id=data_user_id) }}" data-toggle="tooltip" title="Deletes stored results, and go back to the parameters screen.">Re-run pipeline</a>
                     <button class="btn btn-default" id="copy">Copy dataset</button>
                     <button class="btn btn-default" id="subset_cells">Sub-select cells</button>
                     <button class="btn btn-default" id="subset_clusters">Sub-select clusters</button>
