@@ -4,12 +4,13 @@
 
 <!-- TODO: have an option for serving static files?-->
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>-->
+<script src="{{ url_for('static', filename='popper.min.js') }}"></script>
 
 {{ super() }}
 
-<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="{{ url_for('static', filename='jquery-3.3.1.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plotly-latest.min.js') }}"></script>
 
 <script>
 // this script is used to generate all the graphs, and deal with callbacks. 
@@ -131,6 +132,9 @@ function update_scatterplot() {
     var gene_name_1 = $('#gene_name_1').val();
     var gene_name_2 = $('#gene_name_2').val();
     var use_mw = $('#use-mw').val();
+    if (cell_color == "gene") {
+        use_mw = $('#use_mw_gene').val();
+    }
     var cluster = $('#cluster_input').val();
     var upload_data = {"scatter_type": plot_type, "cell_color": cell_color,
                "gene_name": gene_name,
@@ -665,6 +669,10 @@ th {
                     <option value="{{ gene_name }}">
                     {% endfor %}
                 </datalist>
+                <select id="use_mw_gene" class="form-control" style="width:150px" data-toggle-"tooltip" title="Whether to use pre-processed or post-processed values as the gene expression.">
+                        <option value="0" selected>Raw data</option>
+                        <option value="1">Post-processed</option>
+                </select>
                 <button class="btn btn-default" id="gene_name_submit" onclick="update_scatterplot()">Submit</button>
             </div>
 

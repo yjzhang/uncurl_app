@@ -597,8 +597,8 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
         if 'gene_name_1' not in data_form or 'gene_name_2' not in data_form:
             return None
         use_mw = False
-        if use_mw in data_form:
-            use_mw = data_form['use_mw']
+        if 'use_mw' in data_form:
+            use_mw = bool(int(data_form['use_mw']))
         gene_name = ''
         if gene_name in data_form:
             gene_name = data_form['gene_name']
@@ -624,9 +624,9 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
         elif cell_color_value == 'gene':
             gene_name = data_form['gene_name']
             use_mw = False
-            if use_mw in data_form:
-                use_mw = data_form['use_mw']
-            gene_data = get_gene_data(user_id, gene_name)
+            if 'use_mw' in data_form:
+                use_mw = bool(int(data_form['use_mw']))
+            gene_data = get_gene_data(user_id, gene_name, use_mw)
             if len(gene_data)==0:
                 return 'Error: gene not found'
             return scatterplot_data(dim_red, sca.labels,

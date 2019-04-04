@@ -35,4 +35,9 @@ def create_app(config_filename=None):
     app.register_blueprint(flask_router.flask_router)
     return app
 
+def create_app_split_seq(data_dir=None, config_filename=None):
+    # TODO: create an app starting at the data preprocessing view, where
+    # data_dir is the DGE folder output from split-seq.
+    pass
+
 from .cache import cache
