@@ -30,9 +30,10 @@ def create_app(config_filename=None):
     app.config['SHOW_ALL_RESULTS'] = False
 
     # register blueprints
-    app.register_blueprint(interaction_views.interaction_views)
-    app.register_blueprint(views.views)
-    app.register_blueprint(flask_router.flask_router)
+    with app.app_context():
+        app.register_blueprint(interaction_views.interaction_views)
+        app.register_blueprint(views.views)
+        app.register_blueprint(flask_router.flask_router)
     return app
 
 def create_app_split_seq(data_dir=None, config_filename=None):

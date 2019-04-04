@@ -1,10 +1,7 @@
 from setuptools import setup, find_packages
 
-
+# TODO: this won't work...
 install_requires = []
-with open('requirements.txt') as f:
-    for line in f.readlines():
-        install_requires.append(line.strip())
 
 setup(
     name='uncurl_app',

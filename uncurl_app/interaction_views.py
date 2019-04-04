@@ -879,7 +879,7 @@ def upload_color_track(user_id):
                     pass
                 sca.add_color_track(column_name, column[1:], is_discrete)
     # return new color tracks
-    return redirect(url_for('view_plots', user_id=user_id))
+    return redirect(url_for('interaction_views.view_plots', user_id=user_id))
 
 @interaction_views.route('/user/<user_id>/view/copy_dataset', methods=['POST'])
 def copy_dataset(user_id):
@@ -908,7 +908,7 @@ def delete_rerun(user_id):
     try:
         os.remove(os.path.join(path, 'sc_analysis.json'))
         sca.delete_uncurl_results()
-        return redirect(url_for('state_estimation_result', user_id=user_id))
+        return redirect(url_for('views.state_estimation_result', user_id=user_id))
     except Exception as e:
         text = traceback.format_exc()
         print(text)

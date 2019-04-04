@@ -107,7 +107,7 @@ def state_estimation_input():
         shape))
     P.start()
     #state_estimation_preproc(user_id, path)
-    return redirect(url_for('state_estimation_result', user_id=user_id))
+    return redirect(url_for('views.state_estimation_result', user_id=user_id))
 
 @views.route('/state_estimation/results/<user_id>/start', methods=['POST'])
 def state_estimation_start(user_id):
@@ -135,16 +135,16 @@ def state_estimation_start(user_id):
     # params.json contains all input parameters to the state estimation
     with open(os.path.join(path, 'params.json'), 'w') as f:
         json.dump(preprocess, f)
-    P = Process(target=state_estimation_thread, args=(user_id, gene_names, init_path, path, preprocess))
+    P = Process(target=state_estimation_thread, args=(user_id, gene_names, init_path, path, preprocess, current_app.config.copy()))
     P.start()
-    return redirect(url_for('state_estimation_result', user_id=user_id))
+    return redirect(url_for('views.state_estimation_result', user_id=user_id))
 
 
 @views.route('/state_estimation/results/<user_id>/')
 def state_estimation_result(user_id):
     path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     if os.path.exists(os.path.join(path, 'sc_analysis.json')):
-        return redirect(url_for('view_plots', user_id=user_id))
+        return redirect(url_for('interaction_views.view_plots', user_id=user_id))
     elif os.path.exists(os.path.join(path, 'preprocess.json')):
         uncurl_is_running = os.path.exists(os.path.join(path, 'submitted'))
         current_task = 'None'
@@ -250,7 +250,7 @@ def state_estimation_preproc(user_id, base_path, data_path, output_filename, ini
             f.write(text)
 
 
-def state_estimation_thread(user_id, gene_names=None, init_path=None, path=None, preprocess=None):
+def state_estimation_thread(user_id, gene_names=None, init_path=None, path=None, preprocess=None, config=None):
     """
     Uses a new process to do state estimation. Assumes that the input data is already saved in a directory named /tmp/uncurl/<user_id>/.
 
@@ -260,9 +260,10 @@ def state_estimation_thread(user_id, gene_names=None, init_path=None, path=None,
         init_path (str, optional): path to txt matrix of shape (genes, k). Default: None.
         path (str, optional): Path where data and results are saved.
         preprocess (dict): dict containing additional parameters: min_reads, max_reads, normalize, is_sparse, is_gz, disttype, genes_frac, cell_frac, vismethod, baseline_vismethod
+        config (dict): current_app.config
     """
     if path is None:
-        path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
+        path = os.path.join(config['USER_DATA_DIR'], user_id)
     # get correct data names
     data = os.path.join(path, 'data.mtx')
     if preprocess['is_gz']:
@@ -281,9 +282,9 @@ def state_estimation_thread(user_id, gene_names=None, init_path=None, path=None,
         dist_type = 'nb'
     elif dist_type == 'Log-Normal':
         dist_type = 'lognorm'
-    uncurl_args = current_app.config['UNCURL_ARGS']
+    uncurl_args = config['UNCURL_ARGS']
     if dist_type != 'Poisson':
-        uncurl_args = current_app.config['NMF_ARGS']
+        uncurl_args = config['NMF_ARGS']
     if dist_type == 'Poisson':
         uncurl_args['write_progress_file'] = os.path.join(path, 'progress.txt')
     uncurl_args['dist'] = dist_type
