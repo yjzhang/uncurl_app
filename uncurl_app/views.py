@@ -15,8 +15,7 @@ from .flask_router import flask_router
 from .generate_analysis import generate_uncurl_analysis, get_progress
 from .data_stats import Summary
 
-views = Blueprint('views', __name__, template_folder='templates',
-        url_prefix='/')
+views = Blueprint('views', __name__, template_folder='templates')
 
 def load_upload_data(request_files, request_form, path=None):
     if 'fileinput' in request_files:
@@ -66,11 +65,6 @@ def load_gene_names(path=None):
         return gene_filename
     else:
         return None
-
-@views.route('/')
-@cache.cached()
-def index():
-    return render_template('index.html')
 
 @views.route('/help')
 def help():

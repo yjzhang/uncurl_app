@@ -2,8 +2,7 @@ import os
 
 from flask import render_template, current_app, Blueprint
 
-flask_router = Blueprint('flask_router', __name__, template_folder='templates',
-        url_prefix='/')
+flask_router = Blueprint('flask_router', __name__, template_folder='templates')
 
 
 flask_router.user_dirs = []

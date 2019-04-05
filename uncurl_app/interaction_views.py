@@ -19,8 +19,7 @@ from .utils import SimpleEncoder
 from .views import state_estimation_preproc
 
 interaction_views = Blueprint('interaction_views', __name__,
-        template_folder='templates',
-        url_prefix='/')
+        template_folder='templates')
 
 # map of user_id to SCAnalysis objects
 interaction_views.sc_analysis_dict = {}

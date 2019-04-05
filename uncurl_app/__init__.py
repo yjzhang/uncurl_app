@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 
 from . import interaction_views, views, flask_router
@@ -32,16 +32,19 @@ def create_app(config_filename=None):
     app.config['SHOW_ALL_RESULTS'] = False
 
     # register blueprints
-    with app.app_context():
-        app.register_blueprint(interaction_views.interaction_views)
-        app.register_blueprint(views.views)
-        app.register_blueprint(flask_router.flask_router)
+    app.register_blueprint(interaction_views.interaction_views)
+    app.register_blueprint(views.views)
+    app.register_blueprint(flask_router.flask_router)
+    @app.route('/')
+    def index():
+        return render_template('index.html')
     return app
 
 def create_app_split_seq(data_dir='./', config_filename=None):
     # TODO: create an app starting at the data preprocessing view, where
     # data_dir is the DGE folder output from split-seq.
     from .split_seq_input import process_split_seq
+    from flask import redirect, url_for, Blueprint
     process_split_seq(data_dir)
     app = Flask(__name__)
     Bootstrap(app)
@@ -56,13 +59,23 @@ def create_app_split_seq(data_dir='./', config_filename=None):
     }
     app.config['TEST_DATA_DIR'] = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                     'test_data')
-    # TODO: go up 1 from path
+    # go up 1 from path
     app.config['USER_DATA_DIR'] = os.path.dirname(data_dir)
     app.config['CACHE_TYPE'] = 'simple'
     cache.config = {'CACHE_TYPE': 'simple'}
     app.config['SHOW_ALL_RESULTS'] = True
-    with app.app_context():
-        app.register_blueprint(interaction_views.interaction_views)
-        app.register_blueprint(views.views)
-        app.register_blueprint(flask_router.flask_router)
+    app.register_blueprint(interaction_views.interaction_views)
+    app.register_blueprint(views.views)
+    app.register_blueprint(flask_router.flask_router)
+    # redirect index to data page
+    user_id = os.path.basename(data_dir)
+    print('user_id: ', user_id)
+    @app.route('/index')
+    def index():
+        return render_template('index.html')
+    bp2 = Blueprint('new_index', __name__)
+    @bp2.route('/')
+    def index_redirect():
+        return redirect(url_for('views.state_estimation_result', user_id=user_id))
+    app.register_blueprint(bp2)
     return app
