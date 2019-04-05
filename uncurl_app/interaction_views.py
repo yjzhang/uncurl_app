@@ -560,6 +560,9 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
             color_to_index, index_to_color = color_track_map(color_track)
             gene_cluster_data = gene_data[color_track == index_to_color[cluster_id]]
             return histogram_data(gene_cluster_data, gene_data, index_to_color[cluster_id], selected_gene)
+    elif top_or_bulk == 'custom_selection':
+        # TODO: custom selection of cells vs rest
+        pass
     else:
         return 'Error: '
 

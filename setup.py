@@ -10,6 +10,9 @@ setup(
     author_email='yjzhang@cs.washington.edu',
     url='https://github.com/yjzhang/uncurl_app',
     license='MIT',
+    scripts = [
+            'uncurl_app_split_seq'
+    ],
     install_requires=install_requires,
     packages=find_packages("."),
     test_suite='nose.collector',

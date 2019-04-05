@@ -19,10 +19,10 @@ def process_split_seq(path):
     subprocess.call(['gzip', os.path.join(path, 'data.mtx')])
     # 3. load genes.csv, write out gene_names.txt
     genes = pd.read_csv(os.path.join(path, 'genes.csv'))
-    gene_names = genes.gene_names
+    gene_names = genes.gene_name
     gene_names.to_csv(os.path.join(path, 'gene_names.txt'), header=None, index=None)
     # 4. run the data_stats stuff
-    summary = data_stats.Summary(path, path, is_gz=True, shape='cell_gene')
+    summary = data_stats.Summary(os.path.join(path, 'data.mtx.gz'), path, is_gz=True, shape='cell_gene')
     script, div = summary.visualize()
     summary.preprocessing_params()
 

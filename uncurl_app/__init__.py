@@ -41,7 +41,7 @@ def create_app(config_filename=None):
 def create_app_split_seq(data_dir='./', config_filename=None):
     # TODO: create an app starting at the data preprocessing view, where
     # data_dir is the DGE folder output from split-seq.
-    from split_seq_input import process_split_seq
+    from .split_seq_input import process_split_seq
     process_split_seq(data_dir)
     app = Flask(__name__)
     Bootstrap(app)
