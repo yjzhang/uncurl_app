@@ -813,6 +813,8 @@ def update_cellmesh_result(user_id, top_genes, test):
         top_genes (list of strings representing genes)
         test (str, currently only 'hypergeom')
     """
+    def pmid_to_link(pmid):
+        return '<a href="https://www.ncbi.nlm.nih.gov/pubmed/{0}">{0}</a>'.format(pmid)
     import cellmesh
     result = []
     if test == 'hypergeom':
@@ -820,8 +822,11 @@ def update_cellmesh_result(user_id, top_genes, test):
     cell_types = [result[0]]
     for i in range(1, min(20, len(result))):
         ri = result[i]
-        cell_types.append((ri[0], ri[1], ri[2], ', '.join(ri[3])))
-    print(cell_types)
+        gene_pmids = []
+        genes = ri[3]
+        for g in genes:
+            gene_pmids.append('{0}: {1}'.format(g, ', '.join(pmid_to_link(x) for x in ri[4][g])))
+        cell_types.append((ri[0], ri[1], ri[2], ', '.join(ri[3]), ', '.join(gene_pmids)))
     return json.dumps(cell_types, cls=SimpleEncoder)
 
 
