@@ -183,6 +183,8 @@ function set_enrichr_results(data, query) {
     var results_view = $('#enrichr-results');
     if (query == 'cellmarker') {
         results_view = $('#cellmarker-results');
+    } else if (query == 'cellmesh') {
+        results_view = $('#cellmesh-results');
     }
     results_view.empty();
     var table = $('<table>');
@@ -221,6 +223,9 @@ function update_gene_query(query) {
     if (query == 'cellmarker') {
         results_view = $('#cellmarker-results');
         update_url = '/update_cellmarker';
+    } else if (query == 'cellmesh') {
+        results_view = $('#cellmesh-results');
+        update_url = '/update_cellmesh';
     }
     results_view.empty();
     results_view.append("<br>" + "Query in progress..." + '<img src="/static/ajax-loader.gif"/>');
@@ -423,9 +428,15 @@ function toggle_query_visibility(value) {
     if (value == "cellmarker") {
         $('#cellmarker-view').toggle(true);
         $('#enrichr-view').toggle(false);
+        $('#cellmesh_view').toggle(false);
     } else if (value == "enrichr") {
         $('#cellmarker-view').toggle(false);
         $('#enrichr-view').toggle(true);
+        $('#cellmesh_view').toggle(false);
+    } else if (value == "cellmesh") {
+        $('#cellmarker-view').toggle(false);
+        $('#enrichr-view').toggle(false);
+        $('#cellmesh_view').toggle(true);
     }
 };
 
@@ -767,6 +778,7 @@ th {
                     <select class="form-control" id="database-select" name="database_select" style="width:200px; margin-top: 5px;" onchange="toggle_query_visibility(this.value);">
                         <option value="enrichr" selected>Enrichr</option>
                         <option value="cellmarker">CellMarker</option>
+                        <option value="cellmesh">CellMeSH</option>
                     </select>
                 </div>
 
@@ -812,6 +824,18 @@ th {
 
                     <button class="btn btn-default" id="cellmarker-submit" type="button" onclick="update_gene_query('cellmarker')">Submit CellMarker query</button>
                     <div id="cellmarker-results"></div>
+                </div>
+
+               <div id="cellmesh_view" style="display:none;">
+                    <h5 data-toggle="tooltip" title="Query the CellMeSH database for cell types matching the selected genes.">Query CellMeSH with selected genes</h4>
+                    <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                        <label for="mesh_test_type" data-toggle="tooltip" title="Currently, only the hypergeometric test is available.">Statistical test:</label>
+                        <select class="form-control" id="mesh_test_type" name="mesh_test_type">
+                            <option value="hypergeom" selected>Hypergeometric test</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-default" id="cellmesh-submit" type="button" onclick="update_gene_query('cellmesh')">Submit CellMesh query</button>
+                    <div id="cellmesh-results"></div>
                 </div>
             </form>
         </div>

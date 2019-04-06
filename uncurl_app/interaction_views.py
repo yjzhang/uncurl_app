@@ -794,6 +794,37 @@ def update_cellmarker_result(user_id, top_genes, test, cells_or_tissues, species
         cell_types.append((ri[0], ri[1], ', '.join(ri[2]), ', '.join(gene_pmids)))
     return json.dumps(cell_types, cls=SimpleEncoder)
 
+@interaction_views.route('/user/<user_id>/view/update_cellmesh', methods=['GET', 'POST'])
+def update_cellmesh(user_id):
+    # top_genes is a newline-separated string, representing the gene list.
+    top_genes = [x.strip().upper() for x in request.form['top_genes'].split('\n')]
+    print('update_cellmesh:', top_genes)
+    # gene_set is a string.
+    test_type = request.form['test_type']
+    return update_cellmesh_result(user_id, top_genes, test_type)
+
+@cache.memoize()
+def update_cellmesh_result(user_id, top_genes, test):
+    """
+    Gets the CellMesh result for a set of genes.
+
+    Args:
+        user_id (str)
+        top_genes (list of strings representing genes)
+        test (str, currently only 'hypergeom')
+    """
+    import cellmesh
+    result = []
+    if test == 'hypergeom':
+        result = cellmesh.hypergeometric_test(top_genes, return_header=True)
+    cell_types = [result[0]]
+    for i in range(1, min(20, len(result))):
+        ri = result[i]
+        cell_types.append((ri[0], ri[1], ri[2], ', '.join(ri[3])))
+    print(cell_types)
+    return json.dumps(cell_types, cls=SimpleEncoder)
+
+
 @interaction_views.route('/user/<user_id>/view/split_or_merge_cluster', methods=['POST'])
 def split_or_merge_cluster(user_id):
     if user_id.startswith('test_'):
