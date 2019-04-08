@@ -12,3 +12,4 @@ git+git://github.com/yjzhang/simplex_sample.git
 git+git://github.com/yjzhang/uncurl_analysis.git
 git+git://github.com/yjzhang/cellmarker_python.git
 git+git://github.com/yjzhang/gene_name_mapper.git
+git+git://github.com/yjzhang/cellmesh.git
