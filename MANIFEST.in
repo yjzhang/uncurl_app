@@ -1,0 +1,2 @@
+include uncurl_app/templates/*
+include uncurl_app/static/*

@@ -1,0 +1,51 @@
+
+.wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    padding-top: 10px;
+}
+
+.top-left {
+    grid-column: 1 / 2;
+    grid-row: 1;
+}
+
+.top-right {
+    grid-column: 2 / 3;
+    grid-row: 1;
+}
+
+.bottom-left {
+    grid-column: 1 / 3;
+    grid-row: 2;
+    margin-top: 20px;
+}
+
+.bottom-right {
+    grid-column: 2 / 3;
+    grid-row: 2;
+    margin-top: 20px;
+}
+
+.container {
+    padding-left: 0px;
+}
+
+table {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-right: 5px;
+}
+
+tr {
+}
+
+td {
+    padding-top: 10px;
+    padding-right: 10px;
+}
+
+th {
+    padding-top: 10px;
+    padding-right: 10px;
+}

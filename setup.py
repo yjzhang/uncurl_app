@@ -15,6 +15,7 @@ setup(
     ],
     install_requires=install_requires,
     packages=find_packages("."),
+    include_package_data=True,
     test_suite='nose.collector',
     tests_require=['nose', 'flaky'],
     classifiers=[
