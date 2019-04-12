@@ -126,10 +126,25 @@
 
             <!-- TODO: custom data selection - this allows you to select cells by various criteria. 
                     - arbitrary adding/removal of criteria 
+
+                    Alternatively, have the user type in a string???
+
+                    Type in a string of the form "label = 1 and color_track = 'abc'"
+                    or, "color_track = 1"
             -->
             <div id="custom_color_map_area" style="display:none; width:700px;">
                 <input id="c">
-                <div id="custom_selection_criterion_1">
+                <div id="custom_selection_criterion-1" class="form-row">
+                    <select class="form-control" id="selection_type-1" name="selection_type-1">
+                        <option value="cluster" selected>Cluster</option>
+                        <option value="custom">Custom label</option>
+                        <option value="gene">Gene</option>
+                    </select>
+                    <!-- selection_value could be: cluster id, custom label, or gene name. -->
+                    <select class="form-control" id="selection_value-1" name="selection_value-1">
+                    </select>
+                    <select class="form-control" id="selection_value-1" name="selection_value-1">
+                    </select>
                     <!-- types of criteria:
                         Can pick "AND" or "OR"
                         - gene >= or <= amount

@@ -423,6 +423,19 @@ function toggle_query_visibility(value) {
     }
 };
 
+// TODO: custom cell labels
+function add_custom_criterion() {
+};
+
+function delete_custom_criterion(id) {
+};
+
+function new_color_track() {
+};
+
+function update_color_track() {
+};
+
 window.onload = function() {
     // activate tooltips
     $('[data-toggle="tooltip"]').tooltip();

@@ -196,7 +196,7 @@ def calc_size(labels):
     return size
 
 def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
-        gene_expression_list=None, color_vals=None):
+        color_vals=None):
     """
     Converts data into a form that will be sent as json for building the
     scatterplot. Output should be formatted in a way that can be used by
@@ -205,7 +205,8 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
     Args:
         dim_red (array): array of shape (2, n)
         labels (array): 1d array of length n
-
+        colorscale (str)
+        mode (str): either 'cluster' or 'entropy'
     """
     # have size depend on data shape
     size = calc_size(labels)
@@ -269,7 +270,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                 'xaxis': {'title': 'dim1'},
                 'yaxis': {'title': 'dim2'},
                 'margin': {'t':30},
-                'showlegend': True,
+                'showlegend': True if mode =='cluster' else False,
             },
     }, cls=SimpleEncoder)
 
@@ -918,6 +919,15 @@ def upload_color_track(user_id):
                 sca.add_color_track(column_name, column[1:], is_discrete)
     # return new color tracks
     return redirect(url_for('interaction_views.view_plots', user_id=user_id))
+
+
+@interaction_views.route('/user/<user_id>/view/custom_color_map', methods=['POST'])
+def custom_color_map(user_id):
+    """
+    Creates or updates a custom color map, based on user-defined gene selections.
+    """
+    # TODO
+    data_form = request.form.copy()
 
 @interaction_views.route('/user/<user_id>/view/copy_dataset', methods=['POST'])
 def copy_dataset(user_id):
