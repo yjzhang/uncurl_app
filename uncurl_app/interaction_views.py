@@ -22,20 +22,16 @@ interaction_views = Blueprint('interaction_views', __name__,
         template_folder='templates')
 
 # map of user_id to SCAnalysis objects
-interaction_views.sc_analysis_dict = {}
 # map of gene lists (strings of newline-separated gene names) to enrichr IDs
 interaction_views.enrichr_gene_list_ids = {}
 # map of tuples (top_genes, gene_set) to enrichr results
 interaction_views.enrichr_results = {}
 
 def get_sca(user_id):
-    if user_id in interaction_views.sc_analysis_dict:
-        return interaction_views.sc_analysis_dict[user_id]
-    else:
-        path = user_id_to_path(user_id)
-        sca = sc_analysis.SCAnalysis(path)
-        sca = sca.load_params_from_folder()
-        return sca
+    path = user_id_to_path(user_id)
+    sca = sc_analysis.SCAnalysis(path)
+    sca = sca.load_params_from_folder()
+    return sca
 
 @cache.memoize()
 def get_sca_top_genes(user_id):
