@@ -643,6 +643,12 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
                 return 'Error: invalid cluster ID'
             return scatterplot_data(dim_red, sca.labels,
                     mode='entropy', color_vals=w[cluster, :])
+        elif cell_color_value == 'read_counts':
+            read_counts = sca.read_counts
+            read_counts = read_counts[sca.cell_subset][sca.cell_sample]
+            return scatterplot_data(dim_red, sca.labels,
+                    colorscale='Viridis',
+                    mode='entropy', color_vals=read_counts)
         else:
             # try to get color track
             color_track, is_discrete = get_sca_color_track(user_id, cell_color_value)

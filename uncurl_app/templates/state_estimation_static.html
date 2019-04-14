@@ -76,8 +76,9 @@
                     <option value="cluster" selected>Cluster</option>
                     <option value="entropy">Entropy</option>
                     <option value="gene">Gene</option>
-                    <!-- TODO: add a view to show each cluster's W values --> 
+                    <!-- view to show each cluster's W values --> 
                     <option value="weights">Cluster weights</option>
+                    <option value="read_counts">Read counts</option>
                     {% for track in color_tracks %}
                     <option value="{{ track }}">{{ track }}</option>
                     {% endfor %}
@@ -159,9 +160,9 @@
                 <div class="form-row" id="update-area"></div>
 
                 <button type="button" class="btn btn-default" id="cell-info" onclick="get_cell_info();">Get cell/cluster info</button>
-                <button type="button" class="btn btn-default" id="recluster_toggle" style="margin-right: 2px;" onclick="toggle_reanalyze_area('recluster')">Recluster</button>
+                <button type="button" class="btn btn-default" id="recluster_toggle" style="margin-right: 2px;" onclick="toggle_reanalyze_area('recluster')" title="show reclustering options" data-toggle="tooltip">Recluster</button>
 
-                <button type="button" class="btn btn-default" id="reanalyze" onclick="toggle_reanalyze_area('reanalyze');">Reanalyze</button>
+                <button type="button" class="btn btn-default" id="reanalyze" onclick="toggle_reanalyze_area('reanalyze');" title="show reanalysis options" data-toggle="tooltip">Reanalyze</button>
 
                 <div id="reanalyze-area" style="display:none;">
                     <a class="btn btn-default" id="delete_rerun" href="{{ url_for('interaction_views.delete_rerun', user_id=data_user_id) }}" data-toggle="tooltip" title="Deletes stored results, and go back to the parameters screen.">Re-run pipeline</a>
