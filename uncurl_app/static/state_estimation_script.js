@@ -401,8 +401,14 @@ function subset_cells(is_cells) {
     });
 };
 
-function toggle_reanalyze_area() {
-    $('#reanalyze-area').toggle();
+function toggle_reanalyze_area(value) {
+    if (value == 'reanalyze') {
+        $('#reanalyze-area').toggle(true);
+        $('#recluster_area').toggle(false);
+    } else if (value == 'recluster') {
+        $('#reanalyze-area').toggle(false);
+        $('#recluster_area').toggle(true);
+    }
 };
 
 // toggles visibility of the bottom-left gene query view
@@ -510,16 +516,7 @@ window.onload = function() {
         update_gene_query('enrichr');
     });
 
-    // bind merge and split buttons to split_or_merge_cluster
-    $('#split').click(function() {
-        split_or_merge_cluster('split', 'clusters');
-    });
-    $('#merge').click(function() {
-        split_or_merge_cluster('merge', 'clusters');
-    });
-    $('#new-cluster').click(function() {
-        split_or_merge_cluster('new', 'cells');
-    });
+
     $('#copy').click(function() {
         copy_data();
     });

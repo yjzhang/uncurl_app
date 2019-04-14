@@ -154,20 +154,31 @@
                 </div>
             </div>
 
+            <!-- Area containing re-analyze and re-cluster buttons -->
             <div class="input-group" style="margin-top: 5px;">
                 <div class="form-row" id="update-area"></div>
 
                 <button type="button" class="btn btn-default" id="cell-info" onclick="get_cell_info();">Get cell/cluster info</button>
-                <button type="button" class="btn btn-default" id="split" style="margin-right: 2px;" data-toggle="tooltip" title="Split the selected cluster into two clusters">Split clusters</button>
-                <button type="button" class="btn btn-default" id="merge" data-toggle="tooltip" title="Merge the selected clusters into one cluster">Merge clusters</button>
-                <button type="button" class="btn btn-default" id="new-cluster" data-toggle="tooltip" title="Create a new cluster from the selected cells">Create new cluster</button>
-                <button type="button" class="btn btn-default" id="reanalyze" onclick="toggle_reanalyze_area();">Reanalyze</button>
+                <button type="button" class="btn btn-default" id="recluster_toggle" style="margin-right: 2px;" onclick="toggle_reanalyze_area('recluster')">Recluster</button>
+
+                <button type="button" class="btn btn-default" id="reanalyze" onclick="toggle_reanalyze_area('reanalyze');">Reanalyze</button>
 
                 <div id="reanalyze-area" style="display:none;">
                     <a class="btn btn-default" id="delete_rerun" href="{{ url_for('interaction_views.delete_rerun', user_id=data_user_id) }}" data-toggle="tooltip" title="Deletes stored results, and go back to the parameters screen.">Re-run pipeline</a>
                     <button class="btn btn-default" id="copy">Copy dataset</button>
                     <button class="btn btn-default" id="subset_cells">Sub-select cells</button>
                     <button class="btn btn-default" id="subset_clusters">Sub-select clusters</button>
+                </div>
+
+                <div id="recluster_area" style="display:none;">
+                    <button type="button" class="btn btn-default" id="split" style="margin-right: 2px;" data-toggle="tooltip" title="Split the selected cluster into two clusters"
+                        onclick="split_or_merge_cluster('split', 'clusters');">Split clusters</button>
+                    <button type="button" class="btn btn-default" id="merge" data-toggle="tooltip" title="Merge the selected clusters into one cluster" 
+                        onclick="split_or_merge_cluster('merge', 'clusters');">Merge clusters</button>
+                    <button type="button" class="btn btn-default" id="new-cluster" data-toggle="tooltip" title="Create a new cluster from the selected cells" 
+                        onclick="split_or_merge_cluster('new', 'cells');">Create new cluster</button>
+                    <button type="button" class="btn btn-default" id="delete_cells" data-toggle="tooltip" title="Remove selected cells" 
+                        onclick="split_or_merge_cluster('delete', 'cells')">Delete cells</button>
                 </div>
             </div>
         </div>

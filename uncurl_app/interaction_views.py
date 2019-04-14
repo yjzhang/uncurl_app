@@ -863,12 +863,12 @@ def split_or_merge_cluster(user_id):
         cache.clear()
     # split clusters
     if split_or_merge == 'split':
-        #try:
+        try:
             generate_analysis.generate_analysis_resubmit(sca,
                     'split', selected_clusters)
             return 'Finished splitting selected cluster: ' + str(selected_clusters[0])
-        #except:
-        #    return 'Error in splitting clusters.'
+        except:
+            return 'Error in splitting clusters.'
     # merge clusters
     elif  split_or_merge == 'merge':
         try:
@@ -877,6 +877,7 @@ def split_or_merge_cluster(user_id):
             return 'Finished merging selected clusters: ' + ' '.join(map(str, selected_clusters))
         except:
             return 'Error in merging clusters.'
+    # create new cluster from selected cells
     elif split_or_merge == 'new':
         try:
             generate_analysis.generate_analysis_resubmit(sca,
@@ -884,6 +885,15 @@ def split_or_merge_cluster(user_id):
             return 'Finished creating new cluster from selected cells: ' + ' '.join(map(str, selected_clusters))
         except:
             return 'Error in creating new cluster.'
+    # delete selected cells
+    elif split_or_merge == 'delete':
+        try:
+            generate_analysis.generate_analysis_resubmit(sca,
+                    'delete', selected_clusters)
+            return 'Finished deleting selected cells: ' + ' '.join(map(str, selected_clusters))
+        except:
+            return 'Error in deleting selected cells.'
+
 
 @interaction_views.route('/user/<user_id>/view/upload_color_track', methods=['POST'])
 def upload_color_track(user_id):
