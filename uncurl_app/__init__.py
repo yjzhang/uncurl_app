@@ -45,7 +45,8 @@ def create_app_split_seq(data_dir='./', config_filename=None):
     # data_dir is the DGE folder output from split-seq.
     from .split_seq_input import process_split_seq
     from flask import redirect, url_for, Blueprint
-    process_split_seq(data_dir)
+    if not os.path.exists(os.path.join(data_dir, 'preprocess.json')):
+        process_split_seq(data_dir)
     app = Flask(__name__)
     Bootstrap(app)
     app.config['MAX_CONTENT_LENGTH'] = 1000 * 1024 * 1024

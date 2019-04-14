@@ -60,7 +60,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         k.send_keys('8')
         time.sleep(1)
         self.driver.find_element_by_id('submit').click()
-        time.sleep(80)
+        time.sleep(60)
         # initial processing be completed by now
         print(self.driver.current_url)
         self.assertTrue('view' in self.driver.current_url)
@@ -123,10 +123,11 @@ class UncurlFrontendTest(LiveServerTestCase):
         time.sleep(1.0)
         # test split cluster
         self.driver.execute_script('window.all_selected_clusters = [0];')
+        self.driver.find_element_by_id('recluster_toggle').click()
         self.driver.find_element_by_id('split').click()
         alert = self.driver.switch_to_alert()
         alert.accept()
-        time.sleep(55)
+        time.sleep(45)
         select = Select(self.driver.find_element_by_id('top-or-bulk'))
         select.select_by_value('top_1_vs_rest')
         time.sleep(1)
@@ -161,7 +162,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         select.select_by_visible_text('Log-Normal')
         time.sleep(1)
         self.driver.find_element_by_id('submit').click()
-        time.sleep(80)
+        time.sleep(60)
         # should be completed by now
         print(self.driver.current_url)
         self.assertTrue('view' in self.driver.current_url)
@@ -175,8 +176,11 @@ class UncurlFrontendTest(LiveServerTestCase):
         select.select_by_value('pval')
         time.sleep(1)
         self.driver.execute_script('window.all_selected_clusters = [0];')
+        self.driver.find_element_by_id('recluster_toggle').click()
         self.driver.find_element_by_id('split').click()
-        time.sleep(55)
+        alert = self.driver.switch_to_alert()
+        alert.accept()
+        time.sleep(45)
 
     def test_reanalyze(self):
         """
@@ -204,7 +208,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         # TODO - this test is not currently working
         self.driver.execute_script('window.current_selected_cells = [' + ','.join("'" + str(x) + "'" for x in range(50)) + '];')
         self.driver.find_element_by_id('reanalyze').click()
-        self.driver.find_element_by_id('subset_clusters').click()
+        self.driver.find_element_by_id('subset_cells').click()
         alert = self.driver.switch_to_alert()
         alert.accept()
         time.sleep(10)

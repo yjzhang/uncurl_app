@@ -45,6 +45,7 @@ class Summary(object):
                 np.savetxt(data_path, data)
             # save data...
         self.cell_read_counts = np.array(data.sum(0)).flatten()
+        self.sorted_read_counts = np.sort(self.cell_read_counts)
         self.cells = data.shape[1]
         self.genes = data.shape[0]
         if sparse.issparse(data):
@@ -76,10 +77,9 @@ class Summary(object):
         # cell_frac is set so that there will be a max of 10000 points
         cell_frac = min(1.0, 10000.0/self.cells)
         cell_frac = round(cell_frac, 2)
-        sorted_read_counts = np.sort(self.cell_read_counts)
         top_05 = int(self.cells/20) # 5%
-        preproc_params = {'min_reads': int(sorted_read_counts[top_05]),
-                          'max_reads': int(sorted_read_counts[-top_05]),
+        preproc_params = {'min_reads': int(self.sorted_read_counts[top_05]),
+                          'max_reads': int(self.sorted_read_counts[-top_05]),
                           'frac': 0.2,
                           'nbins': 5,
                           'cell_frac': cell_frac,
@@ -88,6 +88,7 @@ class Summary(object):
                           'normalize': False,
                           'is_gz': self.is_gz,
                           'is_sparse': self.is_sparse,
+                          'median_reads': np.median(self.cell_read_counts),
                           }
         with open(os.path.join(self.path, 'preprocess.json'), 'w') as f:
             json.dump(preproc_params, f, cls=SimpleEncoder)
@@ -97,7 +98,8 @@ class Summary(object):
         # alternative view: use an iframe?
         p1 = figure(title='Histogram of cell read counts', plot_width=400,
                 plot_height=400)
-        hist, edges = np.histogram(self.cell_read_counts, bins=50)
+        top_10 = int(self.cells/10) # 10%
+        hist, edges = np.histogram(self.cell_read_counts, bins=50, range=(0, self.sorted_read_counts[-top_10]))
         p1.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:])
         p1.xaxis.axis_label = 'Read count'
         p1.yaxis.axis_label = '# cells'

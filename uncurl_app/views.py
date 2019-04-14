@@ -126,7 +126,7 @@ def state_estimation_start(user_id):
         preprocess = json.load(f)
     for key in request.form.keys():
         preprocess[key] = request.form[key]
-    # params.json contains all input parameters to the state estimation
+    # params.json contains all input parameters to the state estimation, as well as all stats from preprocess.json.
     with open(os.path.join(path, 'params.json'), 'w') as f:
         json.dump(preprocess, f)
     P = Process(target=state_estimation_thread, args=(user_id, gene_names, init_path, path, preprocess, current_app.config.copy()))

@@ -43,13 +43,14 @@ window.onload = function() {
 
     <div id="num-cells">Number of cells: {{ cells }}</div>
     <div id="num-genes">Number of genes: {{ genes }}</div>
+    <div id="median-reads">Median read counts per cell: {{ median_reads }}</div>
 
     {{ visualization }}
     <!-- TODO: submit revisions? -->
 
 
     <form action="start" method="post" enctype="multipart/form-data">
-        {% if not uncurl_is_running %}
+        {% if not uncurl_is_running and not uncurl_is_done %}
         <fieldset>
         {% else %}
         <fieldset disabled="disabled">
