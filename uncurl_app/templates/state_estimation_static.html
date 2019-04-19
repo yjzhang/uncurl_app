@@ -12,6 +12,7 @@
 <script src="{{ url_for('static', filename='jquery-3.3.1.min.js') }}"></script>
 <script src="{{ url_for('static', filename='plotly-latest.min.js') }}"></script>
 
+<script src="{{ url_for('static', filename='custom_selections.js') }}"></script>
 <script src="{{ url_for('static', filename='state_estimation_script.js') }}"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='state_estimation_style.css') }}" type="text/css"/>
@@ -71,7 +72,7 @@
 
 
             <div class="form-inline">
-                <label for="cell-color" data-toggle="tooltip" title="How the cells should be colored - either by their cluster label, or by their cluster label entropy.">Label scheme:</label>
+                <label for="cell-color" data-toggle="tooltip" title="How the cells should be colored - either by their cluster label, or by their cluster label entropy.">Cell labels:</label>
                 <select class="form-control form-inline" id="cell-color" style="width: 300px;">
                     <option value="cluster" selected>Cluster</option>
                     <option value="entropy">Entropy</option>
@@ -82,7 +83,8 @@
                     {% for track in color_tracks %}
                     <option value="{{ track }}">{{ track }}</option>
                     {% endfor %}
-                    <option value="new">New color track</option>
+                    <option value="new">Upload cell labels</option>
+                    <option value="custom">Custom cell selection</option>
                 </select>
             </div>
 
@@ -115,8 +117,8 @@
                         <input type="file" name="color_track_file" id="color_track_file" class="form-control-file">
                         <label for="color_track_type" data-toggle="tooltip" title="Discrete: each line will be interpreted as a string/label; continuous: each line will be interpreted as a number; table: TODO">Type of color track:</label>
                         <select class="form-control" id="color_track_type" name="color_track_type" style="width: 200px;">
-                            <option value="continuous" selected>Continuous</option>
-                            <option value="discrete">Discrete</option>
+                            <option value="continuous">Continuous</option>
+                            <option value="discrete" selected>Discrete</option>
                             <option value="table">Table</option>
                         </select>
                         <button class="btn btn-default" type="submit" id="submit_color_track" class="btn btn-default">Submit</button>
@@ -132,27 +134,42 @@
 
                     Type in a string of the form "label = 1 and color_track = 'abc'"
                     or, "color_track = 1"
+
+                    No... that might make it worse
             -->
             <div id="custom_color_map_area" style="display:none; width:700px;">
-                <input id="c">
-                <div id="custom_selection_criterion-1" class="form-row">
-                    <select class="form-control" id="selection_type-1" name="selection_type-1">
-                        <option value="cluster" selected>Cluster</option>
-                        <option value="custom">Custom label</option>
-                        <option value="gene">Gene</option>
+                    <!-- TODO: Show all labels -->
+                    <select class="form-control" id="label_select" name="label_select" onchange="update_custom_label();">
+                        <option value="new_label">New label</option>
                     </select>
-                    <!-- selection_value could be: cluster id, custom label, or gene name. -->
-                    <select class="form-control" id="selection_value-1" name="selection_value-1">
-                    </select>
-                    <select class="form-control" id="selection_value-1" name="selection_value-1">
-                    </select>
-                    <!-- types of criteria:
-                        Can pick "AND" or "OR"
-                        - gene >= or <= amount
-                        - cluster == or != x
-                        - custom_label == or != x
-                    -->
-                </div>
+                    <div id="label_criteria-1" class="label_criteria">
+                        <label for="label_name">Label name:</label>
+                        <input class="form-control" id="label_name" name="label_name" style="width:200px;">
+                        <form id="all_criteria_form">
+                        <div id="all_criteria">
+                            <div class="form-row custom_selection_criterion" id="custom_selection_criterion-1" class="form-row">
+                                <input class="form-control" id="selection_and_or-1" name="selection_and_or-1" value="or">
+                                <label for="selection_type-1">Selection type:</label>
+                                <select class="form-control" id="selection_type-1" name="selection_type-1" onchange="update_custom_criterion(1);">
+                                    <option value="cluster">Cluster</option>
+                                    <!--<option value="gene">Gene</option>-->
+                                    <!-- view to show each cluster's W values --> 
+                                    <!--<option value="read_counts">Read counts</option>-->
+                                    {% for track in color_tracks %}
+                                    <option value="{{ track }}">{{ track }}</option>
+                                    {% endfor %}
+                                </select>
+                                <select class="form-control" id="selection_comparison-1" name="selection_comparison-1">
+                                </select>
+                                <!-- selection_target could be a cluster id, label, or value.  -->
+                                <input class="form-control" id="selection_target-1" name="selection_target-1" value="0">
+                            </div>
+                        </div>
+                        </form>
+                        <button type="button" class="btn btn-default" onclick="add_custom_criterion('and');">AND</button>
+                        <button type="button" class="btn btn-default" onclick="add_custom_criterion('or');">OR</button>
+                    </div>
+                    <button type="button" class="btn btn-default">Submit</button>
             </div>
 
             <!-- Area containing re-analyze and re-cluster buttons -->

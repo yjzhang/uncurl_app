@@ -11,7 +11,7 @@ import uuid
 import numpy as np
 import scipy.io
 from flask import request, render_template, redirect, url_for, Blueprint, current_app
-from uncurl_analysis import enrichr_api, sc_analysis
+from uncurl_analysis import enrichr_api, sc_analysis, custom_cell_selection
 
 from . import generate_analysis
 from .cache import cache
@@ -936,10 +936,104 @@ def upload_color_track(user_id):
 @interaction_views.route('/user/<user_id>/view/custom_color_map', methods=['POST'])
 def custom_color_map(user_id):
     """
-    Creates or updates a custom color map, based on user-defined gene selections.
+    Creates a custom color map, based on user-defined gene selections.
+    """
+    data_form = request.form.copy()
+    try:
+        name = data_form['name']
+        sca = get_sca(user_id)
+        sca.create_custom_selection(name)
+    except Exception as e:
+        text = traceback.format_exc()
+        print(text)
+        return 'Error: ' + str(e)
+    return 'success'
+
+
+@interaction_views.route('/user/<user_id>/view/get_custom_colormap', methods=['POST'])
+def get_custom_colormap(user_id):
+    """
+    This gets the labels and criteria for a given color map...
+    """
+    data_form = request.form.copy()
+    try:
+        name = data_form['name']
+        sca = get_sca(user_id)
+        results = sca.custom_selections[name];
+        return custom_cell_selection.create_json(results)
+    except Exception as e:
+        text = traceback.format_exc()
+        print(text)
+        return 'Error: ' + str(e)
+
+
+@interaction_views.route('/user/<user_id>/view/get_colormap_label_criteria', methods=['POST'])
+def get_colormap_label_criteria(user_id):
+    """
+    Returns the labels and criteria for a given colormap.
+    """
+    data_form = request.form.copy()
+    try:
+        name = data_form['name']
+        sca = get_sca(user_id)
+        if name in sca.custom_selections:
+            results = sca.custom_selections[name];
+            return custom_cell_selection.create_json(results)
+        else:
+            return 'Error: name not in custom selections'
+    except Exception as e:
+        text = traceback.format_exc()
+        print(text)
+        return 'Error: ' + str(e)
+
+@interaction_views.route('/user/<user_id>/view/get_colormap_values', methods=['POST'])
+def get_colormap_values(user_id):
+    """
+    Returns the values for a given colormap.
+    """
+    data_form = request.form.copy()
+    try:
+        name = data_form['name']
+        sca = get_sca(user_id)
+        values = sca.get_color_track_values(name)
+        return list(values)
+    except Exception as e:
+        text = traceback.format_exc()
+        print(text)
+        return 'Error: ' + str(e)
+
+def load_criteria_from_dict(json_dict):
+    """
+    Returns a list of LabelCriterion objects given a json dict...
+    """
+    # TODO: 
+    criteria = json.loads(json_dict)
+    current_id = 1
+    pass
+
+@interaction_views.route('/user/<user_id>/view/update_colormap_label_criteria', methods=['POST'])
+def update_colormap_label_criteria(user_id):
+    """
+    Updates the criteria for a given label in a given colormap.
+
+    Returns a json representation of the new label.
     """
     # TODO
     data_form = request.form.copy()
+    sca = get_sca(user_id)
+    colormap_name = data_form['name']
+    label_name = data_form['label']
+    if 'criteria' in data_form:
+        # TODO: need to load criteria from json
+        criteria = load_criteria_from_dict(data_form['criteria'])
+        sca.update_custom_colormap_label(colormap_name, label_name, criteria)
+    else:
+        sca.update_custom_colormap_label(colormap_name, label_name)
+    colormap = sca.custom_selections[colormap_name]
+    for label in colormap.labels:
+        if label.name == label_name:
+            return custom_cell_selection.create_json(label)
+    return ''
 
 @interaction_views.route('/user/<user_id>/view/copy_dataset', methods=['POST'])
 def copy_dataset(user_id):

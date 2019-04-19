@@ -28,9 +28,11 @@ After selecting the options, click on Submit in order to start the preprocessing
 
 ## Interaction
 
-There are three primary views: the scatterplot, the barplot, and the gene set queries.
+There are three primary views: the scatterplot, the barplot, and the database queries.
 
 ### Scatterplot view
+
+This view shows a dimensionality-reduced view of the cells.
 
 There are three different scatterplot views showing either the cells or identified cell types, selected using the radio buttons. "Cluster means" shows the cell archetypes. "Post-processed cells" shows the uncurl-based visualization, and "Pre-processed cells" shows a visualization that does not depend on uncurl. 
 

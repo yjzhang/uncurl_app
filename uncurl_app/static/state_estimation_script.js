@@ -429,19 +429,6 @@ function toggle_query_visibility(value) {
     }
 };
 
-// TODO: custom cell labels
-function add_custom_criterion() {
-};
-
-function delete_custom_criterion(id) {
-};
-
-function new_color_track() {
-};
-
-function update_color_track() {
-};
-
 window.onload = function() {
     // activate tooltips
     $('[data-toggle="tooltip"]').tooltip();
@@ -472,7 +459,24 @@ window.onload = function() {
             $('#color-track-upload-area').css('display', 'none');
             $('#cluster-select-area').css('display', 'none');
             update_scatterplot();
+            // TODO: check if the label scheme is a custom label scheme.
+            // send a json query to get the custom label schemes.
+            var is_custom = false;
+            $.ajax({url: window.location.pathname + "/get_colormap_label_criteria",
+                method: 'POST',
+                data: {
+                    name: cell_color,
+                },
+            }).done(function(data) {
+                if (data.startsWith('Error')) {
+                } else {
+                    data = JSON.parse(data);
+                    // add label to cell-color
+                }
+            });
         }
+
+
     });
     update_scatterplot();
 
