@@ -1012,10 +1012,12 @@ def load_criteria_from_dict(json_dict):
     all_criteria = []
     while has_id:
         selection_type = json_dict['selection_type-'+str(current_id)]
-        comparison = json_dict['selection_type-'+str(current_id)]
-        target = json_dict['selection_type-'+str(current_id)]
-        criterion = custom_cell_selection.LabelCriterion(selection_type, comparison, target)
+        comparison = json_dict['selection_comparison-'+str(current_id)]
+        target = json_dict['selection_target-'+str(current_id)]
+        and_or = json_dict['selection_and_or-'+str(current_id)]
+        criterion = custom_cell_selection.LabelCriterion(selection_type, comparison, target, and_or)
         all_criteria.append(criterion)
+        current_id += 1
     return all_criteria
 
 @interaction_views.route('/user/<user_id>/view/update_colormap_label_criteria', methods=['POST'])
