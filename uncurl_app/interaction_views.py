@@ -996,7 +996,7 @@ def get_colormap_values(user_id):
         name = data_form['name']
         sca = get_sca(user_id)
         values = sca.get_color_track_values(name)
-        return list(values)
+        return json.dumps(list(values), cls=SimpleEncoder)
     except Exception as e:
         text = traceback.format_exc()
         print(text)
@@ -1004,12 +1004,19 @@ def get_colormap_values(user_id):
 
 def load_criteria_from_dict(json_dict):
     """
-    Returns a list of LabelCriterion objects given a json dict...
+    Returns a list of LabelCriterion objects given a dict loaded from json...
     """
     # TODO: 
-    criteria = json.loads(json_dict)
     current_id = 1
-    pass
+    has_id = True
+    all_criteria = []
+    while has_id:
+        selection_type = json_dict['selection_type-'+str(current_id)]
+        comparison = json_dict['selection_type-'+str(current_id)]
+        target = json_dict['selection_type-'+str(current_id)]
+        criterion = custom_cell_selection.LabelCriterion(selection_type, comparison, target)
+        all_criteria.append(criterion)
+    return all_criteria
 
 @interaction_views.route('/user/<user_id>/view/update_colormap_label_criteria', methods=['POST'])
 def update_colormap_label_criteria(user_id):
@@ -1020,15 +1027,16 @@ def update_colormap_label_criteria(user_id):
     """
     # TODO
     data_form = request.form.copy()
+    print(data_form)
     sca = get_sca(user_id)
     colormap_name = data_form['name']
     label_name = data_form['label']
     if 'criteria' in data_form:
         # TODO: need to load criteria from json
-        criteria = load_criteria_from_dict(data_form['criteria'])
-        sca.update_custom_colormap_label(colormap_name, label_name, criteria)
+        criteria = load_criteria_from_dict(json.loads(data_form['criteria']))
+        sca.update_custom_color_track_label(colormap_name, label_name, criteria)
     else:
-        sca.update_custom_colormap_label(colormap_name, label_name)
+        sca.update_custom_color_track_label(colormap_name, label_name)
     colormap = sca.custom_selections[colormap_name]
     for label in colormap.labels:
         if label.name == label_name:

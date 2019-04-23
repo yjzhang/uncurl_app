@@ -446,37 +446,32 @@ window.onload = function() {
             $('#gene-name-area').css('display', 'block');
             $('#color-track-upload-area').css('display', 'none');
             $('#cluster-select-area').css('display', 'none');
+            $('#custom_color_map_area').css('display', 'none');
         } else if (cell_color == "new") {
             $('#color-track-upload-area').css('display', 'block');
             $('#gene-name-area').css('display', 'none');
             $('#cluster-select-area').css('display', 'none');
+            $('#custom_color_map_area').css('display', 'none');
         } else if (cell_color == "weights") {
             $('#cluster-select-area').css('display', 'block');
             $('#gene-name-area').css('display', 'none');
             $('#color-track-upload-area').css('display', 'none');
+            $('#custom_color_map_area').css('display', 'none');
+        } else if (cell_color == 'custom') {
+            $('#gene-name-area').css('display', 'none');
+            $('#color-track-upload-area').css('display', 'none');
+            $('#cluster-select-area').css('display', 'none');
+            $('#custom_color_map_area').css('display', 'block');
+            add_custom_colormap();
         } else {
             $('#gene-name-area').css('display', 'none');
             $('#color-track-upload-area').css('display', 'none');
             $('#cluster-select-area').css('display', 'none');
             update_scatterplot();
-            // TODO: check if the label scheme is a custom label scheme.
-            // send a json query to get the custom label schemes.
-            var is_custom = false;
-            $.ajax({url: window.location.pathname + "/get_colormap_label_criteria",
-                method: 'POST',
-                data: {
-                    name: cell_color,
-                },
-            }).done(function(data) {
-                if (data.startsWith('Error')) {
-                } else {
-                    data = JSON.parse(data);
-                    // add label to cell-color
-                }
-            });
+            // this function checks if the label scheme is a custom label scheme,
+            // and sends a json query to get the custom label schemes.
+            get_custom_colormap();
         }
-
-
     });
     update_scatterplot();
 

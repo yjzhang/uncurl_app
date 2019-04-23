@@ -22,15 +22,33 @@ function add_custom_colormap() {
     });
 };
 
-// TODO: set form criteria for the specified criteria
-// criteria is a list of criteria...
+// set the form to the given list of criteria
 function set_criteria(criteria) {
+    var form = $('#all_criteria');
+    var criteria_element = document.getElementById('custom_selection_criterion-1').cloneNode(true);
+    if (criteria.length == 0) {
+        console.log('Error: criteria has length 0 in set_criteria');
+        return 0;
+    }
+    form.empty();
     for (var i = 0; i < criteria.length; i++) {
         var c = criteria[i];
+        $(criteria_element).find('#selection_type-1').val(c.selection_type);
+        $(criteria_element).find('#selection_comparison-1').val(c.comparison);
+        $(criteria_element).find('#selection_target-1').val(c.target);
+        var template = criteria_element.outerHTML;
+        template.replace(/-1\"/g, '-'+String(i+1)+'"');
+        template.replace(/\(1\)/g, '('+String(i+1)+')');
+        // set selection_and_or-1
+        if (i > 0) {
+            template.replace(/\"or\"/g, '"' + c.and_or + '"');
+            template.replace(/\"and\"/g, '"' + c.and_or + '"');
+        }
+        form.append(template);
     }
 };
 
-// TODO: get json colormap for the selected name 
+// get json colormap for the selected name 
 function get_custom_colormap() {
     var colormap_name = $('#cell-color').val();
     $.ajax({url: window.location.pathname + "/get_colormap_label_criteria",
@@ -40,20 +58,24 @@ function get_custom_colormap() {
         },
     }).done(function(data) {
         if (data.startsWith('Error')) {
+            $('#custom_color_map_area').toggle(false);
         } else {
-            $('#label_select').empty();
+            $('#custom_color_map_area').toggle(true);
+            var select = $('#label_select');
+            select.empty();
             data = JSON.parse(data);
+            console.log(data);
             var labels = data.labels;
             // add labels to label_select
             for (var i = 0; i < labels.length; i++) {
                 var l = labels[i];
-                $('#label_select').append('<option value="'+l.name+'">'+l.name+'</option>');
+                select.append('<option value="'+l.name+'">'+l.name+'</option>');
                 if (i == 0) {
-                    $('#label_select').val(l.name);
+                    select.val(l.name);
                 }
             }
-            $('#label_select').append('<option value="new_label">New label</option>');
-            // TODO: set criteria to label 1
+            select.append('<option value="new_label">New label</option>');
+            // set criteria to label 1
             var criteria = data.labels[0].criteria;
             set_criteria(criteria);
         }
@@ -64,17 +86,21 @@ function get_custom_colormap() {
 function delete_custom_label() {
 };
 
+// TODO
+function delete_criterion(criterion_id) {
+};
 
 // add a new criterion for a label
 function add_custom_criterion(and_or) {
     // find number of criteria the label has...
     var num_criteria = $('.custom_selection_criterion').length;
     var id = num_criteria + 1;
-    var template = $('#custom_selection_criterion-1').html();
+    var template = $('#custom_selection_criterion-1')[0].outerHTML;
     template.replace(/-1\"/g, '-'+id+'"');
-    template.replace(/update_custom_criterion\(1\)/g, 'update_custom_criterion('+id+')');
+    template.replace(/\(1\)/g, '('+id+')');
     // set selection_and_or-1
     template.replace(/\"or\"/g, '"' + and_or + '"');
+    template.replace(/\"and\"/g, '"' + and_or + '"');
     $('#all_criteria').append(template);
 };
 
@@ -83,13 +109,33 @@ function submit_label() {
     var colormap_name = $('#cell-color').val();
     var selection_val = $('#label_select').val();
     var criteria_form = $('#all_criteria_form').serializeArray();
+    var criteria_data = {};
+    $(criteria_form).each(function(index, obj){
+        criteria_data[obj.name] = obj.value;
+    });
+    // should the array processing be done server-side or client-side?
+    // whatevs just let the server handle it
+    $.ajax({url: window.location.pathname + '/update_colormap_label_criteria',
+        method: 'POST',
+        data: {
+            name: colormap_name,
+            label: selection_val,
+            criteria: JSON.stringify(criteria_data),
+        }
+    }).done(function(data) {
+        if (data.startsWith('Error')) {
+            $("#update-area").empty();
+            $("#update-area").append(data);
+            return false;
+        } else {
+            // TODO: clear scatterplots cache, update scatterplot
+            cache.scatterplots = {};
+            update_scatterplot();
+        }
+    });
 };
 
-// TODO: delete a criterion for a label
-function delete_custom_criterion(label_id, criterion_id) {
-};
-
-// TODO: either create a new label, or set the label's criteria list to the correct list for that label.
+// either create a new label, or set the label's criteria list to the correct list for that label.
 function update_custom_label() {
     var colormap_name = $('#cell-color').val();
     var selection_val = $('#label_select').val();
@@ -107,12 +153,26 @@ function update_custom_label() {
                 // add label to label_select
                 $('#label_select').append('<option value="'+label_name+'">'+label_name+'</option>');
                 $('#label_select').val(label_name);
-                // TODO: set criteria
                 var label_data = JSON.parse(data);
+                set_criteria(label_data);
             }
         });
     } else {
-        // TODO: get criteria for label
+        // get criteria for label
+        $.ajax({url: window.location.pathname + "/update_colormap_label_criteria",
+            method: 'POST',
+            data: {
+                name: colormap_name,
+                label: label_name,
+            },
+        }).done(function(data) {
+            if (data.startsWith('Error')) {
+            } else {
+                // add label to label_select
+                var label_data = JSON.parse(data);
+                set_criteria(label_data);
+            }
+        });
     }
 };
 

@@ -139,37 +139,45 @@
             -->
             <div id="custom_color_map_area" style="display:none; width:700px;">
                     <!-- TODO: Show all labels -->
-                    <select class="form-control" id="label_select" name="label_select" onchange="update_custom_label();">
-                        <option value="new_label">New label</option>
-                    </select>
-                    <div id="label_criteria-1" class="label_criteria">
-                        <label for="label_name">Label name:</label>
-                        <input class="form-control" id="label_name" name="label_name" style="width:200px;">
-                        <form id="all_criteria_form">
-                        <div id="all_criteria">
-                            <div class="form-row custom_selection_criterion" id="custom_selection_criterion-1" class="form-row">
-                                <input class="form-control" id="selection_and_or-1" name="selection_and_or-1" value="or">
-                                <label for="selection_type-1">Selection type:</label>
-                                <select class="form-control" id="selection_type-1" name="selection_type-1" onchange="update_custom_criterion(1);">
-                                    <option value="cluster">Cluster</option>
-                                    <!--<option value="gene">Gene</option>-->
-                                    <!-- view to show each cluster's W values --> 
-                                    <!--<option value="read_counts">Read counts</option>-->
-                                    {% for track in color_tracks %}
-                                    <option value="{{ track }}">{{ track }}</option>
-                                    {% endfor %}
-                                </select>
-                                <select class="form-control" id="selection_comparison-1" name="selection_comparison-1">
-                                </select>
-                                <!-- selection_target could be a cluster id, label, or value.  -->
-                                <input class="form-control" id="selection_target-1" name="selection_target-1" value="0">
-                            </div>
-                        </div>
-                        </form>
-                        <button type="button" class="btn btn-default" onclick="add_custom_criterion('and');">AND</button>
-                        <button type="button" class="btn btn-default" onclick="add_custom_criterion('or');">OR</button>
+                    <div class="form-inline">
+                        <label for="label_select">Custom label:</label>
+                        <select class="form-control" id="label_select" name="label_select" onchange="update_custom_label();">
+                            <option value="new_label">New label</option>
+                        </select>
                     </div>
-                    <button type="button" class="btn btn-default">Submit</button>
+                    <div id="label_criteria-1" class="label_criteria">
+                        <div class="form-inline">
+                            <label for="label_name">Label name:</label>
+                            <input class="form-control" id="label_name" name="label_name" style="width:200px;">
+                        </div>
+                        <form id="all_criteria_form">
+                            <div id="all_criteria">
+                                <div class="form-row form-inline custom_selection_criterion" id="custom_selection_criterion-1" style="border-width:1px;">
+                                    <input class="form-control" id="selection_and_or-1" name="selection_and_or-1" value="or" style="width:50px;">
+                                    <label for="selection_type-1">Selection type:</label>
+                                    <select class="form-control" id="selection_type-1" name="selection_type-1" onchange="update_custom_criterion(1);">
+                                        <option value="cluster">Cluster</option>
+                                        <!--<option value="gene">Gene</option>-->
+                                        <!-- view to show each cluster's W values --> 
+                                        <!--<option value="read_counts">Read counts</option>-->
+                                        {% for track in color_tracks %}
+                                        <option value="{{ track }}">{{ track }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select class="form-control" id="selection_comparison-1" name="selection_comparison-1">
+                                        <option value="=">=</option>
+                                        <option value="!=">!=</option>
+                                    </select>
+                                    <!-- selection_target could be a cluster id, label, or value.  -->
+                                    <input class="form-control" id="selection_target-1" name="selection_target-1" value="0" style="width:50px;">
+                                    <button type="button" class="btn btn-default" onclick="delete_criterion(1)">Delete</button>
+                                </div>
+                            </div>
+                        </form>
+                        <button type="button" class="btn btn-default" onclick="add_custom_criterion('and');">New criterion - AND</button>
+                        <button type="button" class="btn btn-default" onclick="add_custom_criterion('or');">New criterion - OR</button>
+                    </div>
+                    <button type="button" class="btn btn-default" onclick="submit_label();">Submit</button>
             </div>
 
             <!-- Area containing re-analyze and re-cluster buttons -->
