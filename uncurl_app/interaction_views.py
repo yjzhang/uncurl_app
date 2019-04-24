@@ -1025,7 +1025,8 @@ def load_criteria_from_dict(json_dict):
 @interaction_views.route('/user/<user_id>/view/update_colormap_label_criteria', methods=['POST'])
 def update_colormap_label_criteria(user_id):
     """
-    Updates the criteria for a given label in a given colormap.
+    Updates the criteria for a given label in a given colormap, or just returns the existing
+    label.
 
     Returns a json representation of the new label.
     """

@@ -25,11 +25,19 @@ function add_custom_colormap() {
 };
 
 // set the form to the given list of criteria
-function set_criteria(criteria) {
+function set_criteria(criteria, label_name) {
+    console.log('set_criteria');
+    console.log(criteria);
+    console.log(label_name);
+    $('#label_name').val(label_name);
     var form = $('#all_criteria');
     var criteria_element = $(criterion_template)[0];
     if (criteria.length == 0) {
-        console.log('Error: criteria has length 0 in set_criteria');
+        console.log('Criteria has length 0 in set_criteria');
+        form.empty();
+        var ce1 = criteria_element.cloneNode(true);
+        // TODO: set label name?
+        form.append(ce1);
         return 0;
     }
     form.empty();
@@ -78,24 +86,26 @@ function get_custom_colormap() {
                     select.val(l.name);
                 }
             }
-            select.append('<option value="new_label">New label</option>');
+            select.append('<option value="create_new_label">New label</option>');
             // set criteria to label 1
             if (data.labels.length > 0) {
                 var criteria = data.labels[0].criteria;
-                set_criteria(criteria);
+                var label_name = data.labels[0].name;
+                set_criteria(criteria, label_name);
             } else {
                 // TODO: have some default criteria?
+                set_criteria([], '');
             }
         }
     });
 };
 
-// TODO
+// TODO: this needs to be a json thing
 function delete_custom_label() {
 };
 
-// TODO
 function delete_criterion(criterion_id) {
+    $('#custom_selection_criterion-'+String(criterion_id)).remove();
 };
 
 // add a new criterion for a label
@@ -109,14 +119,13 @@ function add_custom_criterion(and_or) {
     // set selection_and_or-1
     template = template.replace(/\"or\"/g, '"' + and_or + '"');
     template = template.replace(/\"and\"/g, '"' + and_or + '"');
-    console.log(template);
     $('#all_criteria').append(template);
 };
 
 // TODO: submit label updates to server
 function submit_label() {
     var colormap_name = $('#cell-color').val();
-    var selection_val = $('#label_select').val();
+    var label_name = $('#label_name').val();
     var criteria_form = $('#all_criteria_form').serializeArray();
     var criteria_data = {};
     $(criteria_form).each(function(index, obj){
@@ -128,7 +137,7 @@ function submit_label() {
         method: 'POST',
         data: {
             name: colormap_name,
-            label: selection_val,
+            label: label_name,
             criteria: JSON.stringify(criteria_data),
         }
     }).done(function(data) {
@@ -148,11 +157,12 @@ function submit_label() {
 function update_custom_label() {
     var colormap_name = $('#cell-color').val();
     var selection_val = $('#label_select').val();
-    if (selection_val == 'new_label') {
+    if (selection_val == 'create_new_label') {
         var label_name = window.prompt('Name for new label:');
         if (!label_name) {
             return 0;
         }
+        // TODO: create a new option for label name?
         $.ajax({url: window.location.pathname + "/update_colormap_label_criteria",
             method: 'POST',
             data: {
@@ -161,15 +171,18 @@ function update_custom_label() {
             },
         }).done(function(data) {
             if (data.startsWith('Error')) {
+                console.log(data);
             } else {
                 // add label to label_select
                 $('#label_select').append('<option value="'+label_name+'">'+label_name+'</option>');
                 $('#label_select').val(label_name);
                 var label_data = JSON.parse(data);
-                set_criteria(label_data);
+                console.log(label_data);
+                set_criteria(label_data.criteria, label_name);
             }
         });
     } else {
+        var label_name = selection_val;
         // get criteria for label
         $.ajax({url: window.location.pathname + "/update_colormap_label_criteria",
             method: 'POST',
@@ -179,10 +192,11 @@ function update_custom_label() {
             },
         }).done(function(data) {
             if (data.startsWith('Error')) {
+                console.log(data);
             } else {
                 // add label to label_select
                 var label_data = JSON.parse(data);
-                set_criteria(label_data);
+                set_criteria(label_data.criteria, label_name);
             }
         });
     }
@@ -199,14 +213,15 @@ function update_custom_criterion(criterion_id) {
         comparison.append('<option value="!=">!=</option>');
         // create a datalist for all clusters
         if ($('datalist#cluster_datalist').length == 0) {
-            var dl = $('<datalist id="cluster_datalist"></datalist>');
-            var n_clusters = current_scatterplot_data.length;
-            for (var i = 0; i < n_clusters; i++) {
-                dl.append('<option value="'+i+'">');
-            }
-            dl.appendTo('body');
+            //var dl = $('<datalist id="cluster_datalist"></datalist>');
+            // TODO: this doesn't work since the data is...
+            //var n_clusters = current_scatterplot_data.length;
+            //for (var i = 0; i < n_clusters; i++) {
+            //    dl.append('<option value="'+i+'">');
+            //}
+            //dl.appendTo('body');
         }
-        $('#selection_target-'+ criterion_id).attr('datalist', 'cluster_datalist');
+        $('#selection_target-'+ criterion_id).attr('list', 'cluster_datalist');
     } else if (selection_type == 'gene') {
         // TODO: create a gene input
         comparison.append('<option value=">=">greater than</option>');
@@ -219,20 +234,15 @@ function update_custom_criterion(criterion_id) {
         comparison.append('<option value="!=">!=</option>');
         // create a datalist for the custom label set
         if ($('datalist#'+selection_type).length == 0) {
-            var options = get_colormap_values(selection_type);
-            var dl = $('<datalist id="'+selection_type+'"></datalist>');
-            for (var i = 0; i < options.length; i++) {
-                dl.append('<option value="'+options[i]+'">');
-            }
-            dl.appendTo('body');
+            get_colormap_values(selection_type);
         }
-        $('#selection_target-'+ criterion_id).attr('datalist', selection_type);
+        $('#selection_target-'+ criterion_id).attr('list', selection_type);
     }
 };
 
 // gets available options for the colormap
 function get_colormap_values(colormap) {
-    var output = {};
+    var output = [];
     $.ajax({url: window.location.pathname + "/get_colormap_values",
         method: 'POST',
         data: {
@@ -245,8 +255,12 @@ function get_colormap_values(colormap) {
         } else {
             output = JSON.parse(data);
             console.log(output);
+            var dl = $('<datalist id="'+colormap+'"></datalist>');
+            console.log('datalist length: ' + output.length);
+            for (var i = 0; i < output.length; i++) {
+                dl.append('<option value="'+output[i]+'">');
+            }
+            dl.appendTo('body');
         }
     });
-    console.log(output);
-    return output;
 };
