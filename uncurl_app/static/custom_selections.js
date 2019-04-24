@@ -1,8 +1,10 @@
-
-
+//
 // add a new custom colormap
 function add_custom_colormap() {
     var colormap_name = window.prompt('Enter name of colormap', '');
+    if (!colormap_name) {
+        return 0;
+    }
     $.ajax({url: window.location.pathname + "/custom_color_map",
         method: 'POST',
         data: {
@@ -25,7 +27,7 @@ function add_custom_colormap() {
 // set the form to the given list of criteria
 function set_criteria(criteria) {
     var form = $('#all_criteria');
-    var criteria_element = document.getElementById('custom_selection_criterion-1').cloneNode(true);
+    var criteria_element = $(criterion_template)[0];
     if (criteria.length == 0) {
         console.log('Error: criteria has length 0 in set_criteria');
         return 0;
@@ -33,16 +35,18 @@ function set_criteria(criteria) {
     form.empty();
     for (var i = 0; i < criteria.length; i++) {
         var c = criteria[i];
-        $(criteria_element).find('#selection_type-1').val(c.selection_type);
-        $(criteria_element).find('#selection_comparison-1').val(c.comparison);
-        $(criteria_element).find('#selection_target-1').val(c.target);
-        var template = criteria_element.outerHTML;
-        template.replace(/-1\"/g, '-'+String(i+1)+'"');
-        template.replace(/\(1\)/g, '('+String(i+1)+')');
+        console.log(c);
+        var ce1 = criteria_element.cloneNode(true);
+        $(ce1).find('#selection_type-1 option[value='+c.selection_type+']').attr('selected', 'selected');
+        $(ce1).find('#selection_comparison-1 option[value=\\' + c.comparison +']').attr('selected', 'selected');
+        $(ce1).find('#selection_target-1').attr('value', c.target);
+        var template = ce1.outerHTML;
+        template = template.replace(/-1\"/g, '-'+String(i+1)+'"');
+        template = template.replace(/\(1\)/g, '('+String(i+1)+')');
         // set selection_and_or-1
         if (i > 0) {
-            template.replace(/\"or\"/g, '"' + c.and_or + '"');
-            template.replace(/\"and\"/g, '"' + c.and_or + '"');
+            template = template.replace(/\"or\"/g, '"' + c.and_or + '"');
+            template = template.replace(/\"and\"/g, '"' + c.and_or + '"');
         }
         form.append(template);
     }
@@ -76,8 +80,12 @@ function get_custom_colormap() {
             }
             select.append('<option value="new_label">New label</option>');
             // set criteria to label 1
-            var criteria = data.labels[0].criteria;
-            set_criteria(criteria);
+            if (data.labels.length > 0) {
+                var criteria = data.labels[0].criteria;
+                set_criteria(criteria);
+            } else {
+                // TODO: have some default criteria?
+            }
         }
     });
 };
@@ -96,11 +104,12 @@ function add_custom_criterion(and_or) {
     var num_criteria = $('.custom_selection_criterion').length;
     var id = num_criteria + 1;
     var template = $('#custom_selection_criterion-1')[0].outerHTML;
-    template.replace(/-1\"/g, '-'+id+'"');
-    template.replace(/\(1\)/g, '('+id+')');
+    template = template.replace(/-1\"/g, '-'+id+'"');
+    template = template.replace(/\(1\)/g, '('+id+')');
     // set selection_and_or-1
-    template.replace(/\"or\"/g, '"' + and_or + '"');
-    template.replace(/\"and\"/g, '"' + and_or + '"');
+    template = template.replace(/\"or\"/g, '"' + and_or + '"');
+    template = template.replace(/\"and\"/g, '"' + and_or + '"');
+    console.log(template);
     $('#all_criteria').append(template);
 };
 
@@ -141,6 +150,9 @@ function update_custom_label() {
     var selection_val = $('#label_select').val();
     if (selection_val == 'new_label') {
         var label_name = window.prompt('Name for new label:');
+        if (!label_name) {
+            return 0;
+        }
         $.ajax({url: window.location.pathname + "/update_colormap_label_criteria",
             method: 'POST',
             data: {

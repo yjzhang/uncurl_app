@@ -14,6 +14,9 @@ var all_selected_clusters = [];
 var current_selected_cells = [];
 var currently_merging = false;
 
+// criterion_template is used in custom_selections.js
+var criterion_template = '';
+
 // use jquery for ajax calls
 
 function bind_click() {
@@ -529,5 +532,7 @@ window.onload = function() {
         // subset clusters
         subset_cells(false);
     });
+
+    criterion_template = document.getElementById('custom_selection_criterion-1').outerHTML;
 };
 
