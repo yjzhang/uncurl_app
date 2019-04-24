@@ -160,6 +160,7 @@
                                         <!--<option value="gene">Gene</option>-->
                                         <!-- view to show each cluster's W values --> 
                                         <!--<option value="read_counts">Read counts</option>-->
+                                        <!-- TODO: a color track should not include itself...-->
                                         {% for track in color_tracks %}
                                         <option value="{{ track }}">{{ track }}</option>
                                         {% endfor %}

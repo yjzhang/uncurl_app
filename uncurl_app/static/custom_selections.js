@@ -48,6 +48,7 @@ function set_criteria(criteria, label_name) {
         $(ce1).find('#selection_type-1 option[value='+c.selection_type+']').attr('selected', 'selected');
         $(ce1).find('#selection_comparison-1 option[value=\\' + c.comparison +']').attr('selected', 'selected');
         $(ce1).find('#selection_target-1').attr('value', c.target);
+        $(ce1).find('#selection_target-1').attr('list', c.selection_type);
         var template = ce1.outerHTML;
         template = template.replace(/-1\"/g, '-'+String(i+1)+'"');
         template = template.replace(/\(1\)/g, '('+String(i+1)+')');
@@ -212,7 +213,7 @@ function update_custom_criterion(criterion_id) {
         comparison.append('<option value="=">=</option>');
         comparison.append('<option value="!=">!=</option>');
         // create a datalist for all clusters
-        if ($('datalist#cluster_datalist').length == 0) {
+        if ($('datalist#cluster').length == 0) {
             //var dl = $('<datalist id="cluster_datalist"></datalist>');
             // TODO: this doesn't work since the data is...
             //var n_clusters = current_scatterplot_data.length;
@@ -221,7 +222,7 @@ function update_custom_criterion(criterion_id) {
             //}
             //dl.appendTo('body');
         }
-        $('#selection_target-'+ criterion_id).attr('list', 'cluster_datalist');
+        $('#selection_target-'+ criterion_id).attr('list', 'cluster');
     } else if (selection_type == 'gene') {
         // TODO: create a gene input
         comparison.append('<option value=">=">greater than</option>');
