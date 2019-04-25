@@ -29,6 +29,13 @@ function set_criteria(criteria, label_name) {
     console.log('set_criteria');
     console.log(criteria);
     console.log(label_name);
+    // TODO: if label_name is not an option in label_select, add it.
+    var selection = $('#label_select option[value=\"'+label_name+'\"]');
+    if (selection.length == 0) {
+        // add label to selection
+        $('#label_select').append('<option value="'+label_name+'">');
+    }
+    $('#label_select').val(label_name);
     $('#label_name').val(label_name);
     var form = $('#all_criteria');
     var criteria_element = $(criterion_template)[0];
@@ -148,6 +155,8 @@ function submit_label() {
             return false;
         } else {
             // TODO: clear scatterplots cache, update scatterplot
+            var label_data = JSON.parse(data);
+            set_criteria(label_data.criteria, label_name);
             cache.scatterplots = {};
             update_scatterplot();
         }
@@ -185,7 +194,7 @@ function update_custom_label() {
     } else {
         var label_name = selection_val;
         // get criteria for label
-        $.ajax({url: window.location.pathname + "/update_colormap_label_criteria",
+        $.ajax({url: window.location.pathname + "/get_colormap_label_criteria",
             method: 'POST',
             data: {
                 name: colormap_name,

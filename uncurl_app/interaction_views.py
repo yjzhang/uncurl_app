@@ -976,8 +976,13 @@ def get_colormap_label_criteria(user_id):
     try:
         name = data_form['name']
         sca = get_sca(user_id)
+        results = sca.custom_selections[name];
+        if 'label' in data_form:
+            label_name = data_form['label']
+            for label in results.labels:
+                if label.name == label_name:
+                    return custom_cell_selection.create_json(label)
         if name in sca.custom_selections:
-            results = sca.custom_selections[name];
             return custom_cell_selection.create_json(results)
         else:
             return 'Error: name not in custom selections'
@@ -1006,7 +1011,6 @@ def load_criteria_from_dict(json_dict):
     """
     Returns a list of LabelCriterion objects given a dict loaded from json...
     """
-    # TODO: 
     current_id = 1
     has_id = True
     all_criteria = []
@@ -1030,16 +1034,18 @@ def update_colormap_label_criteria(user_id):
 
     Returns a json representation of the new label.
     """
-    # TODO
     data_form = request.form.copy()
     print(data_form)
     sca = get_sca(user_id)
     colormap_name = data_form['name']
     label_name = data_form['label']
     if 'criteria' in data_form:
-        # TODO: need to load criteria from json
+        # load criteria from json
         criteria = load_criteria_from_dict(json.loads(data_form['criteria']))
         sca.update_custom_color_track_label(colormap_name, label_name, criteria)
+        # clear cache for scatterplot results
+        cache.delete_memoized(update_barplot_result)
+        cache.delete_memoized(update_scatterplot_result)
     else:
         sca.update_custom_color_track_label(colormap_name, label_name)
     colormap = sca.custom_selections[colormap_name]

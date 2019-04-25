@@ -63,6 +63,8 @@ class UncurlFrontendTest(LiveServerTestCase):
         time.sleep(60)
         # initial processing be completed by now
         print(self.driver.current_url)
+        # TODO: refresh page
+        self.driver.refresh()
         self.assertTrue('view' in self.driver.current_url)
         # testing scatterplot options
         self.driver.find_element_by_id('visualization')
@@ -165,6 +167,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         time.sleep(60)
         # should be completed by now
         print(self.driver.current_url)
+        self.driver.refresh()
         self.assertTrue('view' in self.driver.current_url)
         self.driver.find_element_by_id('visualization')
         self.driver.find_element_by_id('means-scatter-plot')
