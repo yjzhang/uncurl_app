@@ -1044,8 +1044,11 @@ def update_colormap_label_criteria(user_id):
         criteria = load_criteria_from_dict(json.loads(data_form['criteria']))
         sca.update_custom_color_track_label(colormap_name, label_name, criteria)
         # clear cache for scatterplot results
+        print('deleting cached results...')
         cache.delete_memoized(update_barplot_result)
         cache.delete_memoized(update_scatterplot_result)
+        cache.delete_memoized(get_sca_color_track)
+        cache.delete_memoized(get_sca_top_genes_custom)
     else:
         sca.update_custom_color_track_label(colormap_name, label_name)
     colormap = sca.custom_selections[colormap_name]
