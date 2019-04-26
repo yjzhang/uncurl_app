@@ -154,7 +154,7 @@ function submit_label() {
             $("#update-area").append(data);
             return false;
         } else {
-            // TODO: clear scatterplots cache, update scatterplot
+            // clear scatterplots cache, update scatterplot
             var label_data = JSON.parse(data);
             set_criteria(label_data.criteria, label_name);
             cache.scatterplots = {};
