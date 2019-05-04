@@ -238,6 +238,7 @@ function bind_select() {
 
 // handler for scatterplot selection events
 function on_select(data) {
+    console.log('on_select');
     if (!data) {
         return false;
     }

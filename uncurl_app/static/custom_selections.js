@@ -240,7 +240,7 @@ function update_custom_criterion(criterion_id) {
         comparison.append('<option value=">=">greater than</option>');
         comparison.append('<option value="!=">less than</option>');
     } else if (selection_type == 'selection') {
-        comparison.empty();
+        comparison.append('<option value="=">=</option>');
         //$('#selection_target-'+criterion_id).attr('disabled', 'disabled');
         $('#selection_target-'+criterion_id).val(String(current_selected_cells));
     } else { // custom label
@@ -257,10 +257,11 @@ function update_custom_criterion(criterion_id) {
 // for all criteria, if selection_type is 'selection', then the selection_target
 // is set to the current selected cells.
 function set_selection_target_to_selected_cells() {
+    console.log('set_selection_target_to_selected_cells');
     var num_criteria = $('.custom_selection_criterion').length;
-    for (var i = 0; i < num_criteria; i++) {
+    for (var i = 1; i <= num_criteria; i++) {
         var selection_type = $('#selection_type-'+ i).val();
-        if (i == 'selection') {
+        if (selection_type == 'selection') {
             $('#selection_target-'+i).val(String(current_selected_cells));
         }
     }
