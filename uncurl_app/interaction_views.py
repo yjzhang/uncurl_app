@@ -492,7 +492,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         input_label = color_map[input_value]
         if len(selected_gene.strip()) > 0:
             top_genes = selected_diffexp[input_label]
-            selected_top_genes = [x for x in top_genes if gene_names[x[0]] in set(selected_gene_names)]
+            selected_top_genes = [x for x in top_genes if gene_names[int(x[0])] in set(selected_gene_names)]
         else:
             selected_top_genes = selected_diffexp[input_label][:num_genes]
         selected_gene_names = [gene_names[int(x[0])] for x in selected_top_genes]
@@ -553,7 +553,10 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                 genes, values = array_to_top_genes(selected_pvals, cluster1, cluster2, is_pvals=True, num_genes=num_genes)
                 desc = 'p-values of ratios'
             if len(selected_gene.strip()) > 0:
-                genes, values = array_to_top_genes(data, cluster1, cluster2, is_pvals=(top_or_bulk=='top_pairwise'), num_genes=1000000)
+                if top_or_bulk == 'top_pairwise':
+                    genes, values = array_to_top_genes(selected_diffexp, cluster1, cluster2, is_pvals=(top_or_bulk=='top_pairwise'), num_genes=1000000)
+                else:
+                    genes, values = array_to_top_genes(selected_pvals, cluster1, cluster2, is_pvals=(top_or_bulk=='top_pairwise'), num_genes=1000000)
                 gene_data = list(zip(genes, values))
                 gene_data = [x for x in gene_data if gene_names[x[0]] in set(selected_gene_names)]
             else:
