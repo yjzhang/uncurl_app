@@ -108,7 +108,7 @@ function get_custom_colormap() {
     });
 };
 
-// TODO: this needs to be a json thing
+// TODO: this needs to submit a query to the server
 function delete_custom_label() {
 };
 
@@ -130,7 +130,7 @@ function add_custom_criterion(and_or) {
     $('#all_criteria').append(template);
 };
 
-// TODO: submit label updates to server
+// submit label updates to server
 function submit_label() {
     var colormap_name = $('#cell-color').val();
     var label_name = $('#label_name').val();
@@ -239,6 +239,10 @@ function update_custom_criterion(criterion_id) {
     } else if (selection_type == 'read_counts') {
         comparison.append('<option value=">=">greater than</option>');
         comparison.append('<option value="!=">less than</option>');
+    } else if (selection_type == 'selection') {
+        comparison.empty();
+        //$('#selection_target-'+criterion_id).attr('disabled', 'disabled');
+        $('#selection_target-'+criterion_id).val(String(current_selected_cells));
     } else { // custom label
         comparison.append('<option value="=">=</option>');
         comparison.append('<option value="!=">!=</option>');
@@ -247,6 +251,18 @@ function update_custom_criterion(criterion_id) {
             get_colormap_values(selection_type);
         }
         $('#selection_target-'+ criterion_id).attr('list', selection_type);
+    }
+};
+
+// for all criteria, if selection_type is 'selection', then the selection_target
+// is set to the current selected cells.
+function set_selection_target_to_selected_cells() {
+    var num_criteria = $('.custom_selection_criterion').length;
+    for (var i = 0; i < num_criteria; i++) {
+        var selection_type = $('#selection_type-'+ i).val();
+        if (i == 'selection') {
+            $('#selection_target-'+i).val(String(current_selected_cells));
+        }
     }
 };
 

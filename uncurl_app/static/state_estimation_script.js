@@ -263,6 +263,8 @@ function on_select(data) {
     $("#update-area").empty();
     $("#update-area").append("selected clusters: " + selection_string + "<br>");
     $("#update-area").append("Number of selected cells: " + current_selected_cells.length);
+    // TODO: update custom criteria cell selection
+    set_selection_target_to_selected_cells();
 };
 
 // Gets basic cell info - read counts and gene counts
