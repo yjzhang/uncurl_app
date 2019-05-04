@@ -157,7 +157,7 @@
                                     <label for="selection_type-1">Selection type:</label>
                                     <select class="form-control" id="selection_type-1" name="selection_type-1" onchange="update_custom_criterion(1);">
                                         <option value="cluster">Cluster</option>
-                                        <!--<option value="selection">Selection</option>-->
+                                        <option value="selection">Selection</option>
                                         <!-- view to show each cluster's W values --> 
                                         <!--<option value="read_counts">Read counts</option>-->
                                         <!-- TODO: a color track should not include itself...-->
@@ -170,7 +170,7 @@
                                         <option value="!=">!=</option>
                                     </select>
                                     <!-- selection_target could be a cluster id, label, or value.  -->
-                                    <input class="form-control" id="selection_target-1" name="selection_target-1" value="0" style="width:50px;">
+                                    <input class="form-control" id="selection_target-1" name="selection_target-1" value="0" style="width:100px;">
                                     <button type="button" class="btn btn-default" onclick="delete_criterion(1)">Delete</button>
                                 </div>
                             </div>
@@ -236,11 +236,11 @@
                 </select>
             </div>
 
-            <div style="display:none;" id="barplot_gene_select_view" class="form-inline align-items-center">
+            <div style="display:block;" id="barplot_gene_select_view" class="form-inline align-items-center">
                 <!--  this contains an interface to select a gene for comparing the selected cluster vs all. -->
-                <label for="barplot_gene_select">Gene:</label>
+                <label for="barplot_gene_select">Genes of interest (optional):</label>
                 <input list="gene_names" id="barplot_gene_select" class="form-control" style="width: 200px;">
-                <button type="button" class="btn btn-default" id="barplot_gene_submit" onclick="update_barplot(0);">Submit</button>
+                <button type="button" class="btn btn-default" id="barplot_gene_submit" onclick="update_barplot(currently_selected_cluster);">Submit</button>
             </div>
 
             <div style="margin-top: 4; margin-bottom: 0; width: 300px;" class="form-inline align-items-center">

@@ -115,9 +115,9 @@ def barplot_data(gene_values, gene_names, cluster_name, x_label,
     Plotly.
 
     Args:
-        selected_top_genes (list): list of tuples (gene_id, gene_value)
-        selected_gene_names (list): list of gene names corresponding to
-            the genes in selected_top_genes.
+        gene_values (list): list of tuples (gene_id, gene_value)
+        gene_names (list): list of gene names corresponding to
+            the genes in gene_values.
         cluster_name: name of the cluster from which the top genes are drawn.
         x_label: label for the x-axis.
         title: plot title
@@ -417,11 +417,21 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         num_genes (int): number of genes to include
         data_form (dict): copy of request.form
     """
-
     sca = get_sca(user_id)
+    selected_gene = ''
+    gene_names = get_sca_gene_names(user_id)
+    if 'selected_gene' in data_form:
+        selected_gene = data_form['selected_gene']
+    if len(selected_gene.strip()) > 0:
+        gns = set(gene_names)
+        selected_gene_names = [x.strip(', ') for x in selected_gene.split()]
+        selected_gene_names = [x for x in selected_gene_names if x in gns]
     if top_or_bulk == 'top':
-        selected_top_genes = get_sca_top_genes(user_id)[int(input_value)][:num_genes]
-        gene_names = get_sca_gene_names(user_id)
+        if len(selected_gene.strip()) > 0:
+            top_genes = get_sca_top_genes(user_id)[int(input_value)]
+            selected_top_genes = [x for x in top_genes if gene_names[x[0]] in set(selected_gene_names)]
+        else:
+            selected_top_genes = get_sca_top_genes(user_id)[int(input_value)][:num_genes]
         selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
         return barplot_data(selected_top_genes,
                 selected_gene_names, input_value,
@@ -429,8 +439,11 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                 title='Top genes for cluster {0}'.format(input_value),
                 )
     elif top_or_bulk == 'pval':
-        selected_top_genes = get_sca_pvals(user_id)[input_value][:num_genes]
-        gene_names = get_sca_gene_names(user_id)
+        if len(selected_gene.strip()) > 0:
+            top_genes = get_sca_pvals(user_id)[int(input_value)]
+            selected_top_genes = [x for x in top_genes if gene_names[x[0]] in set(selected_gene_names)]
+        else:
+            selected_top_genes = get_sca_pvals(user_id)[input_value][:num_genes]
         selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
         return barplot_data(selected_top_genes,
                 selected_gene_names, input_value,
@@ -448,17 +461,23 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                 x_label='separation score',
                 title='Inter-cluster separations for cluster {0}'.format(input_value))
     elif top_or_bulk == 'top_1_vs_rest':
-        selected_top_genes = get_sca_top_1vr(user_id)[int(input_value)][:num_genes]
-        gene_names = get_sca_gene_names(user_id)
+        if len(selected_gene.strip()) > 0:
+            top_genes = get_sca_top_1vr(user_id)[int(input_value)]
+            selected_top_genes = [x for x in top_genes if gene_names[x[0]] in set(selected_gene_names)]
+        else:
+            selected_top_genes = get_sca_top_1vr(user_id)[int(input_value)][:num_genes]
         selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
         return barplot_data(selected_top_genes,
                 selected_gene_names, input_value,
                 title='Top genes for cluster {0}'.format(input_value),
                 x_label='Fold change (1 vs rest)')
     elif top_or_bulk == 'pval_1_vs_rest':
-        selected_top_genes = get_sca_pval_1vr(user_id)[input_value][:num_genes]
-        gene_names = get_sca_gene_names(user_id)
-        selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
+        if len(selected_gene.strip()) > 0:
+            top_genes = get_sca_pval_1vr(user_id)[input_value]
+            selected_top_genes = [x for x in top_genes if gene_names[x[0]] in set(selected_gene_names)]
+        else:
+            selected_top_genes = get_sca_pval_1vr(user_id)[input_value][:num_genes]
+            selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
         return barplot_data(selected_top_genes,
                 selected_gene_names, input_value,
                 title='Top genes for cluster {0}'.format(input_value),
@@ -471,8 +490,11 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         selected_diffexp, selected_pvals = get_sca_top_genes_custom(user_id, colormap)
         _, color_map = color_track_map(color_track)
         input_label = color_map[input_value]
-        selected_top_genes = selected_diffexp[input_label][:num_genes]
-        gene_names = get_sca_gene_names(user_id)
+        if len(selected_gene.strip()) > 0:
+            top_genes = selected_diffexp[input_value]
+            selected_top_genes = [x for x in top_genes if gene_names[x[0]] in set(selected_gene_names)]
+        else:
+            selected_top_genes = selected_diffexp[input_label][:num_genes]
         selected_gene_names = [gene_names[int(x[0])] for x in selected_top_genes]
         return barplot_data(selected_top_genes,
                 selected_gene_names, input_label,
@@ -506,9 +528,13 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                 genes, values = array_to_top_genes(data, cluster1, cluster2, is_pvals=True, num_genes=num_genes)
                 desc = 'p-values of ratios'
             # generate barplot
-            gene_names = get_sca_gene_names(user_id)
-            selected_gene_names = [gene_names[x] for x in genes]
-            gene_data = list(zip(genes, values))
+            if len(selected_gene.strip()) > 0:
+                genes, values = array_to_top_genes(data, cluster1, cluster2, is_pvals=(top_or_bulk=='top_pairwise'), num_genes=1000000)
+                gene_data = list(zip(genes, values))
+                gene_data = [x for x in gene_data if gene_names[x[0]] in set(selected_gene_names)]
+            else:
+                gene_data = list(zip(genes, values))
+            selected_gene_names = [gene_names[x[0]] for x in gene_data]
             return barplot_data(gene_data,
                     selected_gene_names, None,
                     title='Top genes for cluster {0} vs cluster {1}'.format(cluster1, cluster2),
@@ -526,9 +552,13 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
             else:
                 genes, values = array_to_top_genes(selected_pvals, cluster1, cluster2, is_pvals=True, num_genes=num_genes)
                 desc = 'p-values of ratios'
-            gene_names = get_sca_gene_names(user_id)
-            selected_gene_names = [gene_names[x] for x in genes]
-            gene_data = list(zip(genes, values))
+            if len(selected_gene.strip()) > 0:
+                genes, values = array_to_top_genes(data, cluster1, cluster2, is_pvals=(top_or_bulk=='top_pairwise'), num_genes=1000000)
+                gene_data = list(zip(genes, values))
+                gene_data = [x for x in gene_data if gene_names[x[0]] in set(selected_gene_names)]
+            else:
+                gene_data = list(zip(genes, values))
+            selected_gene_names = [gene_names[x[0]] for x in gene_data]
             return barplot_data(gene_data,
                     selected_gene_names, None,
                     title='Top genes for label {0} vs label {1}'.format(index_to_color[cluster1], index_to_color[cluster2]),

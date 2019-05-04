@@ -483,7 +483,6 @@ window.onload = function() {
         var option = $('#top-or-bulk').val();
         // if the selected option has "pairwise":
         if (option.includes('pairwise')) {
-            $('#barplot_gene_select_view').css('display', 'none');
             $('#barplot-cluster-select-view').css('display', 'block');
             // set the select values for the current color scheme...
             var select_1 = $('#barplot_cluster_select_1');
@@ -501,9 +500,7 @@ window.onload = function() {
         } else {
             $('#barplot-cluster-select-view').css('display', 'none');
             if (option == "hist") {
-                $('#barplot_gene_select_view').css('display', 'block');
             } else {
-                $('#barplot_gene_select_view').css('display', 'none');
                 update_barplot(currently_selected_cluster);
             }
         }

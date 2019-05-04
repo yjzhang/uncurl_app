@@ -172,7 +172,7 @@ function update_custom_label() {
         if (!label_name) {
             return 0;
         }
-        // TODO: create a new option for label name?
+        // create a new option for label name
         $.ajax({url: window.location.pathname + "/update_colormap_label_criteria",
             method: 'POST',
             data: {

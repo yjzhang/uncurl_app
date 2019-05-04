@@ -28,6 +28,8 @@ class UncurlAppTest(unittest.TestCase):
         self.assertEqual(se_results.status, '200 OK')
         data_results = self.app.get('/data')
         self.assertEqual(data_results.status, '200 OK')
+        help_results = self.app.get('/help')
+        self.assertEqual(help_results.status, '200 OK')
         print(index)
         print(se_results)
 
@@ -67,6 +69,46 @@ class UncurlAppTest(unittest.TestCase):
         self.assertTrue('layout' in barplot_data)
         self.assertTrue(len(barplot_data['data'][0]['x']) == 15)
         self.assertTrue(len(barplot_data['data'][0]['y']) == 15)
+        # test pairwise
+        barplot = self.app.post('/user/test_10x_400_new/view/update_barplot',
+                data={'top_or_bulk': 'top_pairwise',
+                      'cluster1': 0,
+                      'cluster2': 1,
+                      'cell_color': 'cluster',
+                      'input_value': 4,
+                      'num_genes': 15})
+        self.assertEqual(barplot.status, '200 OK')
+        barplot_data = json.loads(barplot.data.decode('utf-8'))
+        self.assertTrue('data' in barplot_data)
+        self.assertTrue('layout' in barplot_data)
+        self.assertTrue(len(barplot_data['data'][0]['x']) == 15)
+        self.assertTrue(len(barplot_data['data'][0]['y']) == 15)
+        barplot = self.app.post('/user/test_10x_400_new/view/update_barplot',
+                data={'top_or_bulk': 'pval_pairwise',
+                      'cluster1': 2,
+                      'cluster2': 4,
+                      'cell_color': 'cluster',
+                      'input_value': 4,
+                      'num_genes': 25})
+        self.assertEqual(barplot.status, '200 OK')
+        barplot_data = json.loads(barplot.data.decode('utf-8'))
+        self.assertTrue('data' in barplot_data)
+        self.assertTrue('layout' in barplot_data)
+        self.assertTrue(len(barplot_data['data'][0]['x']) == 25)
+        self.assertTrue(len(barplot_data['data'][0]['y']) == 25)
+        # test having a gene subset
+        barplot = self.app.post('/user/test_10x_400_new/view/update_barplot',
+                data={'top_or_bulk': 'top',
+                      'input_value': 4,
+                      'selected_gene': 'CD8B, REST, CD8A, CD34',
+                      'num_genes': 10})
+        self.assertEqual(barplot.status, '200 OK')
+        barplot_data = json.loads(barplot.data.decode('utf-8'))
+        self.assertTrue('data' in barplot_data)
+        self.assertTrue('layout' in barplot_data)
+        self.assertEqual(len(barplot_data['data'][0]['x']), 4)
+        self.assertEqual(len(barplot_data['data'][0]['y']), 4)
+        # test uploaded color map
 
 
 
@@ -120,6 +162,7 @@ class UncurlAppTest(unittest.TestCase):
         self.assertTrue('data' in scatterplot_data)
         self.assertTrue('layout' in scatterplot_data)
         self.assertTrue(len(scatterplot_data['data']) == 8)
+        # TODO: test other options
 
 
     def test_helper_functions(self):

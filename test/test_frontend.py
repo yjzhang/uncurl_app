@@ -200,6 +200,11 @@ class UncurlFrontendTest(LiveServerTestCase):
         select.select_by_value('cellmarker')
         self.driver.find_element_by_id('cellmarker-submit').click()
         time.sleep(1)
+        # test cellmesh
+        select = Select(self.driver.find_element_by_id('database-select'))
+        select.select_by_value('cellmesh')
+        self.driver.find_element_by_id('cellmesh-submit').click()
+        time.sleep(1)
         # test mw
         select = Select(self.driver.find_element_by_id('cell-color'))
         select.select_by_value('gene')
@@ -208,6 +213,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         select.select_by_value('1')
         self.driver.find_element_by_id('gene_name_submit').click()
         time.sleep(1)
+        # TODO: test some custom color map options
         # TODO - this test is not currently working
         self.driver.execute_script('window.current_selected_cells = [' + ','.join("'" + str(x) + "'" for x in range(50)) + '];')
         self.driver.find_element_by_id('reanalyze').click()
