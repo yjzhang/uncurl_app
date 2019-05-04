@@ -491,7 +491,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         _, color_map = color_track_map(color_track)
         input_label = color_map[input_value]
         if len(selected_gene.strip()) > 0:
-            top_genes = selected_diffexp[input_value]
+            top_genes = selected_diffexp[input_label]
             selected_top_genes = [x for x in top_genes if gene_names[x[0]] in set(selected_gene_names)]
         else:
             selected_top_genes = selected_diffexp[input_label][:num_genes]
