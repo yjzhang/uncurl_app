@@ -112,9 +112,9 @@ def state_estimation_start(user_id):
     containing all parameters used in state estimation.
     """
     path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
-    gene_names = os.path.join(path, 'gene_names.txt')
-    if not os.path.exists(gene_names):
-        gene_names = None
+    gene_names_file = os.path.join(path, 'gene_names.txt')
+    if not os.path.exists(gene_names_file):
+        gene_names_file = None
     # TODO: deal with init here - make note if it's qualitative or
     # quantitative
     # run qualNorm???
@@ -129,7 +129,7 @@ def state_estimation_start(user_id):
     # params.json contains all input parameters to the state estimation, as well as all stats from preprocess.json.
     with open(os.path.join(path, 'params.json'), 'w') as f:
         json.dump(preprocess, f)
-    P = Process(target=state_estimation_thread, args=(user_id, gene_names, init_path, path, preprocess, current_app.config.copy()))
+    P = Process(target=state_estimation_thread, args=(user_id, gene_names_file, init_path, path, preprocess, current_app.config.copy()))
     P.start()
     return redirect(url_for('views.state_estimation_result', user_id=user_id))
 
@@ -282,29 +282,29 @@ def state_estimation_thread(user_id, gene_names=None, init_path=None, path=None,
     if dist_type == 'Poisson':
         uncurl_args['write_progress_file'] = os.path.join(path, 'progress.txt')
     uncurl_args['dist'] = dist_type
-    k = int(preprocess['k'])
-    vismethod = preprocess['vismethod']
+    clusters = int(preprocess['clusters'])
+    dim_red = preprocess['dim_red']
     gene_frac = float(preprocess['genes_frac'])
     min_reads = int(preprocess['min_reads'])
     max_reads = int(preprocess['max_reads'])
     cell_frac = float(preprocess['cell_frac'])
     if 'normalize' in preprocess:
         normalize = True
-    baseline_vismethod = preprocess['baseline_vismethod']
+    baseline_dim_red = preprocess['baseline_dim_red']
     # TODO: deal with init
     if init_path is not None:
         pass
     # TODO: save params as json instead of having to pass them...
     # actually save params.json and pass params lol
-    generate_uncurl_analysis(data, path, clusters=k, gene_names=gene_names,
+    generate_uncurl_analysis(data, path, clusters=clusters, gene_names=gene_names,
             gene_sub=True,
-            dim_red_option=vismethod,
+            dim_red_option=dim_red,
             min_reads=min_reads,
             max_reads=max_reads,
             frac=gene_frac,
             cell_frac=cell_frac,
             normalize=normalize,
-            baseline_dim_red=baseline_vismethod,
+            baseline_dim_red=baseline_dim_red,
             **uncurl_args)
 
 

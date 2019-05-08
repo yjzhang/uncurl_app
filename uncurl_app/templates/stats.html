@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+{{super()}}
+<!-- TODO: parameterize the version number -->
+<link
+href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.13.min.css"
+rel="stylesheet" type="text/css">
+<link
+href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.13.min.css"
+rel="stylesheet" type="text/css">
+
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-0.12.13.min.js"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-api-0.12.13.min.js"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.13.min.js"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.13.min.js"></script>
+
+<script>
+window.onload = function() {
+      $('[data-toggle="tooltip"]').tooltip()
+};
+</script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='state_estimation_style.css') }}" type="text/css"/>
+{% endblock %}
+
+{% block content %}
+
+<h3>Stats for {{ user_id }}</h3>
+
+
+<!-- TODO: for the stats page, display everything in params.json, along with the stuff... -->
+<div class="container container-main">
+    <div>Number of cells: {{ params['cells'] }}</div>
+    <div>Number of genes: {{ params['genes'] }}</div>
+
+    {{ visualization }}
+
+    <table>
+        <tr><th>Param</th><th>Value</th></tr>
+        {% for key, value in params.items() %}
+        <tr><td>{{ key }}</td><td>{{ value }}</td></tr>
+        {% endfor %}
+    </table>
+
+    <p><a href="/user/{{ user_id }}/view">Back to results</a></p>
+</div>
+
+{% endblock %}

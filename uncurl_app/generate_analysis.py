@@ -83,7 +83,6 @@ def generate_uncurl_analysis(data, output_dir,
     except Exception as e:
         import traceback
         text = traceback.format_exc()
-        # TODO
         with open(os.path.join(output_dir, 'error.txt'), 'w') as f:
             f.write(text)
         return
@@ -122,10 +121,10 @@ def get_progress(path):
     with open(os.path.join(path, 'params.json')) as f:
         preproc = json.load(f)
     genes = int(preproc['genes'])
-    frac = float(preproc['frac'])
+    frac = float(preproc['genes_frac'])
     cell_frac = float(preproc['cell_frac'])
     cells = int(preproc['cells'])
-    k = int(preproc['k'])
+    k = int(preproc['clusters'])
     # if k is automatically selected, just guess 15 for now...
     if k == 0:
         k = 15

@@ -80,7 +80,7 @@ class Summary(object):
         top_05 = int(self.cells/20) # 5%
         preproc_params = {'min_reads': int(self.sorted_read_counts[top_05]),
                           'max_reads': int(self.sorted_read_counts[-top_05]),
-                          'frac': 0.2,
+                          'genes_frac': 0.2,
                           'nbins': 5,
                           'cell_frac': cell_frac,
                           'cells': self.cells,

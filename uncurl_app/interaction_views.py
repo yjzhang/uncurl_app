@@ -100,6 +100,9 @@ def array_to_top_genes(data_array, cluster1, cluster2, is_pvals=False, num_genes
     return genes, values
 
 def user_id_to_path(user_id):
+    """
+    Given a user id, returns the path to the analysis object's base directory.
+    """
     if user_id.startswith('test_'):
         user_id = user_id[5:]
         path = os.path.join(current_app.config['TEST_DATA_DIR'], user_id)
@@ -344,7 +347,7 @@ def data_stats(user_id):
     Returns html view showing data stats
     """
     from flask import Markup
-    path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
+    path = user_id_to_path(user_id)
     try:
         with open(os.path.join(path, 'params.json')) as f:
             params = json.load(f)
@@ -356,12 +359,11 @@ def data_stats(user_id):
         v = Markup(v)
     except:
         v = ''
-    return render_template('state_estimation_user.html',
-            user_id=user_id, has_preview=True,
-            uncurl_is_running=False,
-            uncurl_is_done=True,
+    # TODO: mean read count, median read count, mean gene count, median gene count
+    return render_template('stats.html',
+            user_id=user_id,
             visualization=v,
-            **params)
+            params=params)
 
 
 @interaction_views.route('/user/<user_id>/view')
@@ -1099,7 +1101,7 @@ def copy_dataset(user_id):
     path = sca.data_dir
     try:
         new_user_id = str(uuid.uuid4())
-        shutil.copytree(path, os.path.join(current_app.config['USER_DATA_DIR'], new_user_id))
+        shutil.copytree(path, user_id_to_path(user_id))
         return new_user_id
     except:
         return 'Error: copy failed.'
@@ -1142,7 +1144,7 @@ def rerun_uncurl(user_id):
 
     # create new user_id
     new_user_id = str(uuid.uuid4())
-    new_path = os.path.join(current_app.config['USER_DATA_DIR'], new_user_id)
+    new_path = user_id_to_path(new_user_id)
 
     # get data subset from sca
     if is_cells:
