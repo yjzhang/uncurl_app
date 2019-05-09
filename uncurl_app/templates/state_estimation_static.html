@@ -198,7 +198,7 @@
                 </div>
 
                 <div id="recluster_area" style="display:none;">
-                    <button type="button" class="btn btn-default" id="rerun_clustering" data-toggle="tooltip" title="Re-runs the clustering, perhaps with a different algorithm." onclick="rerun_clustering();">Re-run clustering</button>
+                    <a data-target="#clusteringOptionModal" role="button" class="btn btn-default" id="rerun_clustering" data-toggle="modal" title="Re-runs the clustering, perhaps with a different algorithm.">Re-run clustering</a>
                     <button type="button" class="btn btn-default" id="split" style="margin-right: 2px;" data-toggle="tooltip" title="Split the selected cluster into two clusters"
                         onclick="split_or_merge_cluster('split', 'clusters');">Split clusters</button>
                     <button type="button" class="btn btn-default" id="merge" data-toggle="tooltip" title="Merge the selected clusters into one cluster" 
@@ -209,6 +209,30 @@
                         onclick="split_or_merge_cluster('delete', 'cells')">Delete cells</button>
                 </div>
             </div>
+        </div>
+
+        <!-- this is a pop-up for re-clustering... -->
+        <div class="modal fade" id="clusteringOptionModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+          <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="myModalLabel">Clustering options</h3>
+          </div>
+          <div class="modal-body">
+            <select id="clustering_method_select">
+                      <option selected>Argmax</option>
+                      <option>Leiden</option>
+                      <option>Louvain</option>
+                      <option>Leiden_baseline</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="rerun_clustering();">Submit</button>
+          </div>
+          </div>
+          </div>
         </div>
 
         <div class="top-right" id="right-hand-panel-1" style="width: 550px">

@@ -1130,6 +1130,7 @@ def recluster(user_id):
     """
     Re-clusters - re-runs the labeling method...
     """
+    print('reclustering')
     sca = get_sca(user_id)
     data_form = request.form.copy()
     try:

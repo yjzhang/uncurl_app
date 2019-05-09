@@ -437,7 +437,33 @@ function toggle_query_visibility(value) {
 
 // re-runs the clustering process, perhaps with a different algorithm.
 function rerun_clustering() {
-    // TODO: show a dropdown inside an alert?
+    var result = window.confirm('Warning: this may take a while. Continue?');
+    if (result == false) {
+        return 0;
+    }
+    var clustering_method = $('#clustering_method_select').val();
+    console.log(clustering_method);
+    $("#update-area").empty();
+    $("#update-area").append('Re-clustering + recalculating differential expression... <img src="/static/ajax-loader.gif"/>');
+    $.ajax({url: window.location.pathname + "/recluster",
+        data: {
+            'clustering_method': clustering_method
+        },
+        method: 'POST'
+    }).done(function(data) {
+        if (data.startsWith('Error')) {
+            $('#update-area').empty();
+            $('#update-area').append(data);
+        } else {
+            var new_user_id = data;
+            $('#update-area').empty();
+            $('#update-area').append('Finished re-clustering.');
+            // clear cache
+            cache.barplots = {};
+            cache.scatterplots = {};
+            update_scatterplot();
+        }
+    });
 };
 
 window.onload = function() {
