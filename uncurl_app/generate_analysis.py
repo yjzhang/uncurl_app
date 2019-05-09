@@ -9,22 +9,11 @@ from scipy import sparse
 from uncurl_analysis import sc_analysis
 
 def generate_uncurl_analysis(data, output_dir,
-        data_type='dense',
-        clusters=10,
-        gene_names=None,
-        gene_sub=True,
-        dim_red_option='mds',
-        bulk_data_dir=None,
-        normalize=False,
-        min_reads=0,
-        max_reads=1e10,
-        frac=0.2,
-        cell_frac=1.0,
-        baseline_dim_red='none',
         **uncurl_kwargs):
     """
     Performs an uncurl analysis of the data, writing the results in the given
-    directory.
+    directory. Assumes that output_dir contains a file named params.json, with
+    all the parameters.
 
     Outputs:
         output_dir/data.txt or output_dir/data.mtx
@@ -42,10 +31,7 @@ def generate_uncurl_analysis(data, output_dir,
         data (array or str): either a data array, or a string containing
             the path to a data array..
         output_dir (str): directory to write output to.
-        clusters (int): number of clusters (for uncurl state estimation).
-        data_type (str): if data is a path, this indicates whether the data is a dense or sparse array.
-        gene_names (list or array): list of all gene names
-        gene_sub (bool): whether or not to use gene subset selection (max_variance_genes)
+            contains params.json, data.mtx/.txt/.gz, and optionally gene_names.txt.
         **uncurl_kwargs: arguments to pass to uncurl.run_state_estimation..
     """
     # TODO: what about init?
@@ -68,16 +54,8 @@ def generate_uncurl_analysis(data, output_dir,
         json.dump(uncurl_kwargs, f)
     sca = sc_analysis.SCAnalysis(output_dir,
             data_filename=data_filename,
-            data_is_sparse=data_is_sparse,
-            normalize=normalize,
-            min_reads=min_reads,
-            max_reads=max_reads,
-            frac=frac,
-            cell_frac=cell_frac,
-            clusters=clusters,
-            dim_red_option=dim_red_option,
-            baseline_dim_red=baseline_dim_red,
-            **uncurl_kwargs)
+            data_is_sparse=data_is_sparse)
+    sca.load_params_json()
     try:
         sca.run_full_analysis()
     except Exception as e:

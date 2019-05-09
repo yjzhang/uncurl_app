@@ -435,6 +435,11 @@ function toggle_query_visibility(value) {
     }
 };
 
+// re-runs the clustering process, perhaps with a different algorithm.
+function rerun_clustering() {
+    // TODO: show a dropdown inside an alert?
+};
+
 window.onload = function() {
     // activate tooltips
     $('[data-toggle="tooltip"]').tooltip();

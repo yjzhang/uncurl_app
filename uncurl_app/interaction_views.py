@@ -1125,6 +1125,28 @@ def delete_rerun(user_id):
         print(text)
         return 'Error: ' + str(e)
 
+@interaction_views.route('/user/<user_id>/view/recluster', methods=['POST'])
+def recluster(user_id):
+    """
+    Re-clusters - re-runs the labeling method...
+    """
+    sca = get_sca(user_id)
+    data_form = request.form.copy()
+    try:
+        sca.relabel(data_form['clustering_method'])
+    except Exception as e:
+        text = traceback.format_exc()
+        print(text)
+        return 'Error: ' + str(e)
+    # clear caches?
+    cache.delete_memoized(get_sca_top_genes, user_id)
+    cache.delete_memoized(get_sca_top_1vr, user_id)
+    cache.delete_memoized(get_sca_pvals, user_id)
+    cache.delete_memoized(get_sca_pval_1vr, user_id)
+    cache.delete_memoized(update_barplot_result)
+    cache.delete_memoized(update_scatterplot_result)
+    return 'success'
+
 @interaction_views.route('/user/<user_id>/view/subset', methods=['POST'])
 def rerun_uncurl(user_id):
     """

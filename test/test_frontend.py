@@ -60,10 +60,15 @@ class UncurlFrontendTest(LiveServerTestCase):
         k.send_keys('8')
         time.sleep(1)
         self.driver.find_element_by_id('submit').click()
+        # confirm that values are the same
+        cell_frac = self.driver.find_element_by_id('cell-frac')
+        self.assertEqual('0.5', cell_frac.get_attribute('value'))
+        gene_frac = self.driver.find_element_by_id('genes-frac')
+        self.assertEqual('0.5', gene_frac.get_attribute('value'))
         time.sleep(60)
         # initial processing be completed by now
         print(self.driver.current_url)
-        # TODO: refresh page
+        # refresh page
         self.driver.refresh()
         self.assertTrue('view' in self.driver.current_url)
         # testing scatterplot options
@@ -71,6 +76,10 @@ class UncurlFrontendTest(LiveServerTestCase):
         self.driver.find_element_by_id('means-scatter-plot')
         self.driver.find_element_by_id('Cells').click()
         time.sleep(1)
+        # check some html/js things?
+        data = self.driver.execute_script('return window.current_scatterplot_data.data;')
+        print(data)
+        self.assertEqual(8, len(data))
         self.driver.find_element_by_id('Baseline').click()
         time.sleep(1)
         # test all barplot options
@@ -129,7 +138,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         alert = self.driver.switch_to.alert
         alert.send_keys('cmap1')
         alert.accept()
-        # TODO: create cmap
+        # create custom color map
         self.driver.find_element_by_id('label_name').send_keys('label1')
         select1 = Select(self.driver.find_element_by_id('selection_type-1'))
         select1.select_by_value('labels_400_cells')
@@ -156,6 +165,8 @@ class UncurlFrontendTest(LiveServerTestCase):
         alert = self.driver.switch_to_alert()
         alert.accept()
         time.sleep(45)
+        data = self.driver.execute_script('return window.current_scatterplot_data.data;')
+        self.assertEqual(9, len(data))
         select = Select(self.driver.find_element_by_id('top-or-bulk'))
         select.select_by_value('top_1_vs_rest')
         time.sleep(1)
@@ -190,6 +201,11 @@ class UncurlFrontendTest(LiveServerTestCase):
         select.select_by_visible_text('Log-Normal')
         time.sleep(1)
         self.driver.find_element_by_id('submit').click()
+        # TODO: test values
+        cell_frac = self.driver.find_element_by_id('cell-frac')
+        self.assertEqual('0.5', cell_frac.get_attribute('value'))
+        gene_frac = self.driver.find_element_by_id('genes-frac')
+        self.assertEqual('0.5', gene_frac.get_attribute('value'))
         time.sleep(60)
         # should be completed by now
         print(self.driver.current_url)

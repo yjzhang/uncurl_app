@@ -198,13 +198,14 @@
                 </div>
 
                 <div id="recluster_area" style="display:none;">
+                    <button type="button" class="btn btn-default" id="rerun_clustering" data-toggle="tooltip" title="Re-runs the clustering, perhaps with a different algorithm." onclick="rerun_clustering();">Re-run clustering</button>
                     <button type="button" class="btn btn-default" id="split" style="margin-right: 2px;" data-toggle="tooltip" title="Split the selected cluster into two clusters"
                         onclick="split_or_merge_cluster('split', 'clusters');">Split clusters</button>
                     <button type="button" class="btn btn-default" id="merge" data-toggle="tooltip" title="Merge the selected clusters into one cluster" 
                         onclick="split_or_merge_cluster('merge', 'clusters');">Merge clusters</button>
                     <button type="button" class="btn btn-default" id="new-cluster" data-toggle="tooltip" title="Create a new cluster from the selected cells" 
                         onclick="split_or_merge_cluster('new', 'cells');">Create new cluster</button>
-                    <button type="button" class="btn btn-default" id="delete_cells" data-toggle="tooltip" title="Remove selected cells" 
+                    <button type="button" class="btn btn-default" id="delete_cells" data-toggle="tooltip" title="Remove selected cells from the analysis process" 
                         onclick="split_or_merge_cluster('delete', 'cells')">Delete cells</button>
                 </div>
             </div>

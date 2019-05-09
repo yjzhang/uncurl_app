@@ -143,13 +143,16 @@ def state_estimation_result(user_id):
         uncurl_is_running = os.path.exists(os.path.join(path, 'submitted'))
         current_task = 'None'
         time_remaining = 'Unknown'
-        if uncurl_is_running:
-            # get running time information (highly approximate)
-            current_task, time_remaining = get_progress(path)
         with open(os.path.join(path, 'preprocess.json')) as f:
             preprocess = json.load(f)
         with open(os.path.join(path, 'vis_summary.html')) as f:
             v = f.read()
+        if uncurl_is_running:
+            # get running time information (highly approximate)
+            current_task, time_remaining = get_progress(path)
+            # update with actual input parameters
+            with open(os.path.join(path, 'params.json')) as f:
+                preprocess.update(json.load(f))
         v = Markup(v)
         uncurl_has_error = False
         if time_remaining == 'error':
@@ -282,29 +285,11 @@ def state_estimation_thread(user_id, gene_names=None, init_path=None, path=None,
     if dist_type == 'Poisson':
         uncurl_args['write_progress_file'] = os.path.join(path, 'progress.txt')
     uncurl_args['dist'] = dist_type
-    clusters = int(preprocess['clusters'])
-    dim_red = preprocess['dim_red']
-    gene_frac = float(preprocess['genes_frac'])
-    min_reads = int(preprocess['min_reads'])
-    max_reads = int(preprocess['max_reads'])
-    cell_frac = float(preprocess['cell_frac'])
-    if 'normalize' in preprocess:
-        normalize = True
-    baseline_dim_red = preprocess['baseline_dim_red']
     # TODO: deal with init
     if init_path is not None:
         pass
-    # TODO: save params as json instead of having to pass them...
-    # actually save params.json and pass params lol
-    generate_uncurl_analysis(data, path, clusters=clusters, gene_names=gene_names,
-            gene_sub=True,
-            dim_red_option=dim_red,
-            min_reads=min_reads,
-            max_reads=max_reads,
-            frac=gene_frac,
-            cell_frac=cell_frac,
-            normalize=normalize,
-            baseline_dim_red=baseline_dim_red,
+    # params.json is saved in path, so it does not need to be passed.
+    generate_uncurl_analysis(data, path,
             **uncurl_args)
 
 
