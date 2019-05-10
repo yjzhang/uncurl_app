@@ -186,11 +186,11 @@ def calc_size(labels):
     size = 10
     if len(labels) < 50:
         size = 20
-    elif len(labels) > 1000:
+    if len(labels) > 1000:
         size = 5
-    elif len(labels) > 5000:
+    if len(labels) > 5000:
         size = 3
-    elif len(labels) > 10000:
+    if len(labels) > 10000:
         size = 1
     return size
 
