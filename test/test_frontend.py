@@ -47,7 +47,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         self.assertTrue('400' in num_cells)
         num_genes = self.driver.find_element_by_id('num-genes').text
         self.assertTrue('19848' in num_genes)
-        self.driver.find_element_by_id('dim_red')
+        self.driver.find_element_by_id('dim_red_option')
         self.driver.find_element_by_id('baseline_dim_red')
         gene_frac = self.driver.find_element_by_id('genes-frac')
         gene_frac.clear()
@@ -186,7 +186,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         self.assertTrue('753' in num_cells)
         num_genes = self.driver.find_element_by_id('num-genes').text
         self.assertTrue('3990' in num_genes)
-        self.driver.find_element_by_id('dim_red')
+        self.driver.find_element_by_id('dim_red_option')
         self.driver.find_element_by_id('baseline_dim_red')
         gene_frac = self.driver.find_element_by_id('genes-frac')
         gene_frac.clear()
