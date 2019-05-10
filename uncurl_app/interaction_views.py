@@ -188,10 +188,8 @@ def calc_size(labels):
         size = 20
     if len(labels) > 1000:
         size = 5
-    if len(labels) > 5000:
-        size = 3
     if len(labels) > 10000:
-        size = 1
+        size = 2
     return size
 
 def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
