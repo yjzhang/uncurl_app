@@ -838,7 +838,7 @@ def update_cellmesh(user_id):
     top_genes = [x.strip().upper() for x in request.form['top_genes'].split('\n')]
     print('update_cellmesh:', top_genes)
     # gene_set is a string.
-    test_type = request.form['test_type']
+    test_type = request.form['mesh_test_type']
     return update_cellmesh_result(user_id, top_genes, test_type)
 
 @cache.memoize()
@@ -857,6 +857,8 @@ def update_cellmesh_result(user_id, top_genes, test):
     result = []
     if test == 'hypergeom':
         result = cellmesh.hypergeometric_test(top_genes, return_header=True)
+    elif test == 'norm_hypergeom':
+        result = cellmesh.normed_hypergeometric_test(top_genes, return_header=True)
     cell_types = [result[0]]
     for i in range(1, min(20, len(result))):
         ri = result[i]
