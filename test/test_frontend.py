@@ -84,8 +84,6 @@ class UncurlFrontendTest(LiveServerTestCase):
         time.sleep(1)
         # test all barplot options
         select = Select(self.driver.find_element_by_id('top-or-bulk'))
-        select.select_by_value('pval')
-        time.sleep(0.5)
         select.select_by_value('top_1_vs_rest')
         time.sleep(0.5)
         select.select_by_value('pval_1_vs_rest')
@@ -218,7 +216,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         self.driver.find_element_by_id('Baseline').click()
         time.sleep(1)
         select = Select(self.driver.find_element_by_id('top-or-bulk'))
-        select.select_by_value('pval')
+        select.select_by_value('pval_1_vs_rest')
         time.sleep(1)
         self.driver.execute_script('window.all_selected_clusters = [0];')
         self.driver.find_element_by_id('recluster_toggle').click()

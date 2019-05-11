@@ -488,6 +488,8 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         print('barplot cell_color: ', colormap)
         color_track, is_discrete = get_sca_color_track(user_id, colormap)
         selected_diffexp, selected_pvals = get_sca_top_genes_custom(user_id, colormap)
+        if top_or_bulk == 'selected_color_pval':
+            selected_diffexp = selected_pvals
         _, color_map = color_track_map(color_track)
         input_label = color_map[input_value]
         if len(selected_gene.strip()) > 0:
