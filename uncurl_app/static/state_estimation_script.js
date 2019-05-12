@@ -419,7 +419,8 @@ function toggle_reanalyze_area(value) {
 
 // toggles visibility of the bottom-left gene query view
 // 'toggle' is a jquery method that changes the visibility of the element.
-function toggle_query_visibility(value) {
+function toggle_query_visibility() {
+    var value = $('#database-select').val();
     if (value == "cellmarker") {
         $('#cellmarker-view').toggle(true);
         $('#enrichr-view').toggle(false);
@@ -565,5 +566,6 @@ window.onload = function() {
     });
 
     criterion_template = document.getElementById('custom_selection_criterion-1').outerHTML;
+    toggle_query_visibility();
 };
 
