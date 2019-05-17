@@ -17,6 +17,9 @@ var currently_merging = false;
 // criterion_template is used in custom_selections.js
 var criterion_template = '';
 
+// if this is true, then stop any update_barplot jobs.
+var update_barplot_is_running = false;
+
 // use jquery for ajax calls
 
 function bind_click() {
@@ -42,14 +45,19 @@ function bind_click() {
         selection_string = "cluster " + String(cluster) + 
             " (" + String(l) + " cells), ";
         // set update area...
-        $("#update-area").empty();
-        $("#update-area").append("selected clusters: " + selection_string);
+        //$("#update-area").empty();
+        $("#update-area").append("\nselected clusters: " + selection_string);
     });
 };
 
 // function called whenever a scatterplot is clicked or
 // when the dropdown is changed...
 function update_barplot(cluster_number) {
+    if (update_barplot_is_running) {
+        console.log('update_barplot is already running');
+        return false;
+    }
+    update_barplot_is_running = true;
     var top_or_bulk = $("#top-or-bulk").val();
     var input_value = cluster_number;
     var num_genes = $("#num-genes").val();
@@ -62,6 +70,7 @@ function update_barplot(cluster_number) {
     $("#update-area").empty();
     $("#update-area").append('Updating barplot <img src="/static/ajax-loader.gif"/>');
     if (cache.barplots.hasOwnProperty(key)) {
+        update_barplot_is_running = false;
         var data = cache.barplots[key];
         if (data.data[0].type != 'histogram') {
             var gene_names = data.data[0].y;
@@ -82,6 +91,7 @@ function update_barplot(cluster_number) {
                "cluster2": cluster2,
                "selected_gene": selected_gene},
     }).done(function(data) {
+        update_barplot_is_running = false;
         if (data.startsWith('Error')) {
             $("#update-area").empty();
             $("#update-area").append(data);
