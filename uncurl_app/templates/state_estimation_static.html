@@ -357,13 +357,31 @@
                                     <option value="norm_hypergeom">Normalized Hypergeometric test</option>
                                 </select>
                             </div>
-                            <button class="btn btn-default" id="cellmesh-submit" type="button" onclick="update_gene_query('cellmesh')">Submit CellMesh query</button>
+                            <button class="btn btn-default" id="cellmesh-submit" type="button" onclick="update_gene_query('cellmesh');">Submit CellMesh query</button>
                             <div id="cellmesh-results"></div>
                         </div>
                     </form>
                 </div>
                 <div id="cell_query_pane" class="tab-pane fade">
                     <h3>Cell similarity search</h3>
+                    <div id="cell_search_view">
+                        <form id="cell_search_form">
+                            <div class="form-inline">
+                                <label for="cell_search_db">Database:</label>
+                                <select class="form-control" id="cell_search_db" name="cell_search_db">
+                                    <option value='tm' selected>Tabula Muris</option>
+                                    <option value='mca'>Microwell-seq mouse cell atlas</option>
+                                </select>
+                                <!-- TODO: have a script to set the cluster -->
+                                <label for="cell_search_cluster">Cluster:</option>
+                                <select class="form-control" id="cell_search_cluster" name="cell_search_cluster">
+                                </select>
+                            </div>
+                            <button class="btn btn-default" id="cell_search_submit" type="button" onclick="submit_db_query();">Submit</button>
+                        </form>
+                    </div>
+                    <div id="cell_search_results">
+                    </div>
                 </div>
             </div>
         </div>

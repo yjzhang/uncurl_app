@@ -488,8 +488,10 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         print('barplot cell_color: ', colormap)
         color_track, is_discrete = get_sca_color_track(user_id, colormap)
         selected_diffexp, selected_pvals = get_sca_top_genes_custom(user_id, colormap)
+        x_label = 'Fold change (1 vs rest)'
         if top_or_bulk == 'selected_color_pval':
             selected_diffexp = selected_pvals
+            x_label = 'p-value of fold change (1 vs rest)'
         _, color_map = color_track_map(color_track)
         input_label = color_map[input_value]
         if len(selected_gene.strip()) > 0:
@@ -501,7 +503,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         return barplot_data(selected_top_genes,
                 selected_gene_names, input_label,
                 title='Top genes for label {0}'.format(input_label),
-                x_label='Fold change (1 vs rest)')
+                x_label=x_label)
     elif top_or_bulk == 'top_pairwise' or top_or_bulk == 'pval_pairwise':
         # gets pairwise diffexp for a pair of clusters
         colormap = str(data_form['cell_color'])
@@ -868,6 +870,13 @@ def update_cellmesh_result(user_id, top_genes, test):
             gene_pmids.append('{0}: {1}'.format(g, ', '.join(pmid_to_link(x) for x in ri[4][g])))
         cell_types.append((ri[0], ri[1], ri[2], ', '.join(ri[3]), ', '.join(gene_pmids)))
     return json.dumps(cell_types, cls=SimpleEncoder)
+
+@interaction_views.route('/user/<user_id>/view/db_query', methods=['POST'])
+def db_query(user_id):
+    """
+    Queries a single cell db for cell types
+    """
+    # TODO
 
 
 @interaction_views.route('/user/<user_id>/view/split_or_merge_cluster', methods=['POST'])

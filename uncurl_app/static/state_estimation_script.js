@@ -170,6 +170,13 @@ function update_scatterplot() {
         bind_select();
         $("#update-area").empty();
         $("#update-area").append('Scatterplot updated');
+        // update selections that require cluster names
+        var cluster_select = $('#cell_search_cluster');
+        cluster_select.empty();
+        for (var i in current_scatterplot_data.data) {
+            var value = current_scatterplot_data.data[i];
+            cluster_select.append($("<option>").attr('value', i).text(value.name));
+        }
     });
     return true;
 };
@@ -477,6 +484,53 @@ function rerun_clustering() {
     });
 };
 
+// TODO: cell similarity search
+function submit_db_query() {
+    var form_data = $('#cell_search_form').serializeArray();
+    var cell_color = $('#cell-color').val();
+
+};
+
+// called whenever cell color is changed.
+function on_cell_color_change() {
+    var cell_color = $("#cell-color").val();
+    if (cell_color == "gene") {
+        var gene_name = $('#gene_name').val();
+        if (gene_name.length > 0) {
+            update_scatterplot();
+        }
+        $('#gene-name-area').css('display', 'block');
+        $('#color-track-upload-area').css('display', 'none');
+        $('#cluster-select-area').css('display', 'none');
+        $('#custom_color_map_area').css('display', 'none');
+    } else if (cell_color == "new") {
+        $('#color-track-upload-area').css('display', 'block');
+        $('#gene-name-area').css('display', 'none');
+        $('#cluster-select-area').css('display', 'none');
+        $('#custom_color_map_area').css('display', 'none');
+    } else if (cell_color == "weights") {
+        $('#cluster-select-area').css('display', 'block');
+        $('#gene-name-area').css('display', 'none');
+        $('#color-track-upload-area').css('display', 'none');
+        $('#custom_color_map_area').css('display', 'none');
+    } else if (cell_color == 'custom') {
+        $('#gene-name-area').css('display', 'none');
+        $('#color-track-upload-area').css('display', 'none');
+        $('#cluster-select-area').css('display', 'none');
+        $('#custom_color_map_area').css('display', 'block');
+        add_custom_colormap();
+    } else {
+        $('#gene-name-area').css('display', 'none');
+        $('#color-track-upload-area').css('display', 'none');
+        $('#cluster-select-area').css('display', 'none');
+        update_scatterplot();
+        // this function checks if the label scheme is a custom label scheme,
+        // and sends a json query to get the custom label schemes.
+        get_custom_colormap();
+    }
+};
+
+
 window.onload = function() {
     // activate tooltips
     $('[data-toggle="tooltip"]').tooltip();
@@ -484,43 +538,8 @@ window.onload = function() {
     $('input[name="scatter-type"]').change(function() {
         update_scatterplot();
     });
-    $('#cell-color').change(function() {
-        var cell_color = $("#cell-color").val();
-        if (cell_color == "gene") {
-            var gene_name = $('#gene_name').val();
-            if (gene_name.length > 0) {
-                update_scatterplot();
-            }
-            $('#gene-name-area').css('display', 'block');
-            $('#color-track-upload-area').css('display', 'none');
-            $('#cluster-select-area').css('display', 'none');
-            $('#custom_color_map_area').css('display', 'none');
-        } else if (cell_color == "new") {
-            $('#color-track-upload-area').css('display', 'block');
-            $('#gene-name-area').css('display', 'none');
-            $('#cluster-select-area').css('display', 'none');
-            $('#custom_color_map_area').css('display', 'none');
-        } else if (cell_color == "weights") {
-            $('#cluster-select-area').css('display', 'block');
-            $('#gene-name-area').css('display', 'none');
-            $('#color-track-upload-area').css('display', 'none');
-            $('#custom_color_map_area').css('display', 'none');
-        } else if (cell_color == 'custom') {
-            $('#gene-name-area').css('display', 'none');
-            $('#color-track-upload-area').css('display', 'none');
-            $('#cluster-select-area').css('display', 'none');
-            $('#custom_color_map_area').css('display', 'block');
-            add_custom_colormap();
-        } else {
-            $('#gene-name-area').css('display', 'none');
-            $('#color-track-upload-area').css('display', 'none');
-            $('#cluster-select-area').css('display', 'none');
-            update_scatterplot();
-            // this function checks if the label scheme is a custom label scheme,
-            // and sends a json query to get the custom label schemes.
-            get_custom_colormap();
-        }
-    });
+    $('#cell-color').change(on_cell_color_change);
+
     update_scatterplot();
 
     // bind dropdowns to update_barplot
