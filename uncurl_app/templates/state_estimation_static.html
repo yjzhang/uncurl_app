@@ -369,8 +369,13 @@
                             <div class="form-inline">
                                 <label for="cell_search_db">Database:</label>
                                 <select class="form-control" id="cell_search_db" name="cell_search_db">
-                                    <option value='tm' selected>Tabula Muris</option>
-                                    <option value='mca'>Microwell-seq mouse cell atlas</option>
+                                    <option value='tm_means' selected>Tabula Muris</option>
+                                    <option value='mca_coarse_means'>Microwell-seq mouse cell atlas</option>
+                                    <option value='allen_cluster_means'>Allen Brain Atlas neocortex</option>
+                                </select>
+                                <label for="method">Method:</label>
+                                <select class="form-control" id="method" name="method">
+                                    <option value='spearman' selected>Spearman</option>
                                 </select>
                                 <!-- TODO: have a script to set the cluster -->
                                 <label for="cell_search_cluster">Cluster:</option>

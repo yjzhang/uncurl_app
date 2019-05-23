@@ -188,6 +188,8 @@ function set_enrichr_results(data, query) {
         results_view = $('#cellmarker-results');
     } else if (query == 'cellmesh') {
         results_view = $('#cellmesh-results');
+    } else if (query == 'cell_search') {
+        results_view = $('#cell_search_results');
     }
     results_view.empty();
     var table = $('<table>');
@@ -487,8 +489,27 @@ function rerun_clustering() {
 // TODO: cell similarity search
 function submit_db_query() {
     var form_data = $('#cell_search_form').serializeArray();
+    var data = {};
+    $(input_array).each(function(index, obj){
+        data[obj.name] = obj.value;
+    });
     var cell_color = $('#cell-color').val();
-
+    data['cell_color'] = cell_color;
+    $("#update-area").append(data);
+    $.ajax({url: window.location.pathname + '/db_query',
+        data: data,
+        method: 'POST'
+    }).done(function(data) {
+        if (data.startsWith('Error')) {
+            $("#update-area").empty();
+            $("#update-area").append(data);
+            return false;
+        }
+        // set results from cell search...
+        $("#update-area").empty();
+        var result = JSON.parse(data);
+        set_enrichr_results(results, 'cell_search');
+    });
 };
 
 // called whenever cell color is changed.

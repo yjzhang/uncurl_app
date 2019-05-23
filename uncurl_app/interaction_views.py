@@ -2,6 +2,7 @@
 # I'm thinking of writing the frontend entirely in plotly.js, and not have
 # any backend Python rendering components.
 
+import contextlib
 import json
 import os
 import shutil
@@ -26,6 +27,23 @@ interaction_views = Blueprint('interaction_views', __name__,
 interaction_views.enrichr_gene_list_ids = {}
 # map of tuples (top_genes, gene_set) to enrichr results
 interaction_views.enrichr_results = {}
+
+@contextlib.contextmanager
+def lockfile_context(lockfile_name):
+    """
+    This is a wrapper around a lockfile.
+    Example:
+        with lockfile_context('f') as _:
+            run_function()
+    This will prevent other instances of run_function from running in other threads/processes.
+    Raises an exception if the lockfile exists.
+    """
+    if os.path.exists(lockfile_name):
+        raise Exception('Lockfile {0} exists'.format(lockfile_name))
+    with open(lockfile_name, 'w') as f:
+        f.write(' ')
+    yield 1
+    os.remove(lockfile_name)
 
 def get_sca(user_id):
     path = user_id_to_path(user_id)
@@ -153,7 +171,6 @@ def histogram_data(gene_values_cluster, gene_values_all, cluster_name, gene_name
         gene_values_cluster (array): 1d array for a given gene, within cluster
         gene_values_all (array): 1d array for a given gene, all clusters
     """
-    # TODO: plot a histogram using plotly
     if title is None:
         title = 'Histogram for gene {0}'.format(gene_name)
     return json.dumps({
@@ -488,7 +505,11 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         print('getting diffexp for selected color')
         print('barplot cell_color: ', colormap)
         color_track, is_discrete = get_sca_color_track(user_id, colormap)
-        selected_diffexp, selected_pvals = get_sca_top_genes_custom(user_id, colormap)
+        # this is some kind of lock to prevent this from running more than once?
+        # this is a serious hack... there should be a better way of doing this
+        lockfile_name = os.path.join(sca.data_dir, colormap + '_writing_diffexp')
+        with lockfile_context(lockfile_name) as _lock:
+            selected_diffexp, selected_pvals = get_sca_top_genes_custom(user_id, colormap)
         x_label = 'Fold change (1 vs rest)'
         if top_or_bulk == 'selected_color_pval':
             selected_diffexp = selected_pvals
@@ -549,7 +570,9 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
             color_track, is_discrete = get_sca_color_track(user_id, colormap)
             color_to_index, index_to_color = color_track_map(color_track)
             print('using custom clustering')
-            selected_diffexp, selected_pvals = get_sca_top_genes_custom(user_id, colormap, 'pairwise')
+            lockfile_name = os.path.join(sca.data_dir, colormap + '_writing_diffexp')
+            with lockfile_context(lockfile_name) as _lock:
+                selected_diffexp, selected_pvals = get_sca_top_genes_custom(user_id, colormap, 'pairwise')
             desc = ''
             if top_or_bulk == 'top_pairwise':
                 genes, values = array_to_top_genes(selected_diffexp, cluster1, cluster2, is_pvals=False, num_genes=num_genes)
@@ -585,7 +608,6 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
             except:
                 pass
         gene_data = get_gene_data(user_id, selected_gene)
-        # TODO: get selected cluster
         if use_baseline_clusters:
             gene_cluster_data = gene_data[sca.labels == cluster_id]
             return histogram_data(gene_cluster_data, gene_data, cluster_id, selected_gene)
@@ -878,6 +900,28 @@ def db_query(user_id):
     Queries a single cell db for cell types
     """
     # TODO
+    import mouse_cell_query
+    sca = get_sca(user_id)
+    form_data = request.form.copy()
+    db = form_data['cell_search_db']
+    cell_color = form_data['cell_color']
+    cell_label = form_data['cell_search_cluster']
+    means = None
+    if cell_color == 'cluster':
+        means = sca.cluster_means[:, int(cell_label)]
+    else:
+        try:
+            labels, is_discrete = sca.get_color_track(cell_color)
+            data = sca.data_sampled_all_genes
+            data_labels = data[:, labels==cell_label]
+            means = data_labels.mean(1)
+        except:
+            means = sca.cluster_means[:, int(cell_label)]
+    # try to query for means...
+    results = mouse_cell_query.search_db(means, sca.gene_names, method=form_data['method'], db=db)
+    results = [('Cell type', 'Score')] + results
+    return json.dumps(results, cls=SimpleEncoder)
+
 
 
 @interaction_views.route('/user/<user_id>/view/split_or_merge_cluster', methods=['POST'])
