@@ -37,6 +37,7 @@ function bind_click() {
         if (top_or_bulk.includes('pairwise')) {
             $('#barplot_cluster_select_1').val(String(data.points[0].curveNumber));
         }
+        $('#cell_search_cluster').val(data.points[0].curveNumber);
         console.log(cluster);
         update_barplot(cluster);
         // update barplot
@@ -490,12 +491,13 @@ function rerun_clustering() {
 function submit_db_query() {
     var form_data = $('#cell_search_form').serializeArray();
     var data = {};
-    $(input_array).each(function(index, obj){
+    $(form_data).each(function(index, obj){
         data[obj.name] = obj.value;
     });
     var cell_color = $('#cell-color').val();
     data['cell_color'] = cell_color;
-    $("#update-area").append(data);
+    $("#update-area").empty();
+    $('#update-area').append('Cell search query <img src="/static/ajax-loader.gif"/>');
     $.ajax({url: window.location.pathname + '/db_query',
         data: data,
         method: 'POST'
@@ -507,7 +509,8 @@ function submit_db_query() {
         }
         // set results from cell search...
         $("#update-area").empty();
-        var result = JSON.parse(data);
+        $("#update-area").append('Completed cell search query');
+        var results = JSON.parse(data);
         set_enrichr_results(results, 'cell_search');
     });
 };

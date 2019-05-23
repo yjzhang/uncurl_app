@@ -899,7 +899,6 @@ def db_query(user_id):
     """
     Queries a single cell db for cell types
     """
-    # TODO
     import mouse_cell_query
     sca = get_sca(user_id)
     form_data = request.form.copy()
@@ -908,6 +907,7 @@ def db_query(user_id):
     cell_label = form_data['cell_search_cluster']
     means = None
     if cell_color == 'cluster':
+        cell_label = cell_label.split()[-1]
         means = sca.cluster_means[:, int(cell_label)]
     else:
         try:
@@ -917,7 +917,7 @@ def db_query(user_id):
             means = data_labels.mean(1)
         except:
             means = sca.cluster_means[:, int(cell_label)]
-    # try to query for means...
+    # TODO: cache db query
     results = mouse_cell_query.search_db(means, sca.gene_names, method=form_data['method'], db=db)
     results = [('Cell type', 'Score')] + results
     return json.dumps(results, cls=SimpleEncoder)
