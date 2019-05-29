@@ -56,9 +56,17 @@ def load_gene_names(path=None):
     if 'genenames' in request.files:
         f = request.files['genenames']
         gene_filename = secure_filename(f.filename)
-        if gene_filename == 'genes.csv':
-            if path is not None:
-                f.save(os.path.join(path, 'genes.csv'))
+        if gene_filename.endswith('csv'):
+            import pandas as pd
+            data = pd.read_csv(f)
+            try:
+                gene_names = data['gene_name']
+                if path is not None:
+                    gene_names.to_csv(os.path.join(path, 'gene_names.txt'), header=None, index=None)
+            except Exception as e:
+                print(e)
+                if path is not None:
+                    f.save(os.path.join(path, 'gene_names.txt'))
         else:
             if path is not None:
                 f.save(os.path.join(path, 'gene_names.txt'))
