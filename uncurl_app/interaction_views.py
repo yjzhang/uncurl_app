@@ -912,15 +912,24 @@ def db_query(user_id):
     else:
         try:
             labels, is_discrete = sca.get_color_track(cell_color)
+            color_to_index, index_to_color = color_track_map(labels)
+            labels = index_to_color[int(cell_label)]
             data = sca.data_sampled_all_genes
             data_labels = data[:, labels==cell_label]
-            means = data_labels.mean(1)
-        except:
+            means = np.array(data_labels.mean(1)).flatten()
+        except Exception as e:
+            text = traceback.format_exc()
+            print(text)
             means = sca.cluster_means[:, int(cell_label)]
     # TODO: cache db query
-    results = mouse_cell_query.search_db(means, sca.gene_names, method=form_data['method'], db=db)
-    results = [('Cell type', 'Score')] + results
-    return json.dumps(results, cls=SimpleEncoder)
+    try:
+        results = mouse_cell_query.search_db(means, sca.gene_names, method=form_data['method'], db=db)
+        results = [('Cell type', 'Score')] + results
+        return json.dumps(results, cls=SimpleEncoder)
+    except Exception as e:
+        text = traceback.format_exc()
+        print(text)
+        return 'Error: ' + str(e)
 
 
 
