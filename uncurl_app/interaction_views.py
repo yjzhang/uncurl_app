@@ -846,7 +846,7 @@ def update_cellmarker_result(user_id, top_genes, test, cells_or_tissues, species
     import cellmarker
     result = []
     if test == 'hypergeom':
-        result = cellmarker.hypergeometric_test(top_genes, cells_or_tissues, return_header=True, species=species)
+        result = cellmarker.hypergeometric_test(top_genes, cells_or_tissues, return_header=True, return_cl=True, species=species)
     cell_types = [result[0]]
     for i in range(1, min(20, len(result))):
         ri = result[i]

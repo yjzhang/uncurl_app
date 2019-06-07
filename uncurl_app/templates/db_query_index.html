@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block head %}
+
+{{ super() }}
+
+<script src="{{ url_for('static', filename='jquery-3.3.1.min.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='state_estimation_style.css') }}" type="text/css"/>
+
+<script>
+
+var cache = {};
+cache.enrichr = {};
+
+// toggles visibility of the bottom-left gene query view
+// 'toggle' is a jquery method that changes the visibility of the element.
+function toggle_query_visibility() {
+    var value = $('#database_select').val();
+    if (value == "cellmarker") {
+        $('#cellmarker_view').toggle(true);
+        $('#cellmesh_view').toggle(false);
+    } else if (value == "cellmesh") {
+        $('#cellmarker_view').toggle(false);
+        $('#cellmesh_view').toggle(true);
+    }
+};
+
+function set_enrichr_results(data, query) {
+    // create table
+    results_view = $('#cellmarker_results');
+    if (query == 'cellmarker') {
+        results_view = $('#cellmarker_results');
+    } else if (query == 'cellmesh') {
+        results_view = $('#cellmesh_results');
+    } else if (query == 'cell_search') {
+        results_view = $('#cell_search_results');
+    }
+    results_view.empty();
+    var table = $('<table>');
+    var header = $('<tr>');
+    for (var j = 0; j<data[0].length; j++) {
+        header.append('<th>'+data[0][j]+'</th>');
+    }
+    table.append(header);
+    for (var i = 1; i<data.length; i++) {
+        var row = $('<tr>');
+        for (var j = 0; j<data[i].length; j++) {
+            row.append('<td>'+data[i][j]+'</td>');
+        }
+        table.append(row);
+    }
+    results_view.append(table);
+}; 
+
+function update_gene_query(query) {
+    // query is a string that can be 'enrichr', 'cellmarker', etc...
+    // TODO: do something that makes this work for 
+    var input_array = $('#gene-set-query-form').serializeArray();
+    var data = {};
+    $(input_array).each(function(index, obj){
+        data[obj.name] = obj.value;
+    });
+    console.log('update_gene_query');
+    console.log(data);
+    var key = JSON.stringify(data);
+    if (cache.enrichr.hasOwnProperty(key)) {
+        set_enrichr_results(cache.enrichr[key], query);
+        return true;
+    }
+    results_view = $('#cellmarker_results');
+    if (query == 'cellmarker') {
+        results_view = $('#cellmarker_results');
+    } else if (query == 'cellmesh') {
+        results_view = $('#cellmesh_results');
+    }
+    results_view.empty();
+    results_view.append("<br>" + "Query in progress..." + '<img src="/static/ajax-loader.gif"/>');
+    $.ajax({url: '/db_query/submit',
+        type: "POST",
+        data: data,
+    }).done(function(results) {
+        results_view.empty();
+        if (results.startsWith('Error')) {
+            results_view.append(results);
+        } else {
+            results = JSON.parse(results);
+            cache.enrichr[key] = results;
+            set_enrichr_results(results, query);
+        }
+    });
+    return true;
+};
+
+
+window.onload = function() {
+    toggle_query_visibility();
+};
+
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container container-main" role="main">
+    <form id="gene-set-query-form">
+        <!-- TODO: have a multi-pane view? or have something that -->
+
+        <div>Selected genes:</div>
+        <div class="form-inline">
+            <textarea class="form-control" id="top-genes-view" cols="50" rows="4" name="top_genes">Top genes go here, space or newline-separated</textarea>
+        </div>
+        <!-- onchange: make the cellmarker view visible -->
+        <div class="form-inline">
+            <label for="database_select" data-toggle="tooltip" title="Which database to query for the given gene set. Current options are Enrichr and CellMarker.">Database:</label>
+            <select class="form-control" id="database_select" name="database_select" style="width:200px; margin-top: 5px;" onchange="toggle_query_visibility();">
+                <option value="cellmarker">CellMarker</option>
+                <option value="cellmesh" selected>CellMeSH</option>
+            </select>
+        </div>
+
+        <div id="cellmarker_view" style="display:none;">
+            <h5 data-toggle="tooltip" title="Query the CellMarker database for cell types matching the selected genes.">Query CellMarker with selected genes</h4>
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                <label for="test_type" data-toggle="tooltip" title="Currently, only the hypergeometric test is available.">Statistical test:</label>
+                <select class="form-control" id="test_type" name="test_type">
+                    <option value="hypergeom" selected>Hypergeometric test</option>
+                </select>
+            </div>
+
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                <label for="species" data-toggle="tooltip" title="Which species to query for cell types. Currently human and mouse are available.">Species:</label>
+                <select class="form-control" id="species" name="species">
+                    <option value="all" selected>All</option>
+                    <option value="Human">Human</option>
+                    <option value="Mouse">Mouse</option>
+                </select>
+            </div>
+
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                <label for="cells_or_tissues">Cells or tissues:</label>
+                <select class="form-control" id="cells_or_tissues" name="cells_or_tissues">
+                    <option value="cells" selected>Cells</option>
+                    <option value="tissues">Tissues</option>
+                </select>
+            </div>
+
+            <button class="btn btn-default" id="cellmarker-submit" type="button" onclick="update_gene_query('cellmarker')">Submit CellMarker query</button>
+            <div id="cellmarker_results"></div>
+        </div>
+
+        <div id="cellmesh_view" style="display:none;">
+            <h5 data-toggle="tooltip" title="Query the CellMeSH database for cell types matching the selected genes.">Query CellMeSH with selected genes</h4>
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                <label for="mesh_test_type" data-toggle="tooltip" title="Currently, only the hypergeometric test is available.">Statistical test:</label>
+                <select class="form-control" id="mesh_test_type" name="mesh_test_type">
+                    <option value="hypergeom" selected>Hypergeometric test</option>
+                    <option value="norm_hypergeom">Normalized Hypergeometric test</option>
+                </select>
+            </div>
+            <button class="btn btn-default" id="cellmesh-submit" type="button" onclick="update_gene_query('cellmesh');">Submit CellMesh query</button>
+            <div id="cellmesh_results"></div>
+        </div>
+
+
+    </form>
+</div>
+{% endblock %}
+

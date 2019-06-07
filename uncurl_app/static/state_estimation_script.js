@@ -207,7 +207,7 @@ function set_enrichr_results(data, query) {
         table.append(row);
     }
     results_view.append(table);
-}
+};
 
 function update_gene_query(query) {
     // query is a string that can be 'enrichr', 'cellmarker', etc...

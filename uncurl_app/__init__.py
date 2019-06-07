@@ -2,7 +2,7 @@ import os
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 
-from . import interaction_views, views, flask_router
+from . import interaction_views, views, flask_router, db_query
 
 from .cache import cache
 
@@ -35,6 +35,7 @@ def create_app(config_filename=None):
     app.register_blueprint(interaction_views.interaction_views)
     app.register_blueprint(views.views)
     app.register_blueprint(flask_router.flask_router)
+    app.register_blueprint(db_query.db_query)
     @app.route('/')
     def index():
         return render_template('index.html')
@@ -68,6 +69,7 @@ def create_app_split_seq(data_dir='./', config_filename=None):
     app.register_blueprint(interaction_views.interaction_views)
     app.register_blueprint(views.views)
     app.register_blueprint(flask_router.flask_router)
+    app.register_blueprint(db_query.db_query)
     # redirect index to data page
     user_id = os.path.basename(data_dir)
     print('user_id: ', user_id)
