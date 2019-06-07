@@ -850,11 +850,11 @@ def update_cellmarker_result(user_id, top_genes, test, cells_or_tissues, species
     cell_types = [result[0]]
     for i in range(1, min(20, len(result))):
         ri = result[i]
-        genes = ri[2]
+        genes = ri[3]
         gene_pmids = []
         for g in genes:
-            gene_pmids.append('{0}: {1}'.format(g, ', '.join(pmid_to_link(x) for x in ri[3][g])))
-        cell_types.append((ri[0], ri[1], ', '.join(ri[2]), ', '.join(gene_pmids)))
+            gene_pmids.append('{0}: {1}'.format(g, ', '.join(pmid_to_link(x) for x in ri[4][g])))
+        cell_types.append((ri[0], ri[1], ri[2], ', '.join(ri[3]), ', '.join(gene_pmids)))
     return json.dumps(cell_types, cls=SimpleEncoder)
 
 @interaction_views.route('/user/<user_id>/view/update_cellmesh', methods=['GET', 'POST'])

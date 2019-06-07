@@ -30,15 +30,8 @@ def db_query_submit():
         import cellmarker
         result = []
         if test_type == 'hypergeom':
-            result = cellmarker.hypergeometric_test(top_genes, cells_or_tissues, return_header=True, species=species)
+            result = cellmarker.hypergeometric_test(top_genes, cells_or_tissues, return_header=True, species=species, return_cl=True)
         cell_types = [result[0]]
-        for i in range(1, min(20, len(result))):
-            ri = result[i]
-            genes = ri[2]
-            gene_pmids = []
-            for g in genes:
-                gene_pmids.append('{0}: {1}'.format(g, ', '.join(pmid_to_link(x) for x in ri[3][g])))
-            cell_types.append((ri[0], ri[1], ', '.join(ri[2]), ', '.join(gene_pmids)))
     elif db == 'cellmesh':
         test_type = request.form['mesh_test_type']
         import cellmesh
@@ -48,13 +41,13 @@ def db_query_submit():
         elif test_type == 'norm_hypergeom':
             result = cellmesh.normed_hypergeometric_test(top_genes, return_header=True)
         cell_types = [result[0]]
-        for i in range(1, min(20, len(result))):
-            ri = result[i]
-            gene_pmids = []
-            genes = ri[3]
-            for g in genes:
-                gene_pmids.append('{0}: {1}'.format(g, ', '.join(pmid_to_link(x) for x in ri[4][g])))
-            cell_types.append((ri[0], ri[1], ri[2], ', '.join(ri[3]), ', '.join(gene_pmids)))
+    for i in range(1, min(20, len(result))):
+        ri = result[i]
+        gene_pmids = []
+        genes = ri[3]
+        for g in genes:
+            gene_pmids.append('{0}: {1}'.format(g, ', '.join(pmid_to_link(x) for x in ri[4][g])))
+        cell_types.append((ri[0], ri[1], ri[2], ', '.join(ri[3]), ', '.join(gene_pmids)))
     return json.dumps(cell_types, cls=SimpleEncoder)
 
 
