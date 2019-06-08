@@ -154,7 +154,9 @@ window.onload = function() {
                 <label for="mesh_test_type" data-toggle="tooltip" title="Currently, only the hypergeometric test is available.">Statistical test:</label>
                 <select class="form-control" id="mesh_test_type" name="mesh_test_type">
                     <option value="hypergeom" selected>Hypergeometric test</option>
-                    <option value="norm_hypergeom">Normalized Hypergeometric test</option>
+                    <option value="norm_hypergeom">tf-idf Normalized Hypergeometric test</option>
+                    <option value="prob">Probabilistic model</option>
+                    <option value="gsva">GSVA</option>
                 </select>
             </div>
             <button class="btn btn-default" id="cellmesh-submit" type="button" onclick="update_gene_query('cellmesh');">Submit CellMesh query</button>

@@ -40,6 +40,12 @@ def db_query_submit():
             result = cellmesh.hypergeometric_test(top_genes, return_header=True)
         elif test_type == 'norm_hypergeom':
             result = cellmesh.normed_hypergeometric_test(top_genes, return_header=True)
+        elif test_type == 'prob':
+            from cellmesh import prob_method
+            result = prob_method.prob_test(top_genes, return_header=True)
+        elif test_type == 'gsva':
+            from cellmesh import gsva_ext_method
+            result = gsva_ext_method.gsva_ext_test(top_genes, return_header=True)
         cell_types = [result[0]]
     for i in range(1, min(20, len(result))):
         ri = result[i]
