@@ -1172,7 +1172,8 @@ def copy_dataset(user_id):
     path = sca.data_dir
     try:
         new_user_id = str(uuid.uuid4())
-        shutil.copytree(path, user_id_to_path(user_id))
+        new_user_id = new_user_id + user_id[36:]
+        shutil.copytree(path, user_id_to_path(new_user_id))
         return new_user_id
     except Exception as e:
         text = traceback.format_exc()
