@@ -1174,8 +1174,10 @@ def copy_dataset(user_id):
         new_user_id = str(uuid.uuid4())
         shutil.copytree(path, user_id_to_path(user_id))
         return new_user_id
-    except:
-        return 'Error: copy failed.'
+    except Exception as e:
+        text = traceback.format_exc()
+        print(text)
+        return 'Error - copy failed: ' + str(e)
 
 @interaction_views.route('/user/<user_id>/view/delete_rerun', methods=['GET'])
 def delete_rerun(user_id):
