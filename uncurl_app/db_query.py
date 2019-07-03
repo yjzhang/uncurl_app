@@ -56,4 +56,11 @@ def db_query_submit():
         cell_types.append((ri[0], ri[1], ri[2], ', '.join(ri[3]), ', '.join(gene_pmids)))
     return json.dumps(cell_types, cls=SimpleEncoder)
 
+@db_query.route('/db_query/cell_info', methods=['POST'])
+def get_cell_info():
+    """
+    Returns all genes/pmids associated with a cell type, ranked in order of hits, that pass a certain threshold.
+    """
+    # TODO
+    pass
 

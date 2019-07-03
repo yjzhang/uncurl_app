@@ -1189,9 +1189,7 @@ def delete_rerun(user_id):
     if user_id.startswith('test_'):
         return 'Error: unable to delete test results'
     sca = get_sca(user_id)
-    path = sca.data_dir
     try:
-        os.remove(os.path.join(path, 'sc_analysis.json'))
         sca.delete_uncurl_results()
         return redirect(url_for('views.state_estimation_result', user_id=user_id))
     except Exception as e:
