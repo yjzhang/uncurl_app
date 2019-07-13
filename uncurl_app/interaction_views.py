@@ -28,6 +28,7 @@ interaction_views.enrichr_gene_list_ids = {}
 # map of tuples (top_genes, gene_set) to enrichr results
 interaction_views.enrichr_results = {}
 
+
 @contextlib.contextmanager
 def lockfile_context(lockfile_name):
     """
@@ -235,8 +236,23 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
         cluster_names = label_values
     # cell_ids indicates the ids of the cells used...
     cell_ids = np.arange(len(labels))
+    # TODO: use colorlover to use different colors in case...
     if mode == 'cluster':
-        color_values = label_values
+        if len(label_values) > 10:
+            from . import colors
+            if len(label_values) <= 25:
+                scale0 = colors.CL_25
+                color_values = scale0
+            else:
+                scale0 = colors.CL_25 + colors.CL_25_2 + colors.CL_25_3 + colors.CL_25_4
+                if len(label_values) <= 100:
+                    color_values = scale0
+                else:
+                    import colorlover as cl
+                    color_values = cl.to_rgb(cl.interp(colors.CL_25, len(label_values)))
+            print(color_values)
+        else:
+            color_values = label_values
         data =  [
             {
                 'x': dim_red[0,labels==c].tolist(),
