@@ -347,6 +347,7 @@ function split_or_merge_cluster(split_or_merge, cells_or_clusters) {
     // lengths of each of the selected clusters
     console.log(split_or_merge);
     console.log(selected_clusters);
+    // TODO: make the whole page block or something like that
     $("#update-area").append("<br>" + split_or_merge + " clusters in progress... (re-running UNCURL, recalculating differentially expressed genes) " + '<img src="/static/ajax-loader.gif"/>');
     currently_merging = true;
     // make some indication that split/merge has been called.

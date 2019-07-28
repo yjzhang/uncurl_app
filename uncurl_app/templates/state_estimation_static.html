@@ -23,6 +23,9 @@
 
 {% block content %}
 
+<div class="overlay">
+</div>
+
 <div class="container container-main" role="main">
     <h3>Results for query id {{ user_id }}</h3>
 
@@ -69,7 +72,7 @@
                 <button class="btn btn-default" id="gene_gene_names_submit" onclick="update_scatterplot()">Submit</button>
             </div>
 
-            <div id="means-scatter-plot" style="width: 700px; margin-top: 5px"></div>
+            <div id="means-scatter-plot" style="margin-top: 5px"></div>
 
 
 

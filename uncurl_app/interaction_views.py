@@ -302,6 +302,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                 'margin': {'t':30},
                 'showlegend': True if mode =='cluster' else False,
                 'hovermode': 'closest',
+                'legend': {'x': 1, 'y': 1},
             },
     }, cls=SimpleEncoder)
 
