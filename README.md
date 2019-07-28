@@ -25,7 +25,7 @@ To build a new image from the repository's root directory:
 
 To run the server:
 
-`docker run -p 6379:6379 -p 8888:<port> uncurl-app`
+`docker run -p 6379:6379 -p <port>:8888 uncurl-app`
 
 This exposes the given port, and then the uncurl-app website can be visited in the browser at http://your-ip-address:port. To stop the server, run `sudo killall gunicorn` in another terminal.
 

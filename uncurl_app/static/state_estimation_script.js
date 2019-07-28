@@ -332,6 +332,7 @@ function split_or_merge_cluster(split_or_merge, cells_or_clusters) {
     if (result == false) {
         return false;
     }
+    $('.overlay').show();
     var selected_clusters = all_selected_clusters;
     if (cells_or_clusters == "cells") {
         selected_clusters = current_selected_cells;
@@ -357,6 +358,7 @@ function split_or_merge_cluster(split_or_merge, cells_or_clusters) {
         method: 'POST',
     }).done(function(data) {
         currently_merging = false;
+        $('.overlay').hide();
         if (data.startsWith('Error')) {
             $('#update-area').empty();
             $('#update-area').append(data);
