@@ -884,7 +884,7 @@ def update_cellmesh(user_id):
     return update_cellmesh_result(user_id, top_genes, test_type)
 
 @cache.memoize()
-def update_cellmesh_result(user_id, top_genes, test):
+def update_cellmesh_result(user_id, top_genes, test, return_json=True):
     """
     Gets the CellMesh result for a set of genes.
 
@@ -915,7 +915,10 @@ def update_cellmesh_result(user_id, top_genes, test):
         for g in genes:
             gene_pmids.append('{0}: {1}'.format(g, ', '.join(pmid_to_link(x) for x in ri[4][g])))
         cell_types.append((ri[0], ri[1], ri[2], ', '.join(ri[3]), ', '.join(gene_pmids)))
-    return json.dumps(cell_types, cls=SimpleEncoder)
+    if return_json:
+        return json.dumps(cell_types, cls=SimpleEncoder)
+    else:
+        return cell_types
 
 @interaction_views.route('/user/<user_id>/view/db_query', methods=['POST'])
 def db_query(user_id):
@@ -1207,6 +1210,8 @@ def delete_rerun(user_id):
         return 'Error: unable to delete test results'
     sca = get_sca(user_id)
     try:
+        # clear cache
+        cache.clear()
         sca.delete_uncurl_results()
         return redirect(url_for('views.state_estimation_result', user_id=user_id))
     except Exception as e:
