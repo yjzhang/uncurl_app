@@ -2,7 +2,7 @@ import os
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 
-from . import interaction_views, views, flask_router, db_query
+from . import interaction_views, views, flask_router, db_query, report
 
 from .cache import cache
 
