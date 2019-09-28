@@ -53,7 +53,7 @@ function set_criteria(criteria, label_name) {
         console.log(c);
         var ce1 = criteria_element.cloneNode(true);
         $(ce1).find('#selection_type-1 option[value='+c.selection_type+']').attr('selected', 'selected');
-        $(ce1).find('#selection_comparison-1 option[value=\\' + c.comparison +']').attr('selected', 'selected');
+        $(ce1).find('#selection_comparison-1 option[value="' + c.comparison +'"]').attr('selected', 'selected');
         $(ce1).find('#selection_target-1').attr('value', c.target);
         $(ce1).find('#selection_target-1').attr('list', c.selection_type);
         var template = ce1.outerHTML;
