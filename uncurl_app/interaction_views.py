@@ -914,7 +914,7 @@ def update_cellmesh_result(user_id, top_genes, test, return_json=True):
         genes = ri[3]
         for g in genes:
             gene_pmids.append('{0}: {1}'.format(g, ', '.join(pmid_to_link(x) for x in ri[4][g])))
-        cell_types.append((ri[0], ri[1], ri[2], ', '.join(ri[3]), ', '.join(gene_pmids)))
+        cell_types.append([ri[0], ri[1], ri[2], ', '.join(ri[3]), ', '.join(gene_pmids)])
     if return_json:
         return json.dumps(cell_types, cls=SimpleEncoder)
     else:
@@ -1254,7 +1254,6 @@ def rerun_uncurl(user_id):
     print(request.form['is_cells'])
     is_cells = bool(int(request.form['is_cells']))
 
-    # TODO: cluster ids is not currently implemented
     cell_ids = request.form['cell_ids']
     cell_ids = [int(x) for x in cell_ids.split(',')]
     print(len(cell_ids))

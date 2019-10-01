@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}UNCURL results - {{ user_id }}{% endblock %}
+
+{% block head %}
+
+<!-- TODO: have an option for serving static files?-->
+
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>-->
+<script src="{{ url_for('static', filename='popper.min.js') }}"></script>
+
+{{ super() }}
+
+<script src="{{ url_for('static', filename='jquery-3.3.1.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plotly-latest.min.js') }}"></script>
+
+<script>
+// include data in this script
+// TODO: this is probably kind of horrible...
+var results = {{ results|safe }};
+var all_query_ids = {{ cluster_ids|safe }};
+var scatterplot_data = JSON.parse('{{ scatterplot|safe }}');
+var top_genes = {{ top_genes|safe }};
+
+function set_results_table(data, query_id) {
+    // create table
+    var results_view = $('#cellmesh_results_' + query_id);
+    results_view.empty();
+    var table = $('<table>');
+    var header = $('<tr>');
+    for (var j = 0; j<data[0].length; j++) {
+        header.append('<th>'+data[0][j]+'</th>');
+    }
+    table.append(header);
+    for (var i = 1; i<data.length; i++) {
+        var row = $('<tr>');
+        for (var j = 0; j<data[i].length; j++) {
+            row.append('<td>'+data[i][j]+'</td>');
+        }
+        table.append(row);
+    }
+    results_view.append(table);
+    // TODO: add top genes
+    var top_genes_view = $('#top_genes_' + query_id);
+    for (var c in all_query_ids) {
+        var genes = top_genes[c];
+    }
+};
+
+window.onload = function() {
+    for (var id in all_query_ids) {
+        set_results_table(results[id], id);
+    }
+    Plotly.newPlot("scatterplot", scatterplot_data.data, scatterplot_data.layout);
+};
+
+
+</script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='state_estimation_style.css') }}" type="text/css"/>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="container container-main" role="main">
+    <h3>Report for query id {{ user_id }}</h3>
+
+    <!-- TODO: scatterplot -->
+    <div id="scatterplot" style="width: 800px;">
+    </div>
+
+    <div id="cellmesh_results">
+        {% for cluster_id in cluster_ids %}
+        <h4>Cluster {{ cluster_id }}</h4>
+        <h5>Top Genes</h5>
+        <div id="top_genes_{{ cluster_id }}"></div>
+        <h5>Cell Types</h5>
+        <div id="cellmesh_results_{{ cluster_id }}"></div>
+        <hr/>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

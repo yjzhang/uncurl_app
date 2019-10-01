@@ -36,6 +36,12 @@ Alternatively, we have built reasonably up-to-date images at ayuezhang27/uncurl-
 
 When deploying on AWS, make sure to allow HTTP requests to and from the selected port in the security group.
 
+Pushing to docker-hub:
+
+    docker build . -t uncurl-app
+    docker tag uncurl-app ayuezhang27/uncurl-app
+    docker push ayuezhang27/uncurl-app
+
 
 ## Testing
 

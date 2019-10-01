@@ -36,7 +36,9 @@
     <p><a href="{{ url_for('interaction_views.data_stats', user_id=user_id) }}">Data stats</a></p>
     Results are available:
     {% block file_downloads %}
-    <a href="{{ url_for('views.data_download', x=test_or_user, user_id=data_user_id) }}">Data downloads</a>
+    <p><a href="{{ url_for('views.data_download', x=test_or_user, user_id=data_user_id) }}">Data downloads</a></p>
+    <!-- link for generating report -->
+    <p><a href="{{ url_for('interaction_views.generate_report', user_id=user_id) }}">Cell Type Report</a></p>
 
     {% endblock %}
 
@@ -136,7 +138,7 @@
             </div>
 
 
-            <!-- TODO: custom data selection - this allows you to select cells by various criteria. 
+            <!-- custom data selection - this allows you to select cells by various criteria. 
                     - arbitrary adding/removal of criteria 
 
                     Alternatively, have the user type in a string???
@@ -295,7 +297,7 @@
                 <li><a data-toggle="tab" href="#cell_query_pane">Cell similarity search</a></li>
             </ul>
             <div class="tab-content" id="bottom-panel" style="margin-top: 20px; width: 1000px;">
-                <!-- TODO: tabbed navigation -->
+                <!-- tabbed navigation -->
                 <div id="db_gene_query_pane" class="tab-pane fade in active">
                     <h3>Gene set queries</h3>
                     <form id="gene-set-query-form">
@@ -307,9 +309,9 @@
                         <div class="form-inline">
                             <label for="database-select" data-toggle="tooltip" title="Which database to query for the given gene set. Current options are Enrichr and CellMarker.">Database:</label>
                             <select class="form-control" id="database-select" name="database_select" style="width:200px; margin-top: 5px;" onchange="toggle_query_visibility();">
-                                <option value="enrichr" selected>Enrichr</option>
+                                <option value="enrichr">Enrichr</option>
                                 <option value="cellmarker">CellMarker</option>
-                                <option value="cellmesh">CellMeSH</option>
+                                <option value="cellmesh" selected>CellMeSH</option>
                             </select>
                         </div>
 
@@ -388,7 +390,6 @@
                                 <select class="form-control" id="method" name="method">
                                     <option value='spearman' selected>Spearman</option>
                                 </select>
-                                <!-- TODO: have a script to set the cluster -->
                                 <label for="cell_search_cluster">Cluster:</option>
                                 <select class="form-control" id="cell_search_cluster" name="cell_search_cluster">
                                 </select>
