@@ -34,7 +34,7 @@ def generate_report(user_id):
         cluster_mean_reads[cluster_id] = sca.read_counts[sca.cell_subset][sca.cell_sample][cluster_cells].mean()
         top_50_genes = top_genes[cluster_id][:50]
         cluster_top_genes[cluster_id] = top_50_genes
-        selected_gene_names = [gene_names[x[0]] for x in top_50_genes]
+        selected_gene_names = [gene_names[x[0]].strip().upper() for x in top_50_genes]
         # do a cellmesh query
         cellmesh_results = update_cellmesh_result(user_id, selected_gene_names, 'prob', return_json=False)
         cellmesh_results_clusters[cluster_id] = cellmesh_results
