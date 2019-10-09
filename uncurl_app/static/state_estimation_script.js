@@ -375,6 +375,15 @@ function split_or_merge_cluster(split_or_merge, cells_or_clusters) {
     });
 };
 
+// re-run pipeline
+function delete_rerun() {
+    var result = window.confirm("Do you wish to delete the current results for this dataset and re-run the entire pipeline?");
+    if (result == false) {
+        return false;
+    }
+    window.location.href = window.location.pathname + "/delete_rerun";
+};
+
 // copies data to a new user_id
 function copy_data() {
     var result = window.confirm("Do you wish to copy this dataset to a new user id?");
@@ -606,6 +615,9 @@ window.onload = function() {
         update_gene_query('enrichr');
     });
 
+    $('#delete_rerun').click(function() {
+        delete_rerun();
+    });
 
     $('#copy').click(function() {
         copy_data();
