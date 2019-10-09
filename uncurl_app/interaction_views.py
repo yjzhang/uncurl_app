@@ -1196,8 +1196,7 @@ def copy_dataset(user_id):
         shutil.copytree(path, user_id_to_path(new_user_id))
         # change user id in json files (this is a bad hack lol)
         import subprocess
-        import shlex
-        subprocess.call(shlex.split("sed -i 's/{0}/{1}/g' *.json".format(user_id, new_user_id)))
+        subprocess.call("sed -i 's/{0}/{1}/g' /tmp/uncurl/{1}/*.json".format(user_id, new_user_id), shell=True)
         return new_user_id
     except Exception as e:
         text = traceback.format_exc()
