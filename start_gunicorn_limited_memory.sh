@@ -10,4 +10,4 @@ for pid in $pids; do
     echo "killed gunicorn process $pid"
 done
 # 20000 second timeout
-nohup gunicorn --workers 3 --max-requests 5 --threads 3 --bind 0.0.0.0:8888 --log-level debug -t 20000 wsgi:app >> nohup_uncurl_2.out &
+nohup gunicorn --workers 3 --max-requests 5 --threads 1 --bind 0.0.0.0:8888 --log-level debug -t 20000 wsgi:app >> nohup_uncurl_2.out &
