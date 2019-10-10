@@ -40,10 +40,14 @@ function set_results_table(data, query_id) {
         table.append(row);
     }
     results_view.append(table);
-    // TODO: add top genes
+    // add top genes
     var top_genes_view = $('#top_genes_' + query_id);
-    for (var c in all_query_ids) {
-        var genes = top_genes[c];
+    for (var gene_id in top_genes[query_id]) {
+        if (gene_id == 0) {
+            top_genes_view.text(top_genes[query_id][gene_id]);
+        } else {
+            top_genes_view.text(top_genes_view.text() + ', ' + top_genes[query_id][gene_id]);
+        }
     }
 };
 

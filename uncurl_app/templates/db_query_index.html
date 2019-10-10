@@ -20,9 +20,23 @@ function toggle_query_visibility() {
     if (value == "cellmarker") {
         $('#cellmarker_view').toggle(true);
         $('#cellmesh_view').toggle(false);
+        $('#cellmesh_anatomy_view').toggle(false);
+        $('#go_view').toggle(false);
     } else if (value == "cellmesh") {
         $('#cellmarker_view').toggle(false);
         $('#cellmesh_view').toggle(true);
+        $('#cellmesh_anatomy_view').toggle(false);
+        $('#go_view').toggle(false);
+    } else if (value == 'cellmesh_anatomy') {
+        $('#cellmarker_view').toggle(false);
+        $('#cellmesh_view').toggle(false);
+        $('#cellmesh_anatomy_view').toggle(true);
+        $('#go_view').toggle(false);
+    } else if (value == 'go') {
+        $('#cellmarker_view').toggle(false);
+        $('#cellmesh_view').toggle(false);
+        $('#cellmesh_anatomy_view').toggle(false);
+        $('#go_view').toggle(true);
     }
 };
 
@@ -33,8 +47,10 @@ function set_enrichr_results(data, query) {
         results_view = $('#cellmarker_results');
     } else if (query == 'cellmesh') {
         results_view = $('#cellmesh_results');
-    } else if (query == 'cell_search') {
-        results_view = $('#cell_search_results');
+    } else if (query == 'cellmesh_anatomy') {
+        results_view = $('#cellmesh_anatomy_results');
+    } else if (query == 'go') {
+        results_view = $('#go_results');
     }
     results_view.empty();
     var table = $('<table>');
@@ -73,6 +89,10 @@ function update_gene_query(query) {
         results_view = $('#cellmarker_results');
     } else if (query == 'cellmesh') {
         results_view = $('#cellmesh_results');
+    } else if (query == 'cellmesh_anatomy') {
+        results_view = $('#cellmesh_anatomy_results');
+    } else if (query == 'go') {
+        results_view = $('#go_results');
     }
     results_view.empty();
     results_view.append("<br>" + "Query in progress..." + '<img src="/static/ajax-loader.gif"/>');
@@ -90,6 +110,10 @@ function update_gene_query(query) {
         }
     });
     return true;
+};
+
+// set the anatomy_mesh tree view
+function set_mesh_tree(tree) {
 };
 
 
@@ -115,6 +139,8 @@ window.onload = function() {
             <select class="form-control" id="database_select" name="database_select" style="width:200px; margin-top: 5px;" onchange="toggle_query_visibility();">
                 <option value="cellmarker">CellMarker</option>
                 <option value="cellmesh" selected>CellMeSH</option>
+                <option value="cellmesh_anatomy" selected>CellMeSH-Anatomy</option>
+                <option value="go" selected>Gene Onotology</option>
             </select>
         </div>
 
@@ -163,6 +189,31 @@ window.onload = function() {
             <div id="cellmesh_results"></div>
         </div>
 
+        <div id="cellmesh_anatomy_view" style="display:none;">
+            <h5 data-toggle="tooltip" title="Query the CellMeSH database for cell types matching the selected genes.">Query CellMeSH with selected genes</h4>
+            <!-- TODO: have a list of potential sub-types -->
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                <label for="anatomy_mesh_subset" data-toggle="tooltip" title="Comma-separated list of MeSH Anatomy IDs; query will include all children of these terms.">MeSH ID subset:</label>
+                <input list="anatomy_mesh_root_terms" class="form-control" id="anatomy_mesh_subset" name="anatomy_mesh_subset">
+                <datalist id="anatomy_mesh_root_terms">
+                    <option value="">
+                </datalist>
+            </div>
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                <label for="anatomy_mesh_test_type" data-toggle="tooltip" title="Currently, only the hypergeometric test is available.">Statistical test:</label>
+                <select class="form-control" id="anatomy_mesh_test_type" name="anatomy_mesh_test_type">
+                    <option value="hypergeom" selected>Hypergeometric test</option>
+                </select>
+            </div>
+            <button class="btn btn-default" id="cellmesh_anatomy_submit" type="button" onclick="update_gene_query('cellmesh_anatomy');">Submit CellMesh query</button>
+            <div id="cellmesh_anatomy_results"></div>
+        </div>
+
+        <div id="go_view" style="display:none;">
+            <h5 data-toggle="tooltip" title="Query Gene Ontology for terms matching the selected genes.">Query GO with selected genes</h4>
+            <button class="btn btn-default" id="cellmesh_anatomy_submit" type="button" onclick="update_gene_query('go');">Submit GO query</button>
+            <div id="go_results"></div>
+        </div>
 
     </form>
 </div>

@@ -29,12 +29,13 @@ def generate_report(user_id):
     scatterplot = scatterplot_data(sca.dim_red, sca.labels)
     # for each cluster
     for cluster_id in top_genes.keys():
+        # TODO: barplot?
         cluster_cells = (sca.labels == cluster_id)
         cluster_cell_counts[cluster_id] = cluster_cells.sum()
         cluster_mean_reads[cluster_id] = sca.read_counts[sca.cell_subset][sca.cell_sample][cluster_cells].mean()
         top_50_genes = top_genes[cluster_id][:50]
-        cluster_top_genes[cluster_id] = top_50_genes
         selected_gene_names = [gene_names[x[0]].strip().upper() for x in top_50_genes]
+        cluster_top_genes[cluster_id] = selected_gene_names
         # do a cellmesh query
         cellmesh_results = update_cellmesh_result(user_id, selected_gene_names, 'prob', return_json=False)
         cellmesh_results_clusters[cluster_id] = cellmesh_results
