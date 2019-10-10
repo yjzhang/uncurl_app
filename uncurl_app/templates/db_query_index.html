@@ -12,6 +12,8 @@
 
 var cache = {};
 cache.enrichr = {};
+var tree = {};
+var id_to_name = {};
 
 // toggles visibility of the bottom-left gene query view
 // 'toggle' is a jquery method that changes the visibility of the element.
@@ -114,11 +116,22 @@ function update_gene_query(query) {
 
 // set the anatomy_mesh tree view
 function set_mesh_tree(tree) {
+    // TODO
 };
 
 
 window.onload = function() {
     toggle_query_visibility();
+
+    $.ajax({url: '/db_query/get_mesh_tree',
+        type: "GET",
+    }).done(function(results) {
+        console.log(results);
+        results = JSON.parse(results);
+        tree = results.tree;
+        id_to_name = results.id_to_name; 
+        set_mesh_tree(results.tree);
+    });
 };
 
 </script>
