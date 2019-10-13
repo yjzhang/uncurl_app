@@ -66,4 +66,4 @@ Cell type databases include [cellmarker_python](https://github.com/yjzhang/cellm
 
 loading gif from http://www.ajaxload.info/
 
-Javascript libraries: bokeh, plotly, jquery, poppler
+Javascript libraries: [bokeh](https://bokeh.pydata.org), [plotly](https://plot.ly/), [jquery](https://jquery.com), [popper.js](https://popper.js.org/), [hummingbird-treeview](https://github.com/hummingbird-dev/hummingbird-treeview)

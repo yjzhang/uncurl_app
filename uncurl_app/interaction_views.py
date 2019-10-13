@@ -28,6 +28,8 @@ interaction_views.enrichr_gene_list_ids = {}
 # map of tuples (top_genes, gene_set) to enrichr results
 interaction_views.enrichr_results = {}
 
+def pmid_to_link(pmid):
+    return '<a href="https://www.ncbi.nlm.nih.gov/pubmed/{0}">{0}</a>'.format(pmid)
 
 @contextlib.contextmanager
 def lockfile_context(lockfile_name):
@@ -211,7 +213,7 @@ def calc_size(labels):
     return size
 
 def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
-        color_vals=None):
+        color_vals=None, text_labels=None):
     """
     Converts data into a form that will be sent as json for building the
     scatterplot. Output should be formatted in a way that can be used by
@@ -222,6 +224,8 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
         labels (array): 1d array of length n
         colorscale (str)
         mode (str): either 'cluster' or 'entropy'
+        color_vals (array): 1d array of length n, of real values that will be used for coloring
+        text_labels (list of strings): list of labels to place on the plot, 1 for each cluster.
     """
     # have size depend on data shape
     size = calc_size(labels)
@@ -857,8 +861,7 @@ def update_cellmarker_result(user_id, top_genes, test, cells_or_tissues, species
         cells_or_tissues (str, either 'cells' or 'tissues')
         species (str, one of 'all', 'Human', 'Mouse')
     """
-    def pmid_to_link(pmid):
-        return '<a href="https://www.ncbi.nlm.nih.gov/pubmed/{0}">{0}</a>'.format(pmid)
+
     import cellmarker
     result = []
     if test == 'hypergeom':
@@ -892,8 +895,6 @@ def update_cellmesh_result(user_id, top_genes, test, return_json=True):
         top_genes (list of strings representing genes)
         test (str, currently only 'hypergeom')
     """
-    def pmid_to_link(pmid):
-        return '<a href="https://www.ncbi.nlm.nih.gov/pubmed/{0}">{0}</a>'.format(pmid)
     import cellmesh
     result = []
     if test == 'hypergeom':
@@ -918,6 +919,56 @@ def update_cellmesh_result(user_id, top_genes, test, return_json=True):
         return json.dumps(cell_types, cls=SimpleEncoder)
     else:
         return cell_types
+
+@interaction_views.route('/user/<user_id>/view/update_cellmesh_anatomy', methods=['GET', 'POST'])
+def update_cellmesh_anatomy(user_id):
+    top_genes = [x.strip().upper() for x in request.form['top_genes'].split('\n')]
+    mesh_subset = request.form['anatomy_mesh_subset']
+    return update_cellmesh_anatomy_result(top_genes, mesh_subset=mesh_subset)
+
+@cache.memoize()
+def update_cellmesh_anatomy_result(top_genes, mesh_subset=None, return_json=True):
+    if len(mesh_subset) > 1:
+        mesh_subset = [x.strip() for x in mesh_subset.split(',')]
+    else:
+        mesh_subset = None
+    # TODO: validate mesh_subset
+    import cellmesh
+    result = cellmesh.hypergeometric_test(top_genes, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR,
+            cell_type_subset=mesh_subset)
+    print('update_cellmesh_anatomy_result', result)
+    cell_types = [result[0]]
+    for i in range(1, min(20, len(result))):
+        ri = result[i]
+        gene_pmids = []
+        genes = ri[3]
+        for g in genes:
+            gene_pmids.append('{0}: {1}'.format(g, ', '.join(pmid_to_link(x) for x in ri[4][g])))
+        cell_types.append([ri[0], ri[1], ri[2], ', '.join(ri[3]), ', '.join(gene_pmids)])
+    if return_json:
+        return json.dumps(cell_types, cls=SimpleEncoder)
+    else:
+        return cell_types
+
+@interaction_views.route('/user/<user_id>/view/update_go', methods=['GET', 'POST'])
+def update_go(user_id):
+    """
+    get gene ontology result
+    """
+    # top_genes is a newline-separated string, representing the gene list.
+    top_genes = [x.strip().upper() for x in request.form['top_genes'].split('\n')]
+    print('update_go:', top_genes)
+    # gene_set is a string.
+    return update_go_result(top_genes)
+
+@cache.memoize()
+def update_go_result(top_genes, **kwargs):
+    from cellmesh import go_query
+    top_genes = [x.capitalize() for x in top_genes]
+    result = go_query.gene_set_query(top_genes, return_header=True)
+    for r in result[1:]:
+        r[3] = ', '.join(r[3])
+    return json.dumps(result, cls=SimpleEncoder)
 
 @interaction_views.route('/user/<user_id>/view/db_query', methods=['POST'])
 def db_query(user_id):

@@ -184,14 +184,7 @@ function update_scatterplot() {
 
 function set_enrichr_results(data, query) {
     // create table
-    var results_view = $('#enrichr-results');
-    if (query == 'cellmarker') {
-        results_view = $('#cellmarker-results');
-    } else if (query == 'cellmesh') {
-        results_view = $('#cellmesh-results');
-    } else if (query == 'cell_search') {
-        results_view = $('#cell_search_results');
-    }
+    var results_view = $('#' + query + '_results');
     results_view.empty();
     var table = $('<table>');
     var header = $('<tr>');
@@ -224,14 +217,20 @@ function update_gene_query(query) {
         set_enrichr_results(cache.enrichr[key], query);
         return true;
     }
-    var results_view = $('#enrichr-results');
+    var results_view = $('#enrichr_results');
     var update_url = '/update_enrichr';
     if (query == 'cellmarker') {
-        results_view = $('#cellmarker-results');
+        results_view = $('#cellmarker_results');
         update_url = '/update_cellmarker';
     } else if (query == 'cellmesh') {
-        results_view = $('#cellmesh-results');
+        results_view = $('#cellmesh_results');
         update_url = '/update_cellmesh';
+    } else if (query == 'cellmesh_anatomy') {
+        results_view = $('#cellmesh_anatomy_results');
+        update_url = '/update_cellmesh_anatomy';
+    } else if (query == 'go') {
+        results_view = $('#go_results');
+        update_url = '/update_go';
     }
     results_view.empty();
     results_view.append("<br>" + "Query in progress..." + '<img src="/static/ajax-loader.gif"/>');
@@ -452,19 +451,15 @@ function toggle_reanalyze_area(value) {
 // toggles visibility of the bottom-left gene query view
 // 'toggle' is a jquery method that changes the visibility of the element.
 function toggle_query_visibility() {
+    var views = ['cellmarker_view', 'enrichr_view', 'cellmesh_view', 'cellmesh_anatomy_view', 'go_view'];
     var value = $('#database-select').val();
-    if (value == "cellmarker") {
-        $('#cellmarker-view').toggle(true);
-        $('#enrichr-view').toggle(false);
-        $('#cellmesh_view').toggle(false);
-    } else if (value == "enrichr") {
-        $('#cellmarker-view').toggle(false);
-        $('#enrichr-view').toggle(true);
-        $('#cellmesh_view').toggle(false);
-    } else if (value == "cellmesh") {
-        $('#cellmarker-view').toggle(false);
-        $('#enrichr-view').toggle(false);
-        $('#cellmesh_view').toggle(true);
+    var view_select = value + '_view';
+    for (var i in views) {
+        if (views[i] == view_select) {
+            $('#'+views[i]).toggle(true);
+        } else {
+            $('#'+views[i]).toggle(false);
+        }
     }
 };
 
