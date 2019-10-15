@@ -26,7 +26,6 @@ def generate_report(user_id):
     cluster_cell_counts = {}
     cluster_mean_reads = {}
     # scatterplot data
-    scatterplot = scatterplot_data(sca.dim_red, sca.labels)
     # for each cluster
     for cluster_id in top_genes.keys():
         # TODO: barplot?
@@ -39,6 +38,9 @@ def generate_report(user_id):
         # do a cellmesh query
         cellmesh_results = update_cellmesh_result(user_id, selected_gene_names, 'prob', return_json=False)
         cellmesh_results_clusters[cluster_id] = cellmesh_results
+    import numpy as np
+    new_labels = np.array([str(x) + ' ' +  cellmesh_results_clusters[x][1][1] for x in sca.labels])
+    scatterplot = scatterplot_data(sca.baseline_vis, new_labels)
     return render_template('report.html',
             user_id=user_id,
             results=cellmesh_results_clusters, #json.dumps(cellmesh_results_clusters, cls=SimpleEncoder),
