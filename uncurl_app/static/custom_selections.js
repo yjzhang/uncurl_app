@@ -59,8 +59,8 @@ function set_criteria(criteria, label_name) {
         // comparisons might not be present
         if (c.selection_type == 'gene') {
             $(ce1).find('#selection_comparison-1').empty();
-            $(ce1).find('#selection_comparison-1').append('<option value=">">greater than</option>');
-            $(ce1).find('#selection_comparison-1').append('<option value="<">less than</option>');
+            $(ce1).find('#selection_comparison-1').append('<option value=">">&gt;</option>');
+            $(ce1).find('#selection_comparison-1').append('<option value="<">&lt;</option>');
         }
         $(ce1).find('#selection_comparison-1 option[value="' + c.comparison +'"]').attr('selected', 'selected');
         $(ce1).find('#selection_target-1').attr('value', c.target);
@@ -251,11 +251,11 @@ function update_custom_criterion(criterion_id) {
         // create a gene input text box after the selection
         $('#selection_value-'+criterion_id).toggle(true);
         $('#selection_value-'+criterion_id).attr('list', 'gene_names');
-        comparison.append('<option value=">">greater than</option>');
-        comparison.append('<option value="<">less than</option>');
+        comparison.append('<option value=">">&gt;</option>');
+        comparison.append('<option value="<">&lt;</option>');
     } else if (selection_type == 'read_counts') {
-        comparison.append('<option value=">">greater than</option>');
-        comparison.append('<option value="<">less than</option>');
+        comparison.append('<option value=">">&gt;</option>');
+        comparison.append('<option value="<">&lt;</option>');
         $('#selection_value-'+criterion_id).toggle(false);
     } else if (selection_type == 'selection') {
         comparison.append('<option value="=">=</option>');
