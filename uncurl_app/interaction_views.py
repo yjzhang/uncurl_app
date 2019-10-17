@@ -257,6 +257,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
             print(color_values)
         else:
             color_values = label_values
+        # TODO: plot text - randomly select a cell and plot it there.
         data =  [
             {
                 'x': dim_red[0,labels==c].tolist(),
@@ -1187,19 +1188,19 @@ def load_criteria_from_dict(json_dict):
     """
     Returns a list of LabelCriterion objects given a dict loaded from json...
     """
-    current_id = 1
-    has_id = True
+    keys = json_dict.keys()
+    ids = set([int(x.split('-')[1]) for x in keys])
     all_criteria = []
-    while has_id:
+    for current_id in ids:
         selection_type = json_dict['selection_type-'+str(current_id)]
         comparison = json_dict['selection_comparison-'+str(current_id)]
         target = json_dict['selection_target-'+str(current_id)]
         and_or = json_dict['selection_and_or-'+str(current_id)]
         criterion = custom_cell_selection.LabelCriterion(selection_type=selection_type, comparison=comparison, target=target, and_or=and_or)
+        if 'selection_value-' + str(current_id) in json_dict:
+            value = json_dict['selection_value-'+str(current_id)]
+            criterion.value = value
         all_criteria.append(criterion)
-        current_id += 1
-        if 'selection_type-'+str(current_id) not in json_dict:
-            has_id = False
     return all_criteria
 
 @interaction_views.route('/user/<user_id>/view/update_colormap_label_criteria', methods=['POST'])

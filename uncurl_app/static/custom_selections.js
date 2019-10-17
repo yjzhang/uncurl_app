@@ -20,6 +20,9 @@ function add_custom_colormap() {
             // set name to selected name
             $('#cell-color').val(colormap_name);
             $('#custom_color_map_area').toggle(true);
+            var select = $('#label_select');
+            select.empty();
+            select.append('<option value="create_new_label">New label</option>');
         }
     });
 };
@@ -53,9 +56,19 @@ function set_criteria(criteria, label_name) {
         console.log(c);
         var ce1 = criteria_element.cloneNode(true);
         $(ce1).find('#selection_type-1 option[value='+c.selection_type+']').attr('selected', 'selected');
+        // comparisons might not be present
+        if (c.selection_type == 'gene') {
+            $(ce1).find('#selection_comparison-1').empty();
+            $(ce1).find('#selection_comparison-1').append('<option value=">">greater than</option>');
+            $(ce1).find('#selection_comparison-1').append('<option value="<">less than</option>');
+        }
         $(ce1).find('#selection_comparison-1 option[value="' + c.comparison +'"]').attr('selected', 'selected');
         $(ce1).find('#selection_target-1').attr('value', c.target);
         $(ce1).find('#selection_target-1').attr('list', c.selection_type);
+        if (c.value) {
+            $(ce1).find('#selection_value-1').toggle(true);
+            $(ce1).find('#selection_value-1').attr('value', c.value);
+        }
         var template = ce1.outerHTML;
         template = template.replace(/-1\"/g, '-'+String(i+1)+'"');
         template = template.replace(/\(1\)/g, '('+String(i+1)+')');
@@ -121,7 +134,7 @@ function add_custom_criterion(and_or) {
     // find number of criteria the label has...
     var num_criteria = $('.custom_selection_criterion').length;
     var id = num_criteria + 1;
-    var template = $('#custom_selection_criterion-1')[0].outerHTML;
+    var template = criterion_template;
     template = template.replace(/-1\"/g, '-'+id+'"');
     template = template.replace(/\(1\)/g, '('+id+')');
     // set selection_and_or-1
@@ -156,7 +169,7 @@ function submit_label() {
         } else {
             // clear scatterplots cache, update scatterplot
             var label_data = JSON.parse(data);
-            set_criteria(label_data.criteria, label_name);
+            //set_criteria(label_data.criteria, label_name);
             cache.scatterplots = {};
             update_scatterplot();
         }
@@ -232,17 +245,23 @@ function update_custom_criterion(criterion_id) {
             //dl.appendTo('body');
         }
         $('#selection_target-'+ criterion_id).attr('list', 'cluster');
+        // delete gene input text box
+        $('#selection_value-'+criterion_id).toggle(false);
     } else if (selection_type == 'gene') {
-        // TODO: create a gene input
-        comparison.append('<option value=">=">greater than</option>');
-        comparison.append('<option value="!=">less than</option>');
+        // create a gene input text box after the selection
+        $('#selection_value-'+criterion_id).toggle(true);
+        $('#selection_value-'+criterion_id).attr('list', 'gene_names');
+        comparison.append('<option value=">">greater than</option>');
+        comparison.append('<option value="<">less than</option>');
     } else if (selection_type == 'read_counts') {
-        comparison.append('<option value=">=">greater than</option>');
-        comparison.append('<option value="!=">less than</option>');
+        comparison.append('<option value=">">greater than</option>');
+        comparison.append('<option value="<">less than</option>');
+        $('#selection_value-'+criterion_id).toggle(false);
     } else if (selection_type == 'selection') {
         comparison.append('<option value="=">=</option>');
         //$('#selection_target-'+criterion_id).attr('disabled', 'disabled');
         $('#selection_target-'+criterion_id).val(String(current_selected_cells));
+        $('#selection_value-'+criterion_id).toggle(false);
     } else { // custom label
         comparison.append('<option value="=">=</option>');
         comparison.append('<option value="!=">!=</option>');
@@ -251,6 +270,7 @@ function update_custom_criterion(criterion_id) {
             get_colormap_values(selection_type);
         }
         $('#selection_target-'+ criterion_id).attr('list', selection_type);
+        $('#selection_value-'+criterion_id).toggle(false);
     }
 };
 

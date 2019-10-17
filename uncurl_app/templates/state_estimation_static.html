@@ -169,6 +169,7 @@
                                     <select class="form-control" id="selection_type-1" name="selection_type-1" onchange="update_custom_criterion(1);">
                                         <option value="cluster">Cluster</option>
                                         <option value="selection">Selection</option>
+                                        <option value="gene">Gene</option>
                                         <!-- view to show each cluster's W values --> 
                                         <!--<option value="read_counts">Read counts</option>-->
                                         <!-- TODO: a color track should not include itself...-->
@@ -176,6 +177,7 @@
                                         <option value="{{ track }}">{{ track }}</option>
                                         {% endfor %}
                                     </select>
+                                    <input class="form-control" id="selection_value-1" name="selection_value-1" style="display:none;">
                                     <select class="form-control" id="selection_comparison-1" name="selection_comparison-1">
                                         <option value="=">=</option>
                                         <option value="!=">!=</option>
