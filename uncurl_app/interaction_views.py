@@ -763,12 +763,11 @@ def cell_info(user_id):
         - cell_id (int, 0-indexed)
         - read_count (number)
         - genes_count (int)
-        - expressed_genes (list of strings)
-        - expressed_genes_values (list of numbers)
         - cluster (int)
+        - cluster_median_read_count (float)
+        - cluster_median_gene_count (float)
         - values for all of the uploaded color maps
     """
-    # TODO: is this really necessary?
     print('cell_info: ', request.form)
     selected_cells = request.form['selected_cells']
     selected_cells = selected_cells.split(',')
@@ -776,21 +775,46 @@ def cell_info(user_id):
     selected_clusters = request.form['selected_clusters']
     selected_clusters = selected_clusters.split(',')
     selected_clusters = [int(x) for x in selected_clusters]
-    return cell_info_result(user_id, selected_cells)
+    color_map = request.form['color_map']
+    # TODO: return more results: more cluster info - cluster median read count, cluster median gene count
+    # TODO: change this by colormap as well
+    return cell_info_result(user_id, selected_cells, selected_clusters, color_map)
 
 @cache.memoize()
-def cell_info_result(user_id, selected_cells):
+def cell_info_result(user_id, selected_cells, selected_clusters, color_map):
     # get read count + gene count for all cells
     sca = get_sca(user_id)
     read_counts = []
     gene_counts = []
+    data = sca.data_sampled_all_genes
     for cell in selected_cells:
-        cell_data = sca.data_sampled_all_genes[:, cell]
+        cell_data = data[:, cell]
         gene_counts.append(cell_data.count_nonzero())
         read_counts.append(cell_data.sum())
+    cluster_reads, cluster_genes = get_cluster_stats(sca, data, selected_clusters[0], color_map)
     return json.dumps({'gene_counts': gene_counts,
-        'read_counts': read_counts}, cls=SimpleEncoder)
+        'read_counts': read_counts, 'cluster_reads': cluster_reads,
+        'cluster_genes': cluster_genes}, cls=SimpleEncoder)
 
+def get_cluster_stats(sca, data, cluster_id, colormap='cluster'):
+    # get cluster median read count, cluster median gene count
+    color_track = sca.labels
+    if colormap != 'cluster':
+        try:
+            color_track, is_discrete = sca.get_color_track(colormap)
+            if not is_discrete:
+                color_track = sca.labels
+            else:
+                color_to_index, index_to_color = color_track_map(color_track)
+                cluster_id = index_to_color[cluster_id]
+        except:
+            color_track = sca.labels
+    cell_data = data[:, color_track==cluster_id]
+    read_counts = np.array(cell_data.sum(0)).flatten()
+    gene_counts = np.zeros(cell_data.shape[1])
+    for i in range(len(gene_counts)):
+        gene_counts[i] = cell_data[:,i].count_nonzero()
+    return np.median(read_counts), np.median(gene_counts)
 
 @interaction_views.route('/user/<user_id>/view/update_enrichr', methods=['GET', 'POST'])
 def update_enrichr(user_id):
@@ -1037,6 +1061,7 @@ def split_or_merge_cluster(user_id):
         #print('deleting user_id from cache')
         # TODO: this currently doesn't work, since keys are hashed.
         #clear_cache_user_id(user_id)
+        cache.clear()
     else:
         print('clearing cache')
         cache.clear()

@@ -292,9 +292,11 @@ function get_cell_info() {
     var selected_clusters = all_selected_clusters;
     var selected_cells = current_selected_cells;
     // can't send an array... have to convert to string
+    // TODO: get color map
     var upload_data = {
         selected_clusters: String(selected_clusters),
         selected_cells: String(selected_cells),
+        color_map: $('#cell-color').val()
     };
     $("#update-area").empty();
     $("#update-area").append("<br>" + "Query in progress..." + '<img src="/static/ajax-loader.gif"/>');
@@ -317,8 +319,9 @@ function get_cell_info() {
         };
         $("#update-area").empty();
         $("#update-area").append("Selected cells: " + cell_string + "<br>");
-        // TODO: what are the stats that we need?
         $("#update-area").append("Selected clusters: " + selection_string + "<br>");
+        $("#update-area").append("Median read count for cluster: " + results.cluster_reads + "<br>");
+        $("#update-area").append("Median gene count for cluster: " + results.cluster_genes + "<br>");
     });
 };
 
