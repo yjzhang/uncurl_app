@@ -346,8 +346,8 @@
                                 <label for="species" data-toggle="tooltip" title="Which species to query for cell types. Currently human and mouse are available.">Species:</label>
                                 <select class="form-control" id="species" name="species">
                                     <option value="all" selected>All</option>
-                                    <option value="Human">Human</option>
-                                    <option value="Mouse">Mouse</option>
+                                    <option value="Human">Homo sapiens</option>
+                                    <option value="Mouse">Mus musculus</option>
                                 </select>
                             </div>
 
@@ -374,6 +374,16 @@
                                     <option value="gsva">GSVA</option> 
                                 </select>
                             </div>
+
+                            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                                <label for="cellmesh_species" data-toggle="tooltip" title="Which species to query for cell types. Currently human and mouse are available.">Species:</label>
+                                <select class="form-control" id="cellmesh_species" name="cellmesh_species">
+                                    <option value="human" selected>Homo sapiens</option>
+                                    <option value="mouse">Mus musculus</option>
+                                    <option value="both">Human + mouse</option>
+                                    <option value="c_elegans">C. Elegans</option>
+                                </select>
+                            </div>
                             <button class="btn btn-default" id="cellmesh-submit" type="button" onclick="update_gene_query('cellmesh');">Submit CellMesh query</button>
                             <div id="cellmesh_results"></div>
                         </div>
@@ -392,6 +402,15 @@
                                 <label for="anatomy_mesh_test_type" data-toggle="tooltip" title="Currently, only the hypergeometric test is available.">Statistical test:</label>
                                 <select class="form-control" id="anatomy_mesh_test_type" name="anatomy_mesh_test_type">
                                     <option value="hypergeom" selected>Hypergeometric test</option>
+                                </select>
+                            </div>
+                            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                                <label for="anatomy_species" data-toggle="tooltip" title="Which species to query for cell types. Currently human and mouse are available.">Species:</label>
+                                <select class="form-control" id="anatomy_species" name="anatomy_species">
+                                    <option value="human" selected>Homo sapiens</option>
+                                    <option value="mouse">Mus musculus</option>
+                                    <option value="both">Human + mouse</option>
+                                    <option value="c_elegans">C. Elegans</option>
                                 </select>
                             </div>
                             <button class="btn btn-default" id="cellmesh_anatomy_submit" type="button" onclick="update_gene_query('cellmesh_anatomy');">Submit CellMesh Anatomy query</button>

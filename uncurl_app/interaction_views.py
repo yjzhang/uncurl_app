@@ -908,10 +908,11 @@ def update_cellmesh(user_id):
     print('update_cellmesh:', top_genes)
     # gene_set is a string.
     test_type = request.form['mesh_test_type']
-    return update_cellmesh_result(user_id, top_genes, test_type)
+    species = request.form['cellmesh_species']
+    return update_cellmesh_result(user_id, top_genes, test_type, species)
 
 @cache.memoize()
-def update_cellmesh_result(user_id, top_genes, test, return_json=True):
+def update_cellmesh_result(user_id, top_genes, test, species='human', return_json=True):
     """
     Gets the CellMesh result for a set of genes.
 
@@ -923,7 +924,7 @@ def update_cellmesh_result(user_id, top_genes, test, return_json=True):
     import cellmesh
     result = []
     if test == 'hypergeom':
-        result = cellmesh.hypergeometric_test(top_genes, return_header=True)
+        result = cellmesh.hypergeometric_test(top_genes, species=species, return_header=True)
     elif test == 'norm_hypergeom':
         result = cellmesh.normed_hypergeometric_test(top_genes, return_header=True)
     elif test == 'prob':
@@ -949,17 +950,18 @@ def update_cellmesh_result(user_id, top_genes, test, return_json=True):
 def update_cellmesh_anatomy(user_id):
     top_genes = [x.strip().upper() for x in request.form['top_genes'].split('\n')]
     mesh_subset = request.form['anatomy_mesh_subset']
-    return update_cellmesh_anatomy_result(top_genes, mesh_subset=mesh_subset)
+    species = request.form['anatomy_species']
+    return update_cellmesh_anatomy_result(top_genes, mesh_subset=mesh_subset, species=species)
 
 @cache.memoize()
-def update_cellmesh_anatomy_result(top_genes, mesh_subset=None, return_json=True):
+def update_cellmesh_anatomy_result(top_genes, mesh_subset=None, species='human', return_json=True):
     if len(mesh_subset) > 1:
         mesh_subset = [x.strip() for x in mesh_subset.split(',')]
     else:
         mesh_subset = None
     # TODO: validate mesh_subset
     import cellmesh
-    result = cellmesh.hypergeometric_test(top_genes, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR,
+    result = cellmesh.hypergeometric_test(top_genes, species=species, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR,
             cell_type_subset=mesh_subset)
     print('update_cellmesh_anatomy_result', result)
     cell_types = [result[0]]
