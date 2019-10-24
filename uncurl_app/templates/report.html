@@ -26,7 +26,10 @@ function set_results_table(data, query_id) {
     // create table
     var results_view = $('#cellmesh_results_' + query_id);
     results_view.empty();
-    var table = $('<table>');
+    results_view.append(`<div>Top cell type: ${data[1][1]}</div>`);
+    var collapsible = $(`<a data-toggle="collapse" href="#table_${query_id}" aria-expanded="false" aria-controls="table_${query_id}">Show/hide all results</a>`);
+    results_view.append(collapsible);
+    var table = $(`<table class="collapse" id="table_${query_id}">`);
     var header = $('<tr>');
     for (var j = 0; j<data[0].length; j++) {
         header.append('<th>'+data[0][j]+'</th>');
@@ -76,10 +79,10 @@ window.onload = function() {
 
     <div id="cellmesh_results">
         {% for cluster_id in cluster_ids %}
-        <h4>Cluster {{ cluster_id }}</h4>
-        <h5>Top Genes</h5>
+        <h4><b>Cluster {{ cluster_id }}</b></h4>
+        <h5><b>Top Genes</b></h5>
         <div id="top_genes_{{ cluster_id }}"></div>
-        <h5>Cell Types</h5>
+        <h5><b>Cell Types</b></h5>
         <div id="cellmesh_results_{{ cluster_id }}"></div>
         <hr/>
         {% endfor %}
