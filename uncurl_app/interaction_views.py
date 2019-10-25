@@ -396,10 +396,25 @@ def data_stats(user_id):
         v = Markup(v)
     except:
         v = ''
+    try:
+        with open(os.path.join(path, 'read_count_hist_data.json')) as f:
+            read_count_hist_data = f.read()
+        with open(os.path.join(path, 'gene_count_hist_data.json')) as f:
+            gene_count_hist_data = f.read()
+        with open(os.path.join(path, 'gene_mean_hist_data.json')) as f:
+            gene_mean_hist_data = f.read()
+    except:
+        from . import data_stats
+        sca = get_sca(user_id)
+        summary = data_stats.Summary(data_path=None, base_path=path, data=sca.data)
+        read_count_hist_data, gene_count_hist_data, gene_mean_hist_data = summary.generate_plotly_jsons()
     # TODO: mean read count, median read count, mean gene count, median gene count
+    # TODO: show genes per cell, switch to using plotly instead of bokeh (remove bokeh as a dependency)
     return render_template('stats.html',
             user_id=user_id,
-            visualization=v,
+            read_count_hist_data=read_count_hist_data,
+            gene_count_hist_data=gene_count_hist_data,
+            gene_mean_hist_data=gene_mean_hist_data,
             params=params)
 
 
@@ -730,6 +745,18 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
             return scatterplot_data(dim_red, sca.labels,
                     colorscale='Viridis',
                     mode='entropy', color_vals=read_counts)
+        elif cell_color_value == 'neural_network_classifier':
+            # TODO: get NN results
+            color_track, is_discrete = get_sca_color_track(user_id, cell_color_value)
+            # set cell class...
+            if color_track is None:
+                from mouse_cell_query import nn_query
+                cell_names, results, class_names = nn_query.predict_using_default_classifier(sca.data.T, sca.genes)
+                sca.add_color_track('neural_network_classifier', cell_names, is_discrete=True)
+                color_track, is_discrete = get_sca_color_track(user_id, cell_color_value)
+                return scatterplot_data(dim_red, color_track)
+            else:
+                return scatterplot_data(dim_red, color_track)
         else:
             # try to get color track
             color_track, is_discrete = get_sca_color_track(user_id, cell_color_value)

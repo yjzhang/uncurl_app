@@ -1,25 +1,22 @@
 {% extends "base.html" %}
 
 {% block head %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
-{{super()}}
-<!-- TODO: parameterize the version number -->
-<link
-href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.13.min.css"
-rel="stylesheet" type="text/css">
-<link
-href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.13.min.css"
-rel="stylesheet" type="text/css">
+<script src="{{ url_for('static', filename='popper.min.js') }}"></script>
 
-<script src="https://cdn.pydata.org/bokeh/release/bokeh-0.12.13.min.js"></script>
-<script src="https://cdn.pydata.org/bokeh/release/bokeh-api-0.12.13.min.js"></script>
-<script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.13.min.js"></script>
-<script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.13.min.js"></script>
+{{super()}}
+<script src="{{ url_for('static', filename='jquery-3.3.1.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plotly-latest.min.js') }}"></script>
 
 <script>
+var read_count_hist_data = JSON.parse('{{ read_count_hist_data|safe }}');
+var gene_count_hist_data = JSON.parse('{{ gene_count_hist_data|safe }}');
+var gene_mean_hist_data = JSON.parse('{{ gene_mean_hist_data|safe }}');
+
 window.onload = function() {
-      $('[data-toggle="tooltip"]').tooltip()
+      $('[data-toggle="tooltip"]').tooltip();
+      Plotly.newPlot("read_count", read_count_hist_data.data, read_count_hist_data.layout);
+      Plotly.newPlot("gene_count", gene_count_hist_data.data, gene_count_hist_data.layout);
+      Plotly.newPlot("gene_mean", gene_mean_hist_data.data, gene_mean_hist_data.layout);
 };
 </script>
 
@@ -35,17 +32,29 @@ window.onload = function() {
 <div class="container container-main">
     <div>Number of cells: {{ params['cells'] }}</div>
     <div>Number of genes: {{ params['genes'] }}</div>
-
-    {{ visualization }}
-
-    <table>
-        <tr><th>Param</th><th>Value</th></tr>
-        {% for key, value in params.items() %}
-        <tr><td>{{ key }}</td><td>{{ value }}</td></tr>
-        {% endfor %}
-    </table>
-
     <p><a href="/user/{{ user_id }}/view">Back to results</a></p>
+
+    <div class="wrapper">
+
+        <div id="read_count" style="width: 400px; grid-column: 1 / 3; grid-row: 1">
+        </div>
+
+        <div id="gene_count" style="width: 400px; grid-column: 2 / 3; grid-row: 1">
+        </div>
+
+        <div id="gene_mean" style="width: 400px; grid-column: 3 / 3; grid-row: 1">
+        </div>
+
+        <div style="grid-column: 1/1; grid-row: 2">
+            <table>
+                <tr><th>Param</th><th>Value</th></tr>
+                {% for key, value in params.items() %}
+                <tr><td>{{ key }}</td><td>{{ value }}</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
 </div>
 
 {% endblock %}
