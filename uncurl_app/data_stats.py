@@ -100,22 +100,33 @@ class Summary(object):
         Returns the results as 3 json-formatted strings.
         """
         top_05 = int(self.cells/20) # 5%
+        # TODO: separate bulk data from outliers
         read_counts_max = self.sorted_read_counts[-top_05]
         read_count_hist_data = json.dumps({
              'data': [{
-                'x': self.cell_read_counts.tolist(),
+                'x': self.sorted_read_counts[:-top_05].tolist(),
                 'type': 'histogram',
-                'histnorm': 'probability',
+                #'histnorm': 'probability',
                 'opacity': 1.0,
                 'name': 'Read counts',
                 'marker': {'color': 'blue'},
-                'nbinsx': max(100, int(self.sorted_read_counts[-1]/100)),
-            }],
+                'nbinsx': 50,
+            }, {
+                'x': self.sorted_read_counts[top_05:].tolist(),
+                'type': 'histogram',
+                #'histnorm': 'probability',
+                'opacity': 1.0,
+                'name': 'Read counts (outliers)',
+                'marker': {'color': 'blue'},
+                'xbins': {'start': read_counts_max, 'end': self.sorted_read_counts[-1], 'size': int(self.sorted_read_counts[-1]/100)},
+            }
+            ],
             'layout': {
                 'title': 'Read counts per cell',
                 'barmode': 'overlay',
+                'showlegend': False,
                 'xaxis': {'title': 'Read/UMI Count', 'range': [0.0, read_counts_max]},
-                'yaxis': {'title': 'Cell Fraction'},
+                'yaxis': {'title': 'Cell Counts'},
             },
         }, cls=SimpleEncoder)
         with open(os.path.join(self.path, 'read_count_hist_data.json'), 'w') as f:
@@ -123,25 +134,35 @@ class Summary(object):
         gene_count_max = self.sorted_gene_counts[-top_05]
         gene_count_hist_data = json.dumps({
              'data': [{
-                'x': self.cell_gene_counts.tolist(),
+                'x': self.sorted_gene_counts[:-top_05].tolist(),
                 'type': 'histogram',
-                'histnorm': 'probability',
+                #'histnorm': 'probability',
                 'opacity': 1.0,
                 'name': 'Gene counts',
                 'marker': {'color': 'blue'},
-                'nbinsx': max(100, int(self.sorted_gene_counts[-1]/100)),
-            }],
+                'nbinsx': 50,
+            }, {
+                'x': self.sorted_gene_counts[top_05:].tolist(),
+                'type': 'histogram',
+                #'histnorm': 'probability',
+                'opacity': 1.0,
+                'name': 'Gene counts (outliers)',
+                'marker': {'color': 'blue'},
+                'xbins': {'start': gene_count_max, 'end': self.sorted_gene_counts[-1], 'size': int(self.sorted_gene_counts[-1]/100)},
+            }
+            ],
             'layout': {
                 'title': 'Gene counts per cell',
                 'barmode': 'overlay',
+                'showlegend': False,
                 'xaxis': {'title': 'Gene Count', 'range': [0, gene_count_max]},
-                'yaxis': {'title': 'Cell Fraction'},
+                'yaxis': {'title': 'Cell Counts'},
             },
         }, cls=SimpleEncoder)
         with open(os.path.join(self.path, 'gene_count_hist_data.json'), 'w') as f:
             f.write(gene_count_hist_data)
-        top_10 = int(self.cells/10) # 10%
-        gene_means_max = self.sorted_gene_means[-top_10]
+        top_5_gene = int(self.genes/20) # 5%
+        gene_means_max = self.sorted_gene_means[-top_5_gene]
         gene_mean_hist_data = json.dumps({
              'data': [{
                 'x': self.gene_means.tolist(),
@@ -154,7 +175,7 @@ class Summary(object):
             'layout': {
                 'title': 'Mean expression per gene',
                 'barmode': 'overlay',
-                'showlegend': True,
+                'showlegend': False,
                 'xaxis': {'title': 'Gene Mean Expression Level', 'range': [0.0, gene_means_max]},
                 'yaxis': {'title': 'Gene Fraction'},
             },
