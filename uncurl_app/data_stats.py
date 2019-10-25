@@ -109,7 +109,7 @@ class Summary(object):
                 'opacity': 1.0,
                 'name': 'Read counts',
                 'marker': {'color': 'blue'},
-                'nbinsx': 100,
+                'nbinsx': max(100, int(self.sorted_read_counts[-1]/400)),
             }],
             'layout': {
                 'title': 'Read counts per cell',
