@@ -1,10 +1,6 @@
 import json
 import os
 
-from bokeh.plotting import figure
-from bokeh.embed import components
-from bokeh.layouts import gridplot
-
 import numpy as np
 import scipy.io
 from scipy import sparse
@@ -181,31 +177,4 @@ class Summary(object):
             return read_count_hist_data, gene_count_hist_data, gene_mean_hist_data
         else:
             return self.generate_plotly_jsons()
-
-    def visualize(self):
-        # alternative view: use an iframe?
-        # TODO: change this to using plotly
-        p1 = figure(title='Histogram of cell read counts', plot_width=400,
-                plot_height=400)
-        top_10 = int(self.cells/20) # 5%
-        hist, edges = np.histogram(self.cell_read_counts, bins=50, range=(0, self.sorted_read_counts[-top_10]))
-        p1.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:])
-        p1.xaxis.axis_label = 'Read count'
-        p1.yaxis.axis_label = '# cells'
-        p2 = figure(title='Gene variance vs mean', plot_width=400,
-                plot_height=400)
-        p2.circle(x=self.gene_means, y=self.gene_vars, alpha=0.5, size=5)
-        p2.xaxis.axis_label = 'Mean'
-        p2.yaxis.axis_label = 'Variance'
-        plots = gridplot([[p1, p2]])
-        script, div = components(plots)
-        with open(os.path.join(self.path, 'vis_summary.html'), 'w') as f:
-            f.write(script)
-            f.write('\n\n')
-            f.write(div)
-        from bokeh import resources, embed
-        html = embed.file_html(plots, resources.INLINE)
-        with open(os.path.join(self.path, 'vis_summary.html'), 'w') as f:
-            f.write(html)
-        return script, div
 

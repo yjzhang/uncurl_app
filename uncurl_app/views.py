@@ -153,15 +153,18 @@ def state_estimation_result(user_id):
         time_remaining = 'Unknown'
         with open(os.path.join(path, 'preprocess.json')) as f:
             preprocess = json.load(f)
-        with open(os.path.join(path, 'vis_summary.html')) as f:
-            v = f.read()
+        with open(os.path.join(path, 'read_count_hist_data.json')) as f:
+            read_count_hist_data = f.read()
+        with open(os.path.join(path, 'gene_count_hist_data.json')) as f:
+            gene_count_hist_data = f.read()
+        with open(os.path.join(path, 'gene_mean_hist_data.json')) as f:
+            gene_mean_hist_data = f.read()
         if uncurl_is_running:
             # get running time information (highly approximate)
             current_task, time_remaining = get_progress(path)
             # update with actual input parameters
             with open(os.path.join(path, 'params.json')) as f:
                 preprocess.update(json.load(f))
-        v = Markup(v)
         uncurl_has_error = False
         if time_remaining == 'error':
             # TODO: if there is an error here...
@@ -171,7 +174,9 @@ def state_estimation_result(user_id):
                 uncurl_is_done=False,
                 uncurl_is_running=uncurl_is_running,
                 uncurl_has_error=uncurl_has_error,
-                visualization=v,
+                read_count_hist_data=read_count_hist_data,
+                gene_count_hist_data=gene_count_hist_data,
+                gene_mean_hist_data=gene_mean_hist_data,
                 current_task=current_task,
                 time_remaining=time_remaining,
                 **preprocess)
@@ -246,7 +251,7 @@ def state_estimation_preproc(user_id, base_path, data_path, output_filename, ini
         base_path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     try:
         summary = Summary(data_path, base_path, is_gz, shape=shape)
-        script, div = summary.visualize()
+        read_count_hist_data, gene_count_hist_data, gene_mean_hist_data = summary.load_plotly_json()
         summary.preprocessing_params()
     except:
         import traceback

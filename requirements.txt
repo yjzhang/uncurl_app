@@ -1,7 +1,6 @@
 flask
 flask_bootstrap
 Flask-Caching
-bokeh
 scipy
 numpy
 scikit-learn
