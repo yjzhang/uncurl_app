@@ -398,11 +398,11 @@ def data_stats(user_id):
         v = ''
     try:
         with open(os.path.join(path, 'read_count_hist_data.json')) as f:
-            read_count_hist_data = f.read()
+            read_count_hist_data = f.read().strip()
         with open(os.path.join(path, 'gene_count_hist_data.json')) as f:
-            gene_count_hist_data = f.read()
+            gene_count_hist_data = f.read().strip()
         with open(os.path.join(path, 'gene_mean_hist_data.json')) as f:
-            gene_mean_hist_data = f.read()
+            gene_mean_hist_data = f.read().strip()
     except:
         from . import data_stats
         sca = get_sca(user_id)
