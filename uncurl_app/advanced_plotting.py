@@ -43,7 +43,7 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
         spec.fit(data + 1e-8)
         row_labels = spec.row_labels_
         column_labels = spec.column_labels_
-        row_order = np.argsort(row_labels)
+        row_order = np.argsort(row_labels)[::-1]
         col_order = np.argsort(column_labels)
         row_labels = np.array(cluster1_values)[row_order]
         column_labels = np.array(cluster2_values)[col_order]

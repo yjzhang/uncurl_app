@@ -118,7 +118,13 @@ function update_barplot(cluster_number) {
 };
 
 // TODO: toggle special areas for the scatterplot
-function toggle_scatterplot_selection_areas() {
+function toggle_scatterplot_type() {
+    var plot_type = $('input[name="scatter-type"]:checked').val();
+    if (plot_type == 'Cluster_heatmap') {
+        $('#heatmap-names-area').toggle(true);
+    } else {
+        $('#heatmap-names-area').toggle(false);
+    }
 };
 
 // this function is called on startup, and whenever the radio buttons
@@ -287,7 +293,7 @@ function on_select(data) {
     $("#update-area").empty();
     $("#update-area").append("selected clusters: " + selection_string + "<br>");
     $("#update-area").append("Number of selected cells: " + current_selected_cells.length);
-    // TODO: update custom criteria cell selection
+    // update custom criteria cell selection
     set_selection_target_to_selected_cells();
 };
 
@@ -354,7 +360,7 @@ function split_or_merge_cluster(split_or_merge, cells_or_clusters) {
     // lengths of each of the selected clusters
     console.log(split_or_merge);
     console.log(selected_clusters);
-    // TODO: make the whole page block or something like that
+    // make the whole page block or something like that
     $("#update-area").append("<br>" + split_or_merge + " clusters in progress... (re-running UNCURL, recalculating differentially expressed genes) " + '<img src="/static/ajax-loader.gif"/>');
     currently_merging = true;
     // make some indication that split/merge has been called.
@@ -501,7 +507,6 @@ function rerun_clustering() {
     });
 };
 
-// TODO: cell similarity search
 function submit_db_query() {
     var form_data = $('#cell_search_form').serializeArray();
     var data = {};
