@@ -21,6 +21,13 @@ class Summary(object):
         """
         # a python2 thing for dealing with unicode...
         if data is None:
+            if data_path is None:
+                if os.path.exists(os.path.join(base_path, 'data.txt')):
+                    data_path = os.path.join(base_path, 'data.txt')
+                if os.path.exists(os.path.join(base_path, 'data.mtx')):
+                    data_path = os.path.join(base_path, 'data.mtx')
+                if os.path.exists(os.path.join(base_path, 'data.mtx.gz')):
+                    data_path = os.path.join(base_path, 'data.mtx.gz')
             data_path = str(data_path)
             data_is_sparse = True
             try:

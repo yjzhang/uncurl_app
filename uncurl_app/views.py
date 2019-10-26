@@ -153,12 +153,16 @@ def state_estimation_result(user_id):
         time_remaining = 'Unknown'
         with open(os.path.join(path, 'preprocess.json')) as f:
             preprocess = json.load(f)
-        with open(os.path.join(path, 'read_count_hist_data.json')) as f:
-            read_count_hist_data = f.read()
-        with open(os.path.join(path, 'gene_count_hist_data.json')) as f:
-            gene_count_hist_data = f.read()
-        with open(os.path.join(path, 'gene_mean_hist_data.json')) as f:
-            gene_mean_hist_data = f.read()
+        try:
+            with open(os.path.join(path, 'read_count_hist_data.json')) as f:
+                read_count_hist_data = f.read()
+            with open(os.path.join(path, 'gene_count_hist_data.json')) as f:
+                gene_count_hist_data = f.read()
+            with open(os.path.join(path, 'gene_mean_hist_data.json')) as f:
+                gene_mean_hist_data = f.read()
+        except:
+            summary = Summary(None, path)
+            read_count_hist_data, gene_count_hist_data, gene_mean_hist_data = summary.generate_plotly_jsons()
         if uncurl_is_running:
             # get running time information (highly approximate)
             current_task, time_remaining = get_progress(path)
