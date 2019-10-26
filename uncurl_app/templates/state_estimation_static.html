@@ -54,29 +54,36 @@
                 <label for="Cells" data-toggle="tooltip" title="Scatterplot visualization of cells after processing with UNCURL.">Post-processed cells</label>
                 <input type="radio" id="Baseline" value="Baseline" checked="checked" name="scatter-type" onclick="$('#gene-gene-names-area').css('display', 'none');">
                 <label for="Baseline" data-toggle="tooltip" title="Scatterplot visualization of cells before processing with UNCURL.">Pre-processed cells</label>
-                <input type="radio" id="Gene-gene" value="Gene-gene" name="scatter-type" onclick="$('#gene-gene-names-area').css('display', 'block');">
-                <label for="Gene-gene" data-toggle="tooltip" title="View expression levels of two genes.">Gene-gene</label>
+
+                <input type="radio" id="Cluster_heatmap" value="Cluster_heatmap" name="scatter-type" onclick="$('#heatmap-names-area').css('display', 'block');">
+                <label for="Cluster_heatmap" data-toggle="tooltip" title="Heatmap comparing two colormaps/cell label sets">Label heatmap</label>
+
+                <input type="radio" id="Dendrogram" value="Dendrogram" name="scatter-type" onclick="$('#heatmap-names-area').css('display', 'none');">
+                <label for="Dendrogram" data-toggle="tooltip" title="Dendrogram for cluster">Dendrogram</label>
             </div>
 
 
             <!-- controls for gene-gene plots -->
-            <div id="gene-gene-names-area" style="display:none;" class="form-inline align-items-center">
+            <div id="heatmap-names-area" style="display:none;" class="form-inline align-items-center">
                 <div class="form-group">
-                    <label for="gene_name_1">Gene 1:</label>
-                    <input list="gene_names" id="gene_name_1" name="gene_name_1" class="form-control" style="width: 100px;">
-                    <label for="gene_name_2">Gene 2:</label>
-                    <input list="gene_names" id="gene_name_2"  name="gene_name_1" class="form-control" style="width: 100px;">
-                </div>
-                <div class="form-group" style="width:160px">
-                    <select id="use-mw" class="form-control" style="width:150px">
-                        <option value="0" selected>Unprocessed</option>
-                <!-- TODO: "processed" won't work, because m only contains a subset of genes.
-                        <option value="1">Processed</option>
-                -->
+                    <label for="cluster_name_1">Colormap 1:</label>
+                    <select class="form-control form-inline" id="cluster_name_1" style="width: 200px;">
+                        <option value="cluster" selected>Cluster</option>
+                        {% for track in color_tracks %}
+                        <option value="{{ track }}">{{ track }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="cluster_name_2">Colormap 2:</label>
+                    <select class="form-control form-inline" id="cluster_name_2" style="width: 200px;">
+                        <option value="cluster" selected>Cluster</option>
+                        {% for track in color_tracks %}
+                        <option value="{{ track }}">{{ track }}</option>
+                        {% endfor %}
                     </select>
                 </div>
-                <button class="btn btn-default" id="gene_gene_names_submit" onclick="update_scatterplot()">Submit</button>
+                <button class="btn btn-default" id="heatmap_names_submit" onclick="update_scatterplot()">Submit</button>
             </div>
+
 
             <div id="means-scatter-plot" style="margin-top: 5px"></div>
 

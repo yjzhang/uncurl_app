@@ -97,6 +97,8 @@ def get_sca_gene_names(user_id):
 @cache.memoize()
 def get_sca_color_track(user_id, color_track):
     sca = get_sca(user_id)
+    if color_track == 'cluster':
+        return sca.labels, True
     return sca.get_color_track(color_track)
 
 def color_track_map(color_track):
@@ -311,71 +313,19 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
     }, cls=SimpleEncoder)
 
 
-@cache.memoize()
-def gene_gene_data(user_id, gene_name_1, gene_name_2, labels, mode='cluster', use_mw=False, color_vals=None, jitter=True, **params):
+def heatmap_data(user_id, label_name_1, label_name_2, **params):
     """
-    Returns a plotly-formated json thing representing a gene-gene
-    scatterplot. Colorscheme based on labels.
+    Returns a heatmap comparing two color tracks.
     """
-    size = calc_size(labels)
-    gene_1_data = get_gene_data(user_id, gene_name_1, use_mw=use_mw)
-    gene_2_data = get_gene_data(user_id, gene_name_2, use_mw=use_mw)
-    if jitter:
-        gene_1_data += np.random.random(gene_1_data.shape)/2 - 0.25
-        gene_2_data += np.random.random(gene_2_data.shape)/2 - 0.25
-        gene_1_data[gene_1_data < 0] = 0
-        gene_2_data[gene_2_data < 0] = 0
-    cell_ids = np.arange(len(labels))
-    if color_vals is not None:
-        label_values = list(sorted(list(set(labels))))
-        colorscale = 'Reds'
-        color_values = [color_vals[labels==c] for c in label_values]
-        cmin = min(color_vals)
-        cmax = max(color_vals)
-        data = [
-            {
-                'x': gene_1_data[labels==c].tolist(),
-                'y': gene_2_data[labels==c].tolist(),
-                'mode': 'markers',
-                'name': 'cluster ' + str(c),
-                'marker': {
-                    'size': size,
-                    'color': color_values[c],
-                    'colorscale': colorscale,
-                    'cmin': cmin,
-                    'cmax': cmax,
-                    'showscale': True if c==0 else False,
-                },
-                #'text': list(map(str, color_values[c])),
-                'text': list(map(str, cell_ids[labels==c].tolist())),
-            }
-            for c in range(len(set(labels)))
-        ]
-    else:
-        data = [
-            {
-                'x': gene_1_data[labels==c].tolist(),
-                'y': gene_2_data[labels==c].tolist(),
-                'mode': 'markers',
-                'name': 'cluster ' + str(c),
-                'marker': {
-                    'size': size,
-                },
-                #'text': list(map(str, color_values[c])),
-                'text': list(map(str, cell_ids[labels==c].tolist())),
-            }
-            for c in range(len(set(labels)))
-        ]
-    return json.dumps({
-            'data': data,
-            'layout': {
-                'title': 'Cells',
-                'xaxis': {'title': gene_name_1},
-                'yaxis': {'title': gene_name_2},
-                'margin': {'t':30},
-                'showlegend': True
-            },
-    }, cls=SimpleEncoder)
+    print('heatmap_data', user_id, label_name_1, label_name_2)
+    from .advanced_plotting import cluster_heatmap
+    color_track_1, is_discrete = get_sca_color_track(user_id, label_name_1)
+    if not is_discrete:
+        return 'should be a discrete colormap'
+    color_track_2, is_discrete = get_sca_color_track(user_id, label_name_2)
+    if not is_discrete:
+        return 'should be a discrete colormap'
+    return cluster_heatmap(color_track_1, color_track_2, label_name_1, label_name_2)
 
 
 @interaction_views.route('/user/<user_id>/stats')
@@ -688,24 +638,10 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
         labels = np.arange(sca.mds_means.shape[1])
         return scatterplot_data(sca.mds_means,
                 labels)
-    elif plot_type == 'Gene-gene':
-        if 'gene_name_1' not in data_form or 'gene_name_2' not in data_form:
-            return None
-        use_mw = False
-        if 'use_mw' in data_form:
-            use_mw = bool(int(data_form['use_mw']))
-        gene_name = ''
-        if gene_name in data_form:
-            gene_name = data_form['gene_name']
-        gene_name_1 = data_form['gene_name_1']
-        gene_name_2 = data_form['gene_name_2']
-        print('gene-gene plot - gene names:', gene_name_1, gene_name_2)
-        color_vals = None
-        if cell_color_value == 'gene':
-            color_vals = get_gene_data(user_id, gene_name)
-        elif cell_color_value == 'entropy':
-            color_vals = sca.entropy
-        return gene_gene_data(user_id, gene_name_1, gene_name_2, sca.labels, use_mw=use_mw, mode=cell_color_value, color_vals=color_vals)
+    elif plot_type == 'Cluster_heatmap':
+        label_name_1 = data_form['cluster_name_1']
+        label_name_2 = data_form['cluster_name_2']
+        return heatmap_data(user_id, label_name_1, label_name_2)
     else:
         dim_red = None
         if plot_type == 'Cells':

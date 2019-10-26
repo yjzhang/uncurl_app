@@ -117,26 +117,29 @@ function update_barplot(cluster_number) {
     return true;
 };
 
+// TODO: toggle special areas for the scatterplot
+function toggle_scatterplot_selection_areas() {
+};
+
 // this function is called on startup, and whenever the radio buttons
 // corresponding to different input types are clicked.
 function update_scatterplot() {
     var plot_type = $('input[name="scatter-type"]:checked').val();
-    // TODO: have a cache and look up the outputs
     var cell_color = $("#cell-color").val();
     var gene_name = $('#gene_name').val();
     console.log(plot_type);
     console.log(cell_color);
-    var gene_name_1 = $('#gene_name_1').val();
-    var gene_name_2 = $('#gene_name_2').val();
-    var use_mw = $('#use-mw').val();
+    var cluster_name_1 = $('#cluster_name_1').val();
+    var cluster_name_2 = $('#cluster_name_2').val();
+    var use_mw = false;
     if (cell_color == "gene") {
         use_mw = $('#use_mw_gene').val();
     }
     var cluster = $('#cluster_input').val();
     var upload_data = {"scatter_type": plot_type, "cell_color": cell_color,
                "gene_name": gene_name,
-               "gene_name_1": gene_name_1,
-               "gene_name_2": gene_name_2,
+               "cluster_name_1": cluster_name_1,
+               "cluster_name_2": cluster_name_2,
                "use_mw": use_mw,
                "cluster_input": cluster,
     };
@@ -184,6 +187,7 @@ function update_scatterplot() {
 
 function set_enrichr_results(data, query) {
     // create table
+    // TODO: make it collapsible
     var results_view = $('#' + query + '_results');
     results_view.empty();
     var table = $('<table>');
