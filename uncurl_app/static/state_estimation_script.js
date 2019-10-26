@@ -156,9 +156,8 @@ function update_scatterplot() {
     }
     if (plot_type == 'Dendrogram') {
         var dendrogram_genes = $('#dendrogram_genes').val();
-        var use_log = $('#dendrogram_use_log').is(':checked');
         upload_data['dendrogram_genes'] = dendrogram_genes;
-        if (use_log) {
+        if ($('#dendrogram_use_log').is(':checked')) {
             upload_data['dendrogram_use_log'] = 1;
         } else {
             upload_data['dendrogram_use_log'] = 0;

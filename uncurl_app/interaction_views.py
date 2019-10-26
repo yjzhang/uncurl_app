@@ -679,8 +679,6 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
         color_track, is_discrete = get_sca_color_track(user_id, color_track_name)
         selected_genes = [x.strip(', ') for x in data_form['dendrogram_genes'].split()]
         use_log = 'dendrogram_use_log' in data_form and data_form['dendrogram_use_log'] != '0'
-        print(data_form)
-        print('use_log:', use_log)
         return dendrogram_data(user_id, color_track_name, selected_genes, use_log=use_log)
     else:
         dim_red = None
