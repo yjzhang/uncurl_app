@@ -101,6 +101,11 @@ def get_sca_color_track(user_id, color_track):
         return sca.labels, True
     return sca.get_color_track(color_track)
 
+@cache.memoize()
+def get_sca_data_sampled_all_genes(user_id):
+    sca = get_sca(user_id)
+    return sca.data_sampled_all_genes
+
 def color_track_map(color_track):
     """
     Returns a map of labels to ints, and a map of ints to labels.
@@ -312,7 +317,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
             },
     }, cls=SimpleEncoder)
 
-
+@cache.memoize()
 def heatmap_data(user_id, label_name_1, label_name_2, **params):
     """
     Returns a heatmap comparing two color tracks.
@@ -326,6 +331,33 @@ def heatmap_data(user_id, label_name_1, label_name_2, **params):
     if not is_discrete:
         return 'should be a discrete colormap'
     return cluster_heatmap(color_track_1, color_track_2, label_name_1, label_name_2)
+
+@cache.memoize()
+def dendrogram_data(user_id, color_track_name, selected_genes, use_log=False):
+    """
+    Returns a dendrogram json
+    """
+    if color_track_name in ['entropy', 'gene', 'weights', 'read_count']:
+        color_track_name = 'cluster'
+    color_track, is_discrete = get_sca_color_track(user_id, color_track_name)
+    all_genes = get_sca_gene_names(user_id)
+    data = get_sca_data_sampled_all_genes(user_id)
+    if len(selected_genes) == 0:
+        # TODO: get top 5 genes from each cluster
+        top_genes = get_sca_top_1vr(user_id)
+        for i, gene_set in top_genes.items():
+            selected_top_genes = gene_set[:5]
+            selected_gene_names = [all_genes[x[0]] for x in selected_top_genes]
+            selected_genes += selected_gene_names
+    from .advanced_plotting import dendrogram
+    return dendrogram(data, all_genes, selected_genes, color_track_name, color_track, use_log=use_log)
+
+@interaction_views.route('/user/<user_id>/all_top_genes')
+def all_top_genes(user_id):
+    """
+    Returns the top n genes for all clusters
+    """
+    # TODO
 
 
 @interaction_views.route('/user/<user_id>/stats')
@@ -642,6 +674,14 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
         label_name_1 = data_form['cluster_name_1']
         label_name_2 = data_form['cluster_name_2']
         return heatmap_data(user_id, label_name_1, label_name_2)
+    elif plot_type == 'Dendrogram':
+        color_track_name = data_form['cell_color']
+        color_track, is_discrete = get_sca_color_track(user_id, color_track_name)
+        selected_genes = [x.strip(', ') for x in data_form['dendrogram_genes'].split()]
+        use_log = 'dendrogram_use_log' in data_form and data_form['dendrogram_use_log'] != '0'
+        print(data_form)
+        print('use_log:', use_log)
+        return dendrogram_data(user_id, color_track_name, selected_genes, use_log=use_log)
     else:
         dim_red = None
         if plot_type == 'Cells':
@@ -718,7 +758,6 @@ def get_gene_data(user_id, gene_name, use_mw=False):
         return None
     return gene_data
 
-
 @interaction_views.route('/user/<user_id>/view/cell_info', methods=['GET', 'POST'])
 def cell_info(user_id):
     """
@@ -749,7 +788,7 @@ def cell_info_result(user_id, selected_cells, selected_clusters, color_map):
     sca = get_sca(user_id)
     read_counts = []
     gene_counts = []
-    data = sca.data_sampled_all_genes
+    data = get_sca_data_sampled_all_genes(user_id)
     for cell in selected_cells:
         cell_data = data[:, cell]
         gene_counts.append(cell_data.count_nonzero())
@@ -919,7 +958,7 @@ def update_cellmesh_anatomy(user_id):
 @cache.memoize()
 def update_cellmesh_anatomy_result(top_genes, mesh_subset=None, species='human', return_json=True):
     if len(mesh_subset) > 1:
-        mesh_subset = [x.strip() for x in mesh_subset.split(',')]
+        mesh_subset = [x.strip(', ') for x in mesh_subset.split()]
     else:
         mesh_subset = None
     # TODO: validate mesh_subset
@@ -980,7 +1019,7 @@ def db_query(user_id):
             labels, is_discrete = sca.get_color_track(cell_color)
             color_to_index, index_to_color = color_track_map(labels)
             labels = index_to_color[int(cell_label)]
-            data = sca.data_sampled_all_genes
+            data = get_sca_data_sampled_all_genes(user_id)
             data_labels = data[:, labels==cell_label]
             means = np.array(data_labels.mean(1)).flatten()
         except Exception as e:
@@ -1023,6 +1062,8 @@ def split_or_merge_cluster(user_id):
         cache.delete_memoized(get_sca_pval_1vr, user_id)
         cache.delete_memoized(update_barplot_result)
         cache.delete_memoized(update_scatterplot_result)
+        cache.delete_memoized(heatmap_data)
+        cache.delete_memoized(dendrogram_data)
         #print('deleting user_id from cache')
         # TODO: this currently doesn't work, since keys are hashed.
         #clear_cache_user_id(user_id)
@@ -1215,6 +1256,8 @@ def update_colormap_label_criteria(user_id):
         cache.delete_memoized(update_barplot_result)
         cache.delete_memoized(update_scatterplot_result)
         cache.delete_memoized(get_sca_color_track)
+        cache.delete_memoized(dendrogram_data)
+        cache.delete_memoized(heatmap_data)
         cache.delete_memoized(get_sca_top_genes_custom)
     else:
         sca.update_custom_color_track_label(colormap_name, label_name)
@@ -1284,6 +1327,8 @@ def recluster(user_id):
     cache.delete_memoized(get_sca_pval_1vr, user_id)
     cache.delete_memoized(update_barplot_result)
     cache.delete_memoized(update_scatterplot_result)
+    cache.delete_memoized(heatmap_data)
+    cache.delete_memoized(dendrogram_data)
     return 'success'
 
 @interaction_views.route('/user/<user_id>/view/subset', methods=['POST'])

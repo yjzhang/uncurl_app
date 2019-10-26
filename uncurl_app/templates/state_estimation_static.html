@@ -59,11 +59,11 @@
                 <label for="Cluster_heatmap" data-toggle="tooltip" title="Heatmap comparing two colormaps/cell label sets">Label heatmap</label>
 
                 <input type="radio" id="Dendrogram" value="Dendrogram" name="scatter-type" onclick="toggle_scatterplot_type();">
-                <label for="Dendrogram" data-toggle="tooltip" title="Dendrogram for cluster">Dendrogram</label>
+                <label for="Dendrogram" data-toggle="tooltip" title="Dendrogram/heatmap of cluster means and some selected genes.">Dendrogram heatmap</label>
             </div>
 
 
-            <!-- controls for gene-gene plots -->
+            <!-- controls for heatmap plots -->
             <div id="heatmap-names-area" style="display:none;" class="form-inline align-items-center">
                 <div class="form-group">
                     <label for="cluster_name_1">Colormap 1:</label>
@@ -82,6 +82,19 @@
                     </select>
                 </div>
                 <button class="btn btn-default" id="heatmap_names_submit" onclick="update_scatterplot()">Submit</button>
+            </div>
+
+            <!-- controls for dendrogram plots -->
+            <div id="dendrogram-names-area" style="display:none;" class="form-inline align-items-center">
+                <div class="form-group">
+                    <label for="dendrogram_genes" data-toggle="tooltip" title="If empty, uses the top 5 genes for each cluster.">Selected genes:</label>
+                    <div class="form-inline">
+                        <textarea class="form-control" id="dendrogram_genes" cols="50" rows="2" name="dendrogram_genes"></textarea>
+                    </div>
+                    <label for="dendrogram_use_log">Log-transform data:</label>
+                    <input type="checkbox" id="dendrogram_use_log" name="dendrogram_use_log" value="1">
+                </div>
+                <button class="btn btn-default" id="dendrogram_names_submit" onclick="update_scatterplot()">Submit</button>
             </div>
 
 

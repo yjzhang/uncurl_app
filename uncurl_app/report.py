@@ -12,6 +12,13 @@ from flask import render_template
 from .utils import SimpleEncoder
 from .interaction_views import interaction_views, get_sca, get_sca_gene_names, get_sca_top_1vr, scatterplot_data, update_cellmesh_result
 
+@interaction_views.route('/user/<user_id>/report_preview')
+def report_preview(user_id):
+    """
+    Preview for report
+    """
+    # TODO
+
 @interaction_views.route('/user/<user_id>/report')
 def generate_report(user_id):
     """

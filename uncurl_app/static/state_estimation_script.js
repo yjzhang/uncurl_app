@@ -122,8 +122,13 @@ function toggle_scatterplot_type() {
     var plot_type = $('input[name="scatter-type"]:checked').val();
     if (plot_type == 'Cluster_heatmap') {
         $('#heatmap-names-area').toggle(true);
+        $('#dendrogram-names-area').toggle(false);
+    } else if (plot_type == 'Dendrogram') {
+        $('#heatmap-names-area').toggle(false);
+        $('#dendrogram-names-area').toggle(true);
     } else {
         $('#heatmap-names-area').toggle(false);
+        $('#dendrogram-names-area').toggle(false);
     }
 };
 
@@ -135,8 +140,6 @@ function update_scatterplot() {
     var gene_name = $('#gene_name').val();
     console.log(plot_type);
     console.log(cell_color);
-    var cluster_name_1 = $('#cluster_name_1').val();
-    var cluster_name_2 = $('#cluster_name_2').val();
     var use_mw = false;
     if (cell_color == "gene") {
         use_mw = $('#use_mw_gene').val();
@@ -144,11 +147,23 @@ function update_scatterplot() {
     var cluster = $('#cluster_input').val();
     var upload_data = {"scatter_type": plot_type, "cell_color": cell_color,
                "gene_name": gene_name,
-               "cluster_name_1": cluster_name_1,
-               "cluster_name_2": cluster_name_2,
                "use_mw": use_mw,
                "cluster_input": cluster,
     };
+    if (plot_type == 'Cluster_heatmap') {
+        upload_data['cluster_name_1'] = $('#cluster_name_1').val();
+        upload_data['cluster_name_2'] = $('#cluster_name_2').val();
+    }
+    if (plot_type == 'Dendrogram') {
+        var dendrogram_genes = $('#dendrogram_genes').val();
+        var use_log = $('#dendrogram_use_log').is(':checked');
+        upload_data['dendrogram_genes'] = dendrogram_genes;
+        if (use_log) {
+            upload_data['dendrogram_use_log'] = 1;
+        } else {
+            upload_data['dendrogram_use_log'] = 0;
+        }
+    }
     $("#update-area").empty();
     $("#update-area").append('Updating scatterplot <img src="/static/ajax-loader.gif"/>');
     var key = JSON.stringify(upload_data);
