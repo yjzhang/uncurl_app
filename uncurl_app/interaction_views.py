@@ -358,7 +358,7 @@ def dendrogram_data(user_id, color_track_name, selected_genes, use_log=False):
             top_genes, pvals = get_sca_top_genes_custom(user_id, color_track_name)
         for i, gene_set in top_genes.items():
             selected_top_genes = gene_set[:5]
-            selected_gene_names = [all_genes[x[0]] for x in selected_top_genes]
+            selected_gene_names = [all_genes[int(x[0])] for x in selected_top_genes]
             selected_genes += selected_gene_names
     from .advanced_plotting import dendrogram
     return dendrogram(data, all_genes, selected_genes, color_track_name, color_track, use_log=use_log)
