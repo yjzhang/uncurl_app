@@ -66,15 +66,15 @@
             <!-- controls for heatmap plots -->
             <div id="heatmap-names-area" style="display:none;" class="form-inline align-items-center">
                 <div class="form-group">
-                    <label for="cluster_name_1">Colormap 1:</label>
-                    <select class="form-control form-inline" id="cluster_name_1" style="width: 200px;">
+                    <label for="heatmap_cluster_name_1">Colormap 1:</label>
+                    <select class="form-control form-inline" id="heatmap_cluster_name_1" style="width: 200px;">
                         <option value="cluster" selected>Cluster</option>
                         {% for track in color_tracks %}
                         <option value="{{ track }}">{{ track }}</option>
                         {% endfor %}
                     </select>
-                    <label for="cluster_name_2">Colormap 2:</label>
-                    <select class="form-control form-inline" id="cluster_name_2" style="width: 200px;">
+                    <label for="heatmap_cluster_name_2">Colormap 2:</label>
+                    <select class="form-control form-inline" id="heatmap_cluster_name_2" style="width: 200px;">
                         <option value="cluster" selected>Cluster</option>
                         {% for track in color_tracks %}
                         <option value="{{ track }}">{{ track }}</option>
@@ -274,8 +274,6 @@
                 <option value="pval">Top genes (p-value of c-score)</option>-->
                 <option value="top_1_vs_rest" selected>Top genes (1-vs-rest fold change)</option>
                 <option value="pval_1_vs_rest">Top genes (p-value of fold change)</option>
-                <option value="selected_color">Top genes for custom labels (1 vs rest fold change)</option>
-                <option value="selected_color_pval">Top genes for custom labels (p-value of fold change)</option>
                 <option value="sep">Most similar clusters (separation score)</option>
                 <option value="top_pairwise">Pairwise fold change</option>
                 <option value="pval_pairwise">Pairwise p-value</option>

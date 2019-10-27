@@ -151,8 +151,8 @@ function update_scatterplot() {
                "cluster_input": cluster,
     };
     if (plot_type == 'Cluster_heatmap') {
-        upload_data['cluster_name_1'] = $('#cluster_name_1').val();
-        upload_data['cluster_name_2'] = $('#cluster_name_2').val();
+        upload_data['heatmap_cluster_name_1'] = $('#heatmap_cluster_name_1').val();
+        upload_data['heatmap_cluster_name_2'] = $('#heatmap_cluster_name_2').val();
     }
     if (plot_type == 'Dendrogram') {
         var dendrogram_genes = $('#dendrogram_genes').val();

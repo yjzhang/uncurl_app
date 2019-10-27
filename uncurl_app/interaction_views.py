@@ -507,53 +507,39 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                 cluster_names, input_value,
                 x_label='separation score',
                 title='Inter-cluster separations for cluster {0}'.format(input_value))
-    elif top_or_bulk == 'top_1_vs_rest':
-        if len(selected_gene.strip()) > 0:
-            top_genes = get_sca_top_1vr(user_id)[int(input_value)]
-            selected_top_genes = [x for x in top_genes if gene_names[x[0]] in set(selected_gene_names)]
-        else:
-            selected_top_genes = get_sca_top_1vr(user_id)[int(input_value)][:num_genes]
-        selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
-        return barplot_data(selected_top_genes,
-                selected_gene_names, input_value,
-                title='Top genes for cluster {0}'.format(input_value),
-                x_label='Fold change (1 vs rest)')
-    elif top_or_bulk == 'pval_1_vs_rest':
-        if len(selected_gene.strip()) > 0:
-            top_genes = get_sca_pval_1vr(user_id)[input_value]
-            selected_top_genes = [x for x in top_genes if gene_names[x[0]] in set(selected_gene_names)]
-        else:
-            selected_top_genes = get_sca_pval_1vr(user_id)[input_value][:num_genes]
-            selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
-        return barplot_data(selected_top_genes,
-                selected_gene_names, input_value,
-                title='Top genes for cluster {0}'.format(input_value),
-                x_label='p-value of log-fold change (1 vs rest)')
-    elif top_or_bulk == 'selected_color' or top_or_bulk == 'selected_color_pval':
+    elif top_or_bulk == 'top_1_vs_rest' or top_or_bulk == 'pval_1_vs_rest':
         colormap = str(data_form['cell_color'])
-        print('getting diffexp for selected color')
-        print('barplot cell_color: ', colormap)
-        color_track, is_discrete = get_sca_color_track(user_id, colormap)
-        # this is some kind of lock to prevent this from running more than once?
-        # this is a serious hack... there should be a better way of doing this
-        lockfile_name = os.path.join(sca.data_dir, colormap + '_writing_diffexp')
-        with lockfile_context(lockfile_name) as _lock:
-            selected_diffexp, selected_pvals = get_sca_top_genes_custom(user_id, colormap)
+        input_label = int(input_value)
+        # custom colormap
+        if colormap is not None and colormap not in ['cluster', 'gene', 'entropy', 'weights', 'read_counts']:
+            color_track, is_discrete = get_sca_color_track(user_id, colormap)
+            lockfile_name = os.path.join(sca.data_dir, colormap + '_writing_diffexp')
+            with lockfile_context(lockfile_name) as _lock:
+                selected_diffexp, selected_pvals = get_sca_top_genes_custom(user_id, colormap)
+            color_to_index, index_to_color = color_track_map(color_track)
+            input_label = index_to_color[input_value]
+            if top_or_bulk == 'pval_1_vs_rest':
+                selected_diffexp = selected_pvals
+            selected_diffexp = selected_diffexp[input_label]
+        # default cluster colormap
+        else:
+            if top_or_bulk == 'top_1_vs_rest':
+                selected_diffexp = get_sca_top_1vr(user_id)[input_label]
+            else:
+                selected_diffexp = get_sca_pval_1vr(user_id)[input_label]
         x_label = 'Fold change (1 vs rest)'
         if top_or_bulk == 'selected_color_pval':
-            selected_diffexp = selected_pvals
             x_label = 'p-value of fold change (1 vs rest)'
-        _, color_map = color_track_map(color_track)
-        input_label = color_map[input_value]
+        # selected genes
         if len(selected_gene.strip()) > 0:
-            top_genes = selected_diffexp[input_label]
-            selected_top_genes = [x for x in top_genes if gene_names[int(x[0])] in set(selected_gene_names)]
+            selected_top_genes = [x for x in selected_diffexp if gene_names[x[0]] in set(selected_gene_names)]
         else:
-            selected_top_genes = selected_diffexp[input_label][:num_genes]
+            selected_top_genes = selected_diffexp[:num_genes]
+        print('selected_top_genes:', selected_top_genes)
         selected_gene_names = [gene_names[int(x[0])] for x in selected_top_genes]
         return barplot_data(selected_top_genes,
                 selected_gene_names, input_label,
-                title='Top genes for label {0}'.format(input_label),
+                title='Top genes for cluster {0}'.format(input_label),
                 x_label=x_label)
     elif top_or_bulk == 'top_pairwise' or top_or_bulk == 'pval_pairwise':
         # gets pairwise diffexp for a pair of clusters
@@ -645,9 +631,6 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
             color_to_index, index_to_color = color_track_map(color_track)
             gene_cluster_data = gene_data[color_track == index_to_color[cluster_id]]
             return histogram_data(gene_cluster_data, gene_data, index_to_color[cluster_id], selected_gene)
-    elif top_or_bulk == 'custom_selection':
-        # TODO: custom selection of cells vs rest
-        pass
     else:
         return 'Error: '
 
@@ -682,8 +665,8 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
         return scatterplot_data(sca.mds_means,
                 labels)
     elif plot_type == 'Cluster_heatmap':
-        label_name_1 = data_form['cluster_name_1']
-        label_name_2 = data_form['cluster_name_2']
+        label_name_1 = data_form['heatmap_cluster_name_1']
+        label_name_2 = data_form['heatmap_cluster_name_2']
         return heatmap_data(user_id, label_name_1, label_name_2)
     elif plot_type == 'Dendrogram':
         color_track_name = data_form['cell_color']
