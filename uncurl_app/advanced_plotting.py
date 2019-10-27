@@ -108,8 +108,9 @@ def dendrogram(data_sampled_all_genes, all_gene_names, selected_gene_names, clus
         fig.add_trace(data)
 
     # Create Heatmap
-    dendro_leaves_y = dendro_side['layout']['yaxis']['ticktext']
-    dendro_leaves_y = [selected_gene_indices[i] for i in dendro_leaves_y]
+    # TODO: reorder selected_gene_names?
+    gene_labels_y = dendro_side['layout']['yaxis']['ticktext']
+    dendro_leaves_y = [selected_gene_indices[i] for i in gene_labels_y]
     dendro_leaves_x = fig['layout']['xaxis']['ticktext']
     dendro_leaves_x = [cluster_indices[i] for i in dendro_leaves_x]
     heat_data = data_cluster_means[dendro_leaves_y,:]
@@ -156,7 +157,7 @@ def dendrogram(data_sampled_all_genes, all_gene_names, selected_gene_names, clus
                                   'side': 'right',
                                   'tickmode': 'array',
                                   'tickvals': dendro_side['layout']['yaxis']['tickvals'],
-                                  'ticktext': selected_gene_names,
+                                  'ticktext': gene_labels_y,
                                   'ticks': ""
                         })
     fig.update_layout(yaxis2={'domain':[.825, .975],

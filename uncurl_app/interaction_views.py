@@ -5,6 +5,7 @@
 import contextlib
 import json
 import os
+import re
 import shutil
 import traceback
 import uuid
@@ -30,6 +31,12 @@ interaction_views.enrichr_results = {}
 
 def pmid_to_link(pmid):
     return '<a href="https://www.ncbi.nlm.nih.gov/pubmed/{0}">{0}</a>'.format(pmid)
+
+def split_gene_names(names):
+    """
+    Splits on comma, newline, or space
+    """
+    return [x for x in re.split(r'[\s,]', names.strip()) if len(x)>0]
 
 @contextlib.contextmanager
 def lockfile_context(lockfile_name):
@@ -460,7 +467,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         selected_gene = data_form['selected_gene']
     if len(selected_gene.strip()) > 0:
         gns = set(gene_names)
-        selected_gene_names = [x.strip(', ') for x in selected_gene.split()]
+        selected_gene_names = split_gene_names(selected_gene)
         selected_gene_names = [x for x in selected_gene_names if x in gns]
     if top_or_bulk == 'top':
         if len(selected_gene.strip()) > 0:
@@ -677,7 +684,7 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
     elif plot_type == 'Dendrogram':
         color_track_name = data_form['cell_color']
         color_track, is_discrete = get_sca_color_track(user_id, color_track_name)
-        selected_genes = [x.strip(', ') for x in data_form['dendrogram_genes'].split()]
+        selected_genes = split_gene_names(data_form['dendrogram_genes'])
         use_log = 'dendrogram_use_log' in data_form and data_form['dendrogram_use_log'] != '0'
         return dendrogram_data(user_id, color_track_name, selected_genes, use_log=use_log)
     else:
@@ -828,7 +835,7 @@ def update_enrichr(user_id):
 def update_enrichr_result(user_id, top_genes, gene_set):
     user_list_id = 0
     if top_genes not in interaction_views.enrichr_gene_list_ids:
-        gene_list = top_genes.strip().split()
+        gene_list = split_gene_names(top_genes)
         user_list_id = enrichr_api.enrichr_add_list(gene_list)
         if user_list_id == 'timeout':
             return 'Error: Enrichr query timed out'
@@ -845,7 +852,7 @@ def update_enrichr_result(user_id, top_genes, gene_set):
                 return 'Error: Enrichr query timed out'
             interaction_views.enrichr_results[(top_genes, gene_set)] = results[:10]
         except:
-            gene_list = top_genes.strip().split()
+            gene_list = split_gene_names(top_genes)
             user_list_id = enrichr_api.enrichr_add_list(gene_list)
             if user_list_id == 'timeout':
                 return 'Error: Enrichr query timed out'
@@ -866,7 +873,7 @@ def update_enrichr_result(user_id, top_genes, gene_set):
 @interaction_views.route('/user/<user_id>/view/update_cellmarker', methods=['GET', 'POST'])
 def update_cellmarker(user_id):
     # top_genes is a newline-separated string, representing the gene list.
-    top_genes = [x.strip().upper() for x in request.form['top_genes'].split('\n')]
+    top_genes = [x.strip().upper() for x in split_gene_names(request.form['top_genes'])]
     print('update_cellmarker:', top_genes)
     # gene_set is a string.
     test_type = request.form['test_type']
@@ -904,7 +911,7 @@ def update_cellmarker_result(user_id, top_genes, test, cells_or_tissues, species
 @interaction_views.route('/user/<user_id>/view/update_cellmesh', methods=['GET', 'POST'])
 def update_cellmesh(user_id):
     # top_genes is a newline-separated string, representing the gene list.
-    top_genes = [x.strip().upper() for x in request.form['top_genes'].split('\n')]
+    top_genes = [x.strip().upper() for x in split_gene_names(request.form['top_genes'])]
     print('update_cellmesh:', top_genes)
     # gene_set is a string.
     test_type = request.form['mesh_test_type']
@@ -948,7 +955,7 @@ def update_cellmesh_result(user_id, top_genes, test, species='human', return_jso
 
 @interaction_views.route('/user/<user_id>/view/update_cellmesh_anatomy', methods=['GET', 'POST'])
 def update_cellmesh_anatomy(user_id):
-    top_genes = [x.strip().upper() for x in request.form['top_genes'].split('\n')]
+    top_genes = [x.strip().upper() for x in split_gene_names(request.form['top_genes'])]
     mesh_subset = request.form['anatomy_mesh_subset']
     species = request.form['anatomy_species']
     return update_cellmesh_anatomy_result(top_genes, mesh_subset=mesh_subset, species=species)
@@ -983,7 +990,7 @@ def update_go(user_id):
     get gene ontology result
     """
     # top_genes is a newline-separated string, representing the gene list.
-    top_genes = [x.strip().upper() for x in request.form['top_genes'].split('\n')]
+    top_genes = [x.strip().upper() for x in split_gene_names(request.form['top_genes'])]
     print('update_go:', top_genes)
     # gene_set is a string.
     return update_go_result(top_genes)
