@@ -349,9 +349,13 @@ def dendrogram_data(user_id, color_track_name, selected_genes, use_log=False):
     color_track, is_discrete = get_sca_color_track(user_id, color_track_name)
     all_genes = get_sca_gene_names(user_id)
     data = get_sca_data_sampled_all_genes(user_id)
+    # TODO:
     if len(selected_genes) == 0:
         # TODO: get top 5 genes from each cluster
-        top_genes = get_sca_top_1vr(user_id)
+        if color_track_name == 'cluster':
+            top_genes = get_sca_top_1vr(user_id)
+        else:
+            top_genes, pvals = get_sca_top_genes_custom(user_id, color_track_name)
         for i, gene_set in top_genes.items():
             selected_top_genes = gene_set[:5]
             selected_gene_names = [all_genes[x[0]] for x in selected_top_genes]
