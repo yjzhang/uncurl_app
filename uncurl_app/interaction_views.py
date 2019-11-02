@@ -1007,13 +1007,15 @@ def update_subtiwiki(user_id):
 @cache.memoize()
 def update_subtiwiki_result(top_genes, mode='all', **kwargs):
     import subtiwiki
-    top_genes = [x.capitalize() for x in top_genes]
+    # no capitalization change
     if mode == 'gene_info':
         result = subtiwiki.get_gene_info(top_genes, return_header=True)
     else:
         result = subtiwiki.hypergeometric_test(top_genes, return_header=True, mode=mode)
+        result = [list(x) for x in result]
         for r in result[1:]:
             r[3] = ', '.join(r[3])
+    print('update_subtiwiki_result:', result)
     return json.dumps(result, cls=SimpleEncoder)
 
 @interaction_views.route('/user/<user_id>/view/db_query', methods=['POST'])
