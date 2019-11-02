@@ -429,7 +429,7 @@ def view_plots(user_id):
             gene_names=get_sca_gene_names(user_id),
             gene_sets=enrichr_api.ENRICHR_LIBRARIES,
             color_tracks=sca.get_color_track_names(),
-            use_bacillus='microb' in user_id)
+            use_bacillus=True)
 
 
 @interaction_views.route('/user/<user_id>/view/update_barplot', methods=['GET', 'POST'])
