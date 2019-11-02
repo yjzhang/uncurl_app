@@ -334,6 +334,7 @@
                                 <option value="cellmesh" selected>CellMeSH</option>
                                 <option value="cellmesh_anatomy">CellMeSH-Anatomy</option>
                                 <option value="go">Gene Ontology</option>
+                                {% if use_bacillus %}<option value="subtiwiki">Bacillus subtilis</option>{% endif %}
                             </select>
                         </div>
 
@@ -437,8 +438,23 @@
 
                         <div id="go_view" style="display:none;">
                             <h5 data-toggle="tooltip" title="Query Gene Ontology for terms matching the selected genes.">Query GO with selected genes</h4>
-                            <button class="btn btn-default" id="cellmesh_anatomy_submit" type="button" onclick="update_gene_query('go');">Submit GO query</button>
+                            <button class="btn btn-default" id="gene_onto_submit" type="button" onclick="update_gene_query('go');">Submit GO query</button>
                             <div id="go_results"></div>
+                        </div>
+                        <div id="subtiwiki_view" style="display:none;">
+                            <h5 data-toggle="tooltip" title="Query Subtiwiki for terms matching the selected genes.">Query Subtiwiki with selected genes</h4>
+                            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                                <label for="subtiwiki_mode" data-toggle="tooltip" title="Which species to query for cell types. Currently human and mouse are available.">Species:</label>
+                                <select class="form-control" id="subtiwiki_mode" name="subtiwiki_mode">
+                                    <option value="category">Gene categories</option>
+                                    <option value="regulations">Regulons</option>
+                                    <option value="operons">Operons</option>
+                                    <option value="all" selected>All</option>
+                                    <option value="gene_info">Gene Info</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-default" id="subtiwiki_submit" type="button" onclick="update_gene_query('subtiwiki');">Submit Subtiwiki query</button>
+                            <div id="subtiwiki_results"></div>
                         </div>
                     </form>
                 </div>

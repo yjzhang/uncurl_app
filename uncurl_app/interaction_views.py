@@ -428,7 +428,8 @@ def view_plots(user_id):
             data_user_id=data_user_id,
             gene_names=get_sca_gene_names(user_id),
             gene_sets=enrichr_api.ENRICHR_LIBRARIES,
-            color_tracks=sca.get_color_track_names())
+            color_tracks=sca.get_color_track_names(),
+            use_bacillus='microb' in user_id)
 
 
 @interaction_views.route('/user/<user_id>/view/update_barplot', methods=['GET', 'POST'])
@@ -989,6 +990,30 @@ def update_go_result(top_genes, **kwargs):
     result = go_query.gene_set_query(top_genes, return_header=True)
     for r in result[1:]:
         r[3] = ', '.join(r[3])
+    return json.dumps(result, cls=SimpleEncoder)
+
+@interaction_views.route('/user/<user_id>/view/update_subtiwiki', methods=['GET', 'POST'])
+def update_subtiwiki(user_id):
+    """
+    get gene ontology result
+    """
+    # top_genes is a newline-separated string, representing the gene list.
+    top_genes = [x for x in split_gene_names(request.form['top_genes'])]
+    mode = request.form['subtiwiki_mode']
+    print('update_subtiwiki:', top_genes)
+    # gene_set is a string.
+    return update_subtiwiki_result(top_genes, mode)
+
+@cache.memoize()
+def update_subtiwiki_result(top_genes, mode='all', **kwargs):
+    import subtiwiki
+    top_genes = [x.capitalize() for x in top_genes]
+    if mode == 'gene_info':
+        result = subtiwiki.get_gene_info(top_genes, return_header=True)
+    else:
+        result = subtiwiki.hypergeometric_test(top_genes, return_header=True, mode=mode)
+        for r in result[1:]:
+            r[3] = ', '.join(r[3])
     return json.dumps(result, cls=SimpleEncoder)
 
 @interaction_views.route('/user/<user_id>/view/db_query', methods=['POST'])

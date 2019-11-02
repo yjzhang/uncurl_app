@@ -18,6 +18,7 @@ def report_preview(user_id):
     Preview for report
     """
     # TODO
+    # also include heatmap in report? show heatmap of clusters, with labels attached to...
 
 @interaction_views.route('/user/<user_id>/report')
 def generate_report(user_id):

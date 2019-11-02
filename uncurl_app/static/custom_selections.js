@@ -202,6 +202,10 @@ function update_custom_label() {
                 var label_data = JSON.parse(data);
                 console.log(label_data);
                 set_criteria(label_data.criteria, label_name);
+                // add New Label option if none is available
+                if ($('#label_select').children().length == 1) {
+                    select.append('<option value="create_new_label">New label</option>');
+                }
             }
         });
     } else {

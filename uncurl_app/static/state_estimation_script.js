@@ -228,7 +228,6 @@ function set_enrichr_results(data, query) {
 
 function update_gene_query(query) {
     // query is a string that can be 'enrichr', 'cellmarker', etc...
-    // TODO: do something that makes this work for 
     var input_array = $('#gene-set-query-form').serializeArray();
     var data = {};
     $(input_array).each(function(index, obj){
@@ -255,6 +254,9 @@ function update_gene_query(query) {
     } else if (query == 'go') {
         results_view = $('#go_results');
         update_url = '/update_go';
+    } else if (query == 'subtiwiki') {
+        results_view = $('#subtiwiki_results');
+        update_url = '/update_subtiwiki';
     }
     results_view.empty();
     results_view.append("<br>" + "Query in progress..." + '<img src="/static/ajax-loader.gif"/>');
@@ -478,7 +480,7 @@ function toggle_reanalyze_area(value) {
 // toggles visibility of the bottom-left gene query view
 // 'toggle' is a jquery method that changes the visibility of the element.
 function toggle_query_visibility() {
-    var views = ['cellmarker_view', 'enrichr_view', 'cellmesh_view', 'cellmesh_anatomy_view', 'go_view'];
+    var views = ['cellmarker_view', 'enrichr_view', 'cellmesh_view', 'cellmesh_anatomy_view', 'go_view', 'subtiwiki_view'];
     var value = $('#database-select').val();
     var view_select = value + '_view';
     for (var i in views) {
