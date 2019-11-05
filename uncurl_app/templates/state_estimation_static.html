@@ -421,6 +421,9 @@
                                 <label for="anatomy_mesh_test_type" data-toggle="tooltip" title="Currently, only the hypergeometric test is available.">Statistical test:</label>
                                 <select class="form-control" id="anatomy_mesh_test_type" name="anatomy_mesh_test_type">
                                     <option value="hypergeom" selected>Hypergeometric test</option>
+                                    <option value="norm_hypergeom">Normalized Hypergeometric test</option>
+                                    <option value="prob">Probabilistic model</option>
+                                    <option value="gsva">GSVA</option>
                                 </select>
                             </div>
                             <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
@@ -438,6 +441,13 @@
 
                         <div id="go_view" style="display:none;">
                             <h5 data-toggle="tooltip" title="Query Gene Ontology for terms matching the selected genes.">Query GO with selected genes</h4>
+                            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                                <label for="go_species" data-toggle="tooltip" title="Which species to query for Gene Ontology. Currently human and mouse are available.">Species:</label>
+                                <select class="form-control" id="go_species" name="go_species">
+                                    <option value="human" selected>Homo sapiens</option>
+                                    <option value="mouse">Mus musculus</option>
+                                </select>
+                            </div>
                             <button class="btn btn-default" id="gene_onto_submit" type="button" onclick="update_gene_query('go');">Submit GO query</button>
                             <div id="go_results"></div>
                         </div>

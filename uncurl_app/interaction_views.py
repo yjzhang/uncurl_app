@@ -946,8 +946,8 @@ def update_cellmesh_anatomy(user_id):
     top_genes = [x.strip().upper() for x in split_gene_names(request.form['top_genes'])]
     mesh_subset = request.form['anatomy_mesh_subset']
     species = request.form['anatomy_species']
-    test = request.form['test']
-    return update_cellmesh_anatomy_result(top_genes, mesh_subset=mesh_subset, species=species)
+    test = request.form['anatomy_mesh_test_type']
+    return update_cellmesh_anatomy_result(top_genes, mesh_subset=mesh_subset, species=species, test=test)
 
 @cache.memoize()
 def update_cellmesh_anatomy_result(top_genes, mesh_subset=None, species='human', return_json=True, test='hypergeom'):
@@ -957,8 +957,18 @@ def update_cellmesh_anatomy_result(top_genes, mesh_subset=None, species='human',
         mesh_subset = None
     # TODO: validate mesh_subset
     import cellmesh
-    result = cellmesh.hypergeometric_test(top_genes, species=species, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR,
-            cell_type_subset=mesh_subset)
+    if test == 'hypergeom':
+        result = cellmesh.hypergeometric_test(top_genes, species=species, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR,
+                cell_type_subset=mesh_subset)
+    elif test == 'norm_hypergeom':
+        result = cellmesh.normed_hypergeometric_test(top_genes, species=species, return_header=True,
+                db_dir=cellmesh.ANATOMY_DB_DIR)
+    elif test == 'prob':
+        from cellmesh import prob_method
+        result = prob_method.prob_test(top_genes, species=species, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR)
+    elif test == 'gsva':
+        from cellmesh import gsva_ext_method
+        result = gsva_ext_method.gsva_ext_test(top_genes, species=species, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR)
     print('update_cellmesh_anatomy_result', result)
     cell_types = [result[0]]
     for i in range(1, min(20, len(result))):
