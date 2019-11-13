@@ -21,6 +21,8 @@ window.onload = function() {
 };
 </script>
 {% endif %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='state_estimation_style.css') }}" type="text/css"/>
 {% endblock %}
 
 {% block content %}
@@ -52,115 +54,115 @@ window.onload = function() {
 
         <div id="gene_mean" style="width: 400px; grid-column: 3 / 3; grid-row: 1">
         </div>
-    </div>
 
 
     {{ visualization }}
     <!-- TODO: submit revisions? -->
 
 
-    <form action="start" method="post" enctype="multipart/form-data">
-        {% if not uncurl_is_running and not uncurl_is_done %}
-        <fieldset>
-        {% else %}
-        <fieldset disabled="disabled">
-        {% endif %}
+        <form style="grid-column: 1 / span 3; grid-row: 2" action="start" method="post" enctype="multipart/form-data">
+            {% if not uncurl_is_running and not uncurl_is_done %}
+            <fieldset>
+            {% else %}
+            <fieldset disabled="disabled">
+            {% endif %}
 
-        <!--TODO: split into basic and advanced options. -->
-        <!-- Note: all field names are the same as a parameter name in uncurl_analysis.sc_analysis.SCAnalysis. -->
+            <!--TODO: split into basic and advanced options. -->
+            <!-- Note: all field names are the same as a parameter name in uncurl_analysis.sc_analysis.SCAnalysis. -->
 
-        <!-- hide some options if uncurl is finished running -->
-        <h4>Basic Options</h4>
-        {% if not uncurl_is_running and not uncurl_is_done %}
-        <div class="form-group">
-            <label for="clusters" data-toggle="tooltip" title="How many cell types are present in the data. If this is set to 0, then it will be estimated using a gap score-based metric.">Number of cell types (if set to 0, this will be inferred from the data):</label>
-            <input type=number id="clusters" name="clusters" value=10>
-        </div>
-
-        <div class="form-group">
-            <label for="dim_red_option" data-toggle="tooltip" title="This is the visualization method that will be used on the UNCURL-processed data.">Visualization method:</label>
-            <select id="dim_red_option" name="dim_red_option">
-                <option selected>tSNE</option>
-                <option>PCA</option>
-                <option>UMAP</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="baseline_dim_red" data-toggle="tooltip" title="This is the visualization method that will be used on the raw data, without UNCURL.">Baseline visualization method:</label>
-            <select id="baseline_dim_red" name="baseline_dim_red">
-                <option>None</option>
-                <option selected>tSNE</option>
-                <option>tSVD</option>
-                <option>UMAP</option>
-            </select>
-        </div>
-        {% endif %}
-
-
-        <h4>Advanced Options</h4>
-
-        <div id="advanced-options">
-
+            <!-- hide some options if uncurl is finished running -->
+            <h4>Basic Options</h4>
+            {% if not uncurl_is_running and not uncurl_is_done %}
             <div class="form-group">
-                <span>
-                <label for="min-reads" data-toggle="tooltip" title="By default, this is the bottom 5% of cells by read count.">Remove cells with read counts less than:</label>
-                <input type="number" id="min-reads" name="min_reads" value={{ min_reads }}>
-                </span>
-                <br>
-
-                <span>
-                <label for="max-reads" data-toggle="tooltip" title="By default, this is the top 5% of cells by read count.">Remove cells with read counts greater than:</label>
-                <input type="number" id="max-reads" name="max_reads" value={{ max_reads }}>
-                </span>
-                <br>
+                <label for="clusters" data-toggle="tooltip" title="How many cell types are present in the data. If this is set to 0, then it will be estimated using a gap score-based metric.">Number of cell types (if set to 0, this will be inferred from the data):</label>
+                <input type=number id="clusters" name="clusters" value=10>
             </div>
 
             <div class="form-group">
-                <label for="disttype" data-toggle="tooltip" title="Distribution for use with UNCURL - usually, the Poisson distribution is best for count (UMI) data.">Distribution type:</label>
-                <select id="disttype" name="disttype">
-                    <option selected>Poisson</option>
-                    <option>Log-Normal</option>
-                    <option>Gaussian</option>
+                <label for="dim_red_option" data-toggle="tooltip" title="This is the visualization method that will be used on the UNCURL-processed data.">Visualization method:</label>
+                <select id="dim_red_option" name="dim_red_option">
+                    <option selected>tSNE</option>
+                    <option>PCA</option>
+                    <option>UMAP</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="clustering_method" data-toggle="tooltip" title="Method used to generate cell labels. All methods that are not baseline are based on the output of UNCURL.">Clustering method:</label>
-                <select id="clustering_method" name="clustering_method">
-                    <option selected>Argmax</option>
-                    <option>Leiden</option>
-                    <option>Louvain</option>
-                    <option>Baseline_Leiden</option>
+                <label for="baseline_dim_red" data-toggle="tooltip" title="This is the visualization method that will be used on the raw data, without UNCURL.">Baseline visualization method:</label>
+                <select id="baseline_dim_red" name="baseline_dim_red">
+                    <option>None</option>
+                    <option selected>tSNE</option>
+                    <option>tSVD</option>
+                    <option>UMAP</option>
                 </select>
             </div>
+            {% endif %}
+
+
+            <h4>Advanced Options</h4>
+
+            <div id="advanced-options">
+
+                <div class="form-group">
+                    <span>
+                    <label for="min-reads" data-toggle="tooltip" title="By default, this is the bottom 5% of cells by read count.">Remove cells with read counts less than:</label>
+                    <input type="number" id="min-reads" name="min_reads" value={{ min_reads }}>
+                    </span>
+                    <br>
+
+                    <span>
+                    <label for="max-reads" data-toggle="tooltip" title="By default, this is the top 5% of cells by read count.">Remove cells with read counts greater than:</label>
+                    <input type="number" id="max-reads" name="max_reads" value={{ max_reads }}>
+                    </span>
+                    <br>
+                </div>
+
+                <div class="form-group">
+                    <label for="disttype" data-toggle="tooltip" title="Distribution for use with UNCURL - usually, the Poisson distribution is best for count (UMI) data.">Distribution type:</label>
+                    <select id="disttype" name="disttype">
+                        <option selected>Poisson</option>
+                        <option>Log-Normal</option>
+                        <option>Gaussian</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="clustering_method" data-toggle="tooltip" title="Method used to generate cell labels. All methods that are not baseline are based on the output of UNCURL.">Clustering method:</label>
+                    <select id="clustering_method" name="clustering_method">
+                        <option selected>Argmax</option>
+                        <option>Leiden</option>
+                        <option>Louvain</option>
+                        <option>Baseline_Leiden</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="genes-frac" data-toggle="tooltip" title="By default, UNCURL uses 20% of the genes, selected by variance.">Fraction of genes to include (put 1.0 to include all genes):</label>
+                    <input type="number" id="genes-frac" name="genes_frac" value={{ genes_frac }} step="0.01" min="0.0" max="1.0">
+                </div>
+
+                <div class="form-group">
+                    <label for="cell-frac" data-toggle="tooltip" title="By default, this is set so that there are at most 1500 cells in the visualization.">Fraction of cells to include for visualization:</label>
+                    <input type="number" id="cell-frac" name="cell_frac" value={{ cell_frac }} step="0.01" min="0.0" max="1.0">
+                </div>
+
+                <div class="form-group">
+                    <label for="cell-norm" data-toggle="tooltip" title="If this is checked, then the data will be normalized so that each cell has the same read count (equal to the median read count over all cells).">Normalize cells by read count:</label>
+                    <input type="checkbox" id="cell-norm" name="normalize" value="1" checked>
+                </div>
+            </div>
+            </fieldset>
+
+            {% if not uncurl_is_running and not uncurl_is_done %}
 
             <div class="form-group">
-                <label for="genes-frac" data-toggle="tooltip" title="By default, UNCURL uses 20% of the genes, selected by variance.">Fraction of genes to include (put 1.0 to include all genes):</label>
-                <input type="number" id="genes-frac" name="genes_frac" value={{ genes_frac }} step="0.01" min="0.0" max="1.0">
+                <button type="submit" id="submit" class="btn btn-default">Submit</button>
             </div>
 
-            <div class="form-group">
-                <label for="cell-frac" data-toggle="tooltip" title="By default, this is set so that there are at most 1500 cells in the visualization.">Fraction of cells to include for visualization:</label>
-                <input type="number" id="cell-frac" name="cell_frac" value={{ cell_frac }} step="0.01" min="0.0" max="1.0">
-            </div>
+            {% endif %}
 
-            <div class="form-group">
-                <label for="cell-norm" data-toggle="tooltip" title="If this is checked, then the data will be normalized so that each cell has the same read count (equal to the median read count over all cells).">Normalize cells by read count:</label>
-                <input type="checkbox" id="cell-norm" name="normalize" value="1" checked>
-            </div>
-        </div>
-        </fieldset>
-
-        {% if not uncurl_is_running and not uncurl_is_done %}
-
-        <div class="form-group">
-            <button type="submit" id="submit" class="btn btn-default">Submit</button>
-        </div>
-
-        {% endif %}
-
-    </form>
+        </form>
+    </div>
 
     {% if uncurl_is_running %}
 
