@@ -17,75 +17,82 @@ from .data_stats import Summary
 
 views = Blueprint('views', __name__, template_folder='templates')
 
+# TODO: allow this to upload multiple files with multiple genes
 def load_upload_data(request_files, request_form, path=None):
-    if 'fileinput' in request_files:
-        f = request_files['fileinput']
-        output_filename = secure_filename(f.filename)
-        if output_filename == '':
-            return
-    else:
-        return
-    init_f = None
-    if 'startinput' in request_files:
-        init_f = request_files['startinput']
-    # allow for mtx input data
-    input_type = request_form['inputtype']
-    if output_filename.endswith('.mtx.gz') or output_filename.endswith('.mtx'):
-        input_type = 'sparse'
-    if input_type == 'dense':
-        data_filename = 'data.txt'
-        if output_filename.endswith('.gz'):
-            data_filename = 'data.txt.gz'
-        data_path = os.path.join(path, data_filename)
-        f.save(data_path)
-    elif input_type == 'sparse':
-        data_filename = 'data.mtx'
-        if output_filename.endswith('.mtx.gz'):
-            data_filename = 'data.mtx.gz'
-        data_path = os.path.join(path, data_filename)
-        f.save(data_path)
-    shape = request_form['data_shape']
+    # TODO: should we merge the datasets here... or merge them in a downstream step?
+    data_paths = []
+    gene_paths = []
+    shapes = []
+    output_filenames = []
+    data_names = []
+    for key, f in request_files.items():
+        if 'fileinput' in key:
+            input_id = key.split('-')[1]
+            output_filename = secure_filename(f.filename)
+            if output_filename == '':
+                return
+            output_filenames.append(output_filename)
+            # allow for mtx input data
+            input_type = request_form['inputtype-{0}'.format(input_id)]
+            if output_filename.endswith('.mtx.gz') or output_filename.endswith('.mtx'):
+                input_type = 'sparse'
+            if input_type == 'dense':
+                data_filename = 'data_{0}.txt'.format(input_id)
+                if output_filename.endswith('.gz'):
+                    data_filename = 'data_{0}.txt.gz'.format(input_id)
+                data_path = os.path.join(path, data_filename)
+                f.save(data_path)
+            elif input_type == 'sparse':
+                data_filename = 'data_{0}.mtx'.format(input_id)
+                if output_filename.endswith('.mtx.gz'):
+                    data_filename = 'data_{0}.mtx.gz'.format(input_id)
+                data_path = os.path.join(path, data_filename)
+                f.save(data_path)
+            shape = request_form['data_shape-{0}'.format(input_id)]
+            shapes.append(shape)
+            # TODO: try to find gene names
+            data_paths.append(data_path)
+            try:
+                gene_file = request_files['genenames-{0}'.format(input_id)]
+                print(gene_file)
+                gene_output_file = load_gene_names(gene_file, path, input_id)
+                gene_paths.append(gene_output_file)
+            except:
+                gene_paths.append(None)
+            data_name = request_form['data_name-{0}'.format(input_id)]
+            if len(data_name) == 0:
+                data_name = str(input_id)
+            data_names.append(data_name)
     init = None
-    if init_f is not None and init_f.filename != '':
-        init = os.path.join(path, 'init.txt')
-        init_f.save(init)
-    return data_path, output_filename, init, shape
+    return data_paths, gene_paths, data_names, init, shapes
 
 
-def load_gene_names(path=None):
-    if 'genenames' in request.files:
-        f = request.files['genenames']
-        gene_filename = secure_filename(f.filename)
-        if gene_filename.endswith('genes.csv'):
-            import pandas as pd
-            data = pd.read_csv(f)
-            try:
-                gene_names = data['gene_name']
-                if path is not None:
-                    gene_names.to_csv(os.path.join(path, 'gene_names.txt'), header=None, index=None)
-            except Exception as e:
-                print(e)
-                if path is not None:
-                    f.seek(0)
-                    f.save(os.path.join(path, 'gene_names.txt'))
-        elif gene_filename.endswith('features.tsv'):
-            import pandas as pd
-            data = pd.read_csv(f, sep='\t', header=None)
-            try:
-                gene_names = data[1]
-                if path is not None:
-                    gene_names.to_csv(os.path.join(path, 'gene_names.txt'), header=None, index=None)
-            except Exception as e:
-                print(e)
-                if path is not None:
-                    f.seek(0)
-                    f.save(os.path.join(path, 'gene_names.txt'))
-        else:
-            if path is not None:
-                f.save(os.path.join(path, 'gene_names.txt'))
-        return gene_filename
+def load_gene_names(f, path=None, index=1):
+    gene_filename = secure_filename(f.filename)
+    gene_output_path = os.path.join(path, 'gene_names_{0}.txt'.format(index))
+    if gene_filename.endswith('genes.csv'):
+        import pandas as pd
+        data = pd.read_csv(f)
+        try:
+            gene_names = data['gene_name']
+            gene_names.to_csv(gene_output_path, header=None, index=None)
+        except Exception as e:
+            print(e)
+            f.seek(0)
+            f.save(gene_output_path)
+    elif gene_filename.endswith('features.tsv'):
+        import pandas as pd
+        data = pd.read_csv(f, sep='\t', header=None)
+        try:
+            gene_names = data[1]
+            gene_names.to_csv(gene_output_path, header=None, index=None)
+        except Exception as e:
+            print(e)
+            f.seek(0)
+            f.save(gene_output_path)
     else:
-        return None
+        f.save(gene_output_path)
+    return gene_output_path
 
 @views.route('/help')
 def help():
@@ -115,11 +122,10 @@ def state_estimation_input():
     # run the thing
     request_file = request.files
     request_form = request.form
-    load_gene_names(base_path)
-    data_path, output_filename, init, shape = load_upload_data(request_file, request_form, base_path)
+    data_paths, gene_paths, output_filenames, init, shapes = load_upload_data(request_file, request_form, base_path)
     # TODO: deal with init
-    P = Process(target=state_estimation_preproc, args=(user_id, base_path, data_path, output_filename, init,
-        shape))
+    P = Process(target=state_estimation_preproc, args=(user_id, base_path, data_paths, gene_paths, output_filenames, init,
+        shapes))
     P.start()
     #state_estimation_preproc(user_id, path)
     return redirect(url_for('views.state_estimation_result', user_id=user_id))
@@ -174,7 +180,7 @@ def state_estimation_result(user_id):
             with open(os.path.join(path, 'gene_mean_hist_data.json')) as f:
                 gene_mean_hist_data = f.read()
         except:
-            summary = Summary(None, path)
+            summary = Summary(None, None, base_path=path)
             read_count_hist_data, gene_count_hist_data, gene_mean_hist_data = summary.generate_plotly_jsons()
         if uncurl_is_running:
             # get running time information (highly approximate)
@@ -255,19 +261,18 @@ def data_download(x, user_id):
             test_or_user=x,
             files=files)
 
-def state_estimation_preproc(user_id, base_path, data_path, output_filename, init=None,
-        shape='gene_cell'):
+def state_estimation_preproc(user_id, base_path, data_paths, gene_paths, output_filenames, init=None,
+        shapes=['gene_cell']):
+    # TODO: update for multiple data/genes
     """
     Preprocessing for state estimation - generates summary statistics,
     etc...
     """
-    is_gz = False
-    if output_filename.endswith('.gz'):
-        is_gz = True
+    # TODO: combine datasets
     if base_path is None:
         base_path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     try:
-        summary = Summary(data_path, base_path, is_gz, shape=shape)
+        summary = Summary(data_paths, gene_paths, base_path, shapes=shapes, dataset_names=output_filenames)
         read_count_hist_data, gene_count_hist_data, gene_mean_hist_data = summary.load_plotly_json()
         summary.preprocessing_params()
     except:
@@ -275,6 +280,24 @@ def state_estimation_preproc(user_id, base_path, data_path, output_filename, ini
         text = traceback.format_exc()
         with open(os.path.join(base_path, 'error.txt'), 'w') as f:
             f.write(text)
+
+def state_estimation_preproc_simple(user_id, base_path, data_path):
+    """
+    Preprocessing, assuming that the data has already been merged.
+    """
+    # TODO: combine datasets
+    if base_path is None:
+        base_path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
+    try:
+        summary = Summary(None, None, base_path)
+        read_count_hist_data, gene_count_hist_data, gene_mean_hist_data = summary.load_plotly_json()
+        summary.preprocessing_params()
+    except:
+        import traceback
+        text = traceback.format_exc()
+        with open(os.path.join(base_path, 'error.txt'), 'w') as f:
+            f.write(text)
+
 
 
 def state_estimation_thread(user_id, gene_names=None, init_path=None, path=None, preprocess=None, config=None):

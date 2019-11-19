@@ -18,7 +18,7 @@ from uncurl_analysis import enrichr_api, sc_analysis, custom_cell_selection
 from . import generate_analysis
 from .cache import cache
 from .utils import SimpleEncoder
-from .views import state_estimation_preproc
+from .views import state_estimation_preproc_simple
 
 interaction_views = Blueprint('interaction_views', __name__,
         template_folder='templates')
@@ -1393,5 +1393,5 @@ def rerun_uncurl(user_id):
     scipy.io.mmwrite(new_data_path, data_subset)
 
     # run state_estimation_preproc - gets data summary stats 
-    state_estimation_preproc(new_user_id, new_path, new_data_path, '')
+    state_estimation_preproc_simple(new_user_id, new_path, new_data_path)
     return new_user_id

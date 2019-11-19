@@ -2,6 +2,35 @@
 
 {% block title %}State Estimation{% endblock %}
 
+{% block head %}
+
+{{ super() }}
+
+<script src="{{ url_for('static', filename='jquery-3.3.1.min.js') }}"></script>
+
+<script>
+
+var file_input_template = '';
+
+// TODO: function that copies file_input_1, allows addition of new files
+function duplicate_input() {
+    // find number of criteria the label has...
+    var num_files = $('.file_input').length;
+    var id = num_files + 1;
+    var template = document.getElementById('file_input-1').outerHTML;
+    template = template.replace(/-1\"/g, '-'+id+'"');
+    template = template.replace(/\(1\)/g, '('+id+')');
+    // set selection_and_or-1
+    $('#all_file_inputs').append(template);
+};
+
+window.onload = function() {
+    file_input_template = document.getElementById('file_input-1').outerHTML;
+};
+</script>
+
+{% endblock %}
+
 {% block instructions %}
 Upload a file containing single-cell RNASeq data, where each row is a gene and each column is a cell. 
 {% endblock %}
@@ -14,33 +43,45 @@ For details on the method, see <a href="https://academic.oup.com/bioinformatics/
         
 
 {% block input %}
-    <form action="state_estimation/input" method="post" enctype=multipart/form-data>
+    <form  action="state_estimation/input" method="post" enctype=multipart/form-data>
 
-        <div class="form-group">
-            <label for="fileinput">Upload a text file formatted as a space-separated matrix, where each row is a gene and each column is a cell. Alternatively, this can be a sparse mtx (Matrix Market) file. Both types of input can be gzipped.</label>
-            <input type="file" class="form-control-file" id="fileinput" name="fileinput"></input>
-        </div>
+        <div id="all_file_inputs">
 
-        <div class="form-group">
-            <label for="inputtype">Input type:</label>
-            <select id="inputtype" name="inputtype">
-                <option value="dense" selected>Dense matrix (space or tab-separated numbers)</option>
-                <option value="sparse">Sparse matrix (mtx, mtx.gz)</option>
-            </select>
-        </div>
+            <div id="file_input-1" class="file_input" style="border: 1px solid black;">
+                <div class="form-group">
+                    <label for="fileinput-1">Upload a text file formatted as a space-separated matrix, where each row is a gene and each column is a cell. Alternatively, this can be a sparse mtx (Matrix Market) file. Both types of input can be gzipped.</label>
+                    <input type="file" class="form-control-file" id="fileinput-1" name="fileinput-1"></input>
+                </div>
 
-        <div class="form-group">
-            <label for="data-shape">Data shape:</label>
-            <select id="data-shape" name="data_shape">
-                <option value="gene_cell" selected>Genes by cells</option>
-                <option value="cell_gene">Cells by genes</option>
-            </select>
-        </div>
+                <div class="form-group">
+                    <label for="inputtype-1">Input type:</label>
+                    <select id="inputtype-1" name="inputtype-1">
+                        <option value="dense" selected>Dense matrix (space or tab-separated numbers)</option>
+                        <option value="sparse">Sparse matrix (mtx, mtx.gz)</option>
+                    </select>
+                </div>
 
-        <div class="form-group">
-            <label for="genenames">Upload a list of gene names, with one name on each line, corresponding to the rows in the data matrix.</label>
-            <input type="file" class="form-control-file" id="genenames" name="genenames"></input>
+                <div class="form-group">
+                    <label for="data_shape-1">Data shape:</label>
+                    <select id="data_shape-1" name="data_shape-1">
+                        <option value="gene_cell" selected>Genes by cells</option>
+                        <option value="cell_gene">Cells by genes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="genenames-1">Upload a list of gene names, with one name on each line, corresponding to the rows in the data matrix.</label>
+                    <input type="file" class="form-control-file" id="genenames-1" name="genenames-1"></input>
+                </div>
+                <div class="form-group">
+                    <label for="data_name-1">Optional: enter a name for the sample (only needed if more than one sample is used).</label>
+                    <input type="text" id="data_name-1" name="data_name-1"></input>
+                </div>
+            </div>
+            <!--New file inputs go here -->
         </div>
+        <!-- TODO: button to add new upload group -->
+        <button type="button" class="btn btn-default" onclick="duplicate_input();">Add new sample</button>
 
 
         <!-- TODO: disable this for now
@@ -58,7 +99,7 @@ For details on the method, see <a href="https://academic.oup.com/bioinformatics/
 
 
         <div class="form-group">
-            <button type="submit" id="submit" class="btn btn-default">Submit Data</button>
+            <button type="submit" id="submit" class="btn btn-primary">Submit Data</button>
         </div>
 
     </form>

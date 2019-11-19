@@ -56,6 +56,9 @@ def generate_uncurl_analysis(data, output_dir,
             data_filename=data_filename,
             data_is_sparse=data_is_sparse)
     sca.load_params_json()
+    if os.path.exists(os.path.join(output_dir, 'samples.txt')) and 'samples' not in sca.color_tracks:
+        samples = np.loadtxt(os.path.join(output_dir, 'samples.txt'), dtype=str)
+        sca.add_color_track('samples', samples, True)
     try:
         sca.run_full_analysis()
     except Exception as e:
