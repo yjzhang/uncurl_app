@@ -157,11 +157,8 @@ function update_scatterplot() {
     if (plot_type == 'Dendrogram') {
         var dendrogram_genes = $('#dendrogram_genes').val();
         upload_data['dendrogram_genes'] = dendrogram_genes;
-        if ($('#dendrogram_use_log').is(':checked')) {
-            upload_data['dendrogram_use_log'] = 1;
-        } else {
-            upload_data['dendrogram_use_log'] = 0;
-        }
+        upload_data['dendrogram_use_log'] = $('#dendrogram_use_log').is(':checked') ? 1 : 0;
+        upload_data['dendrogram_normalize'] = $('#dendrogram_normalize').is(':checked') ? 1 : 0;
     }
     $("#update-area").empty();
     $("#update-area").append('Updating scatterplot <img src="/static/ajax-loader.gif"/>');

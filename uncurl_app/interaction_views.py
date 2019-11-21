@@ -340,7 +340,7 @@ def heatmap_data(user_id, label_name_1, label_name_2, **params):
     return cluster_heatmap(color_track_1, color_track_2, label_name_1, label_name_2)
 
 @cache.memoize()
-def dendrogram_data(user_id, color_track_name, selected_genes, use_log=False):
+def dendrogram_data(user_id, color_track_name, selected_genes, use_log=False, use_normalize=False):
     """
     Returns a dendrogram json
     """
@@ -361,7 +361,7 @@ def dendrogram_data(user_id, color_track_name, selected_genes, use_log=False):
             selected_gene_names = [all_genes[int(x[0])] for x in selected_top_genes]
             selected_genes += selected_gene_names
     from .advanced_plotting import dendrogram
-    return dendrogram(data, all_genes, selected_genes, color_track_name, color_track, use_log=use_log)
+    return dendrogram(data, all_genes, selected_genes, color_track_name, color_track, use_log=use_log, use_normalize=use_normalize)
 
 @interaction_views.route('/user/<user_id>/all_top_genes')
 def all_top_genes(user_id):
@@ -674,7 +674,8 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
         color_track, is_discrete = get_sca_color_track(user_id, color_track_name)
         selected_genes = split_gene_names(data_form['dendrogram_genes'])
         use_log = 'dendrogram_use_log' in data_form and data_form['dendrogram_use_log'] != '0'
-        return dendrogram_data(user_id, color_track_name, selected_genes, use_log=use_log)
+        use_normalize = 'dendrogram_normalize' in data_form and data_form['dendrogram_normalize'] != '0'
+        return dendrogram_data(user_id, color_track_name, selected_genes, use_log=use_log, use_normalize=use_normalize)
     else:
         dim_red = None
         if plot_type == 'Cells':

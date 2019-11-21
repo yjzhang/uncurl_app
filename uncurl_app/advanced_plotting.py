@@ -38,7 +38,7 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
         data = data/data.sum(1, keepdims=True)
     if order == 'coclustering':
         from sklearn.cluster.bicluster import SpectralCoclustering
-        spec = SpectralCoclustering(int(max(len(cluster1_values)/2, len(cluster2_values)/2, 2)))
+        spec = SpectralCoclustering(int(max(len(cluster1_values)/1.5, len(cluster2_values)/1.5, 2)))
         spec.fit(data + 1e-8)
         row_labels = spec.row_labels_
         column_labels = spec.column_labels_
@@ -62,11 +62,13 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
         'layout': {
             'xaxis': {'title': cluster_2_name, 'automargin': True},
             'yaxis': {'title': cluster_1_name, 'automargin': True},
+            'height': 550,
         }
     }
     return json.dumps(output, cls=SimpleEncoder)
 
-def dendrogram(data_sampled_all_genes, all_gene_names, selected_gene_names, cluster_name, cluster_data, use_log=False):
+def dendrogram(data_sampled_all_genes, all_gene_names, selected_gene_names, cluster_name, cluster_data, use_log=False,
+        use_normalize=False):
     """
     Returns a json dendrogram from plotly...
 
@@ -93,6 +95,9 @@ def dendrogram(data_sampled_all_genes, all_gene_names, selected_gene_names, clus
     data_cluster_means = data_cluster_means[gene_indices, :]
     if use_log:
         data_cluster_means = np.log(1+data_cluster_means)
+    if use_normalize:
+        # divide data by max value for each gene
+        data_cluster_means = data_cluster_means/data_cluster_means.max(1, keepdims=True)
     # code based on https://plot.ly/python/dendrogram/
     # create top dendrogram - plot of cells
     fig = ff.create_dendrogram(data_cluster_means.T, orientation='bottom', labels=cluster_values)
@@ -132,7 +137,7 @@ def dendrogram(data_sampled_all_genes, all_gene_names, selected_gene_names, clus
     for data in heatmap:
         fig.add_trace(data)
     # Edit Layout
-    fig.update_layout({'width':700, 'height':len(selected_gene_names)*20,
+    fig.update_layout({'width':700, 'height':50+len(selected_gene_names)*20,
                          'showlegend':False, 'hovermode': 'closest',
                          })
     fig.update_layout(xaxis={'domain': [.15, 1],

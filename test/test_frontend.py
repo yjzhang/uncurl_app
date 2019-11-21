@@ -34,9 +34,9 @@ class UncurlFrontendTest(LiveServerTestCase):
         """
         self.driver.find_element_by_id('state-estimation-link').click()
         time.sleep(1)
-        self.driver.find_element_by_id('fileinput').send_keys(
+        self.driver.find_element_by_id('fileinput-1').send_keys(
                 os.path.join(os.getcwd(), 'uncurl_app/static/data_400_cells.mtx.gz'))
-        self.driver.find_element_by_id('genenames').send_keys(
+        self.driver.find_element_by_id('genenames-1').send_keys(
                 os.path.join(os.getcwd(), 'uncurl_app/static/gene_names_400.tsv'))
         self.driver.find_element_by_id('username').send_keys('testing')
         self.driver.find_element_by_id('submit').click()
@@ -48,7 +48,6 @@ class UncurlFrontendTest(LiveServerTestCase):
         num_genes = self.driver.find_element_by_id('num-genes').text
         self.assertTrue('19848' in num_genes)
         self.driver.find_element_by_id('dim_red_option')
-        self.driver.find_element_by_id('baseline_dim_red')
         gene_frac = self.driver.find_element_by_id('genes-frac')
         gene_frac.clear()
         gene_frac.send_keys('0.5')
@@ -173,7 +172,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         # submit using Log-Normal
         self.driver.find_element_by_id('state-estimation-link').click()
         time.sleep(1)
-        self.driver.find_element_by_id('fileinput').send_keys(
+        self.driver.find_element_by_id('fileinput-1').send_keys(
                 os.path.join(os.getcwd(), 'uncurl_app/static/GSE60361_sub.mtx.gz'))
         self.driver.find_element_by_id('username').send_keys('testing-2')
         self.driver.find_element_by_id('submit').click()
@@ -185,7 +184,6 @@ class UncurlFrontendTest(LiveServerTestCase):
         num_genes = self.driver.find_element_by_id('num-genes').text
         self.assertTrue('3990' in num_genes)
         self.driver.find_element_by_id('dim_red_option')
-        self.driver.find_element_by_id('baseline_dim_red')
         gene_frac = self.driver.find_element_by_id('genes-frac')
         gene_frac.clear()
         gene_frac.send_keys('0.5')
