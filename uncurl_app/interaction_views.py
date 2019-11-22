@@ -399,7 +399,7 @@ def data_stats(user_id):
     except:
         from . import data_stats
         sca = get_sca(user_id)
-        summary = data_stats.Summary(data_path=None, base_path=path, data=sca.data)
+        summary = data_stats.Summary(data_paths=None, gene_paths=None, base_path=path, data=sca.data)
         read_count_hist_data, gene_count_hist_data, gene_mean_hist_data = summary.generate_plotly_jsons()
     # TODO: mean read count, median read count, mean gene count, median gene count
     # TODO: show genes per cell, switch to using plotly instead of bokeh (remove bokeh as a dependency)
