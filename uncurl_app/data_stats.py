@@ -32,7 +32,9 @@ class Summary(object):
                     is_gz = True
                 else:
                     raise Exception('data not found')
+                self.is_gz = is_gz
             else:
+                self.is_gz = True
                 for i, data_path in enumerate(data_paths):
                     data_path = str(data_path)
                     is_gz = data_path.endswith('gz')
@@ -62,6 +64,8 @@ class Summary(object):
                 data = scipy.io.mmread(data_path)
             except:
                 data = np.loadtxt(data_path)
+        else:
+            self.is_gz = True
         self.cell_read_counts = np.array(data.sum(0)).flatten()
         self.cell_gene_counts = np.array((data>0).sum(0)).flatten()
         self.sorted_read_counts = np.sort(self.cell_read_counts)
@@ -82,7 +86,6 @@ class Summary(object):
             self.gene_vars = data.var(1).flatten()
         self.sorted_gene_means = np.sort(self.gene_means)
         self.path = base_path
-        self.is_gz = is_gz
 
     def summary(self):
         return (self.cells, self.genes)
