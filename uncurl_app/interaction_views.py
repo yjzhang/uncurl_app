@@ -992,15 +992,18 @@ def update_go(user_id):
     # top_genes is a newline-separated string, representing the gene list.
     top_genes = [x.strip().upper() for x in split_gene_names(request.form['top_genes'])]
     species = request.form['go_species']
+    fdr_threshold = 0.2
+    if 'go_fdr_threshold' in request.form:
+        fdr_threshold = float(request.form['go_fdr_threshold'])
     print('update_go:', top_genes)
     # gene_set is a string.
-    return update_go_result(top_genes, species=species)
+    return update_go_result(top_genes, species=species, fdr_threshold=fdr_threshold)
 
 @cache.memoize()
-def update_go_result(top_genes, species='mouse', **kwargs):
+def update_go_result(top_genes, species='mouse', fdr_threshold=0.2, **kwargs):
     from cellmesh import go_query
     top_genes = [x.capitalize() for x in top_genes]
-    result = go_query.gene_set_query(top_genes, return_header=True, species=species)
+    result = go_query.gene_set_query(top_genes, return_header=True, species=species, fdr_threshold=fdr_threshold)
     for r in result[1:]:
         r[3] = ', '.join(r[3])
     return json.dumps(result, cls=SimpleEncoder)
