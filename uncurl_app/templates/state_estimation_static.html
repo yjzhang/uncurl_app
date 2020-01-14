@@ -337,6 +337,7 @@
                                 <option value="cellmesh_anatomy">CellMeSH-Anatomy</option>
                                 <option value="go">Gene Ontology</option>
                                 {% if use_bacillus %}<option value="subtiwiki">Bacillus subtilis</option>{% endif %}
+                                <option value="kegg">KEGG Pathways</option>
                             </select>
                         </div>
 
@@ -457,6 +458,7 @@
                             <button class="btn btn-default" id="gene_onto_submit" type="button" onclick="update_gene_query('go');">Submit GO query</button>
                             <div id="go_results"></div>
                         </div>
+
                         <div id="subtiwiki_view" style="display:none;">
                             <h5 data-toggle="tooltip" title="Query Subtiwiki for terms matching the selected genes.">Query Subtiwiki with selected genes</h4>
                             <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
@@ -471,6 +473,20 @@
                             </div>
                             <button class="btn btn-default" id="subtiwiki_submit" type="button" onclick="update_gene_query('subtiwiki');">Submit Subtiwiki query</button>
                             <div id="subtiwiki_results"></div>
+                        </div>
+
+                        <div id="kegg_view" style="display:none;">
+                            <h5 data-toggle="tooltip" title="Query Gene Ontology for terms matching the selected genes.">Query GO with selected genes</h4>
+                            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                                <label for="kegg_species" data-toggle="tooltip" title="Which species to query for Gene Ontology. Currently human and mouse are available.">Species:</label>
+                                <select class="form-control" id="kegg_species" name="kegg_species">
+                                    <option value="human" selected>Homo sapiens</option>
+                                    <option value="mouse">Mus musculus</option>
+                                    <option value="all">Both</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-default" id="kegg_submit" type="button" onclick="update_gene_query('kegg');">Submit KEGG query</button>
+                            <div id="kegg_results"></div>
                         </div>
                     </form>
                 </div>

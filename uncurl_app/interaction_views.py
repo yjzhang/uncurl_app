@@ -1034,6 +1034,27 @@ def update_subtiwiki_result(top_genes, mode='all', **kwargs):
     print('update_subtiwiki_result:', result)
     return json.dumps(result, cls=SimpleEncoder)
 
+@interaction_views.route('/user/<user_id>/view/update_kegg', methods=['GET', 'POST'])
+def update_kegg(user_id):
+    """
+    get KEGG result
+    """
+    # top_genes is a newline-separated string, representing the gene list.
+    top_genes = [x for x in split_gene_names(request.form['top_genes'])]
+    species = request.form['kegg_species']
+    print('update_kegg:', top_genes)
+    # gene_set is a string.
+    return update_kegg_result(top_genes, species=species)
+
+@cache.memoize()
+def update_kegg_result(top_genes, species='human', **kwargs):
+    import kegg_query
+    # no capitalization change
+    result = kegg_query.hypergeometric_test(top_genes, return_header=True, species=species)
+    result = [list(x) for x in result]
+    print('update_kegg_result:', result)
+    return json.dumps(result, cls=SimpleEncoder)
+
 @interaction_views.route('/user/<user_id>/view/db_query', methods=['POST'])
 def db_query(user_id):
     """

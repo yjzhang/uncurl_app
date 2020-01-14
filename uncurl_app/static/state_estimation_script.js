@@ -254,6 +254,9 @@ function update_gene_query(query) {
     } else if (query == 'subtiwiki') {
         results_view = $('#subtiwiki_results');
         update_url = '/update_subtiwiki';
+    } else if (query == 'kegg') {
+        results_view = $('#kegg_results');
+        update_url = '/update_kegg';
     }
     results_view.empty();
     results_view.append("<br>" + "Query in progress..." + '<img src="/static/ajax-loader.gif"/>');
@@ -477,7 +480,7 @@ function toggle_reanalyze_area(value) {
 // toggles visibility of the bottom-left gene query view
 // 'toggle' is a jquery method that changes the visibility of the element.
 function toggle_query_visibility() {
-    var views = ['cellmarker_view', 'enrichr_view', 'cellmesh_view', 'cellmesh_anatomy_view', 'go_view', 'subtiwiki_view'];
+    var views = ['cellmarker_view', 'enrichr_view', 'cellmesh_view', 'cellmesh_anatomy_view', 'go_view', 'subtiwiki_view', 'kegg_view'];
     var value = $('#database-select').val();
     var view_select = value + '_view';
     for (var i in views) {
