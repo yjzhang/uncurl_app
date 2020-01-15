@@ -88,7 +88,47 @@ def get_cell_info():
     Returns all genes/pmids associated with a cell type, ranked in order of hits, that pass a certain threshold.
     """
     # TODO
-    pass
+    db = request.form['database_select']
+    cell_type = request.form['cell_type']
+    try:
+        if db == 'cellmarker':
+            test_type = request.form['test_type']
+            cells_or_tissues = request.form['cells_or_tissues']
+            species = request.form['species']
+            import cellmarker
+            result = []
+            cell_types = [result[0]]
+        elif db == 'cellmesh':
+            test_type = request.form['mesh_test_type']
+            species = request.form['cellmesh_species']
+            import cellmesh
+            result = []
+        elif db == 'cellmesh_anatomy':
+            mesh_subset = request.form['anatomy_mesh_subset']
+            import cellmesh
+            result = cellmesh.hypergeometric_test(top_genes, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR,
+                    cell_type_subset=mesh_subset, species=species)
+            cell_types = [result[0]]
+        elif db == 'go':
+            from cellmesh import go_query
+            top_genes = [x.capitalize() for x in top_genes]
+            result = go_query.gene_set_query(top_genes, return_header=True)
+            for r in result[1:]:
+                r[3] = ', '.join(r[3])
+            return json.dumps(result, cls=SimpleEncoder)
+        for i in range(1, min(20, len(result))):
+            ri = result[i]
+            gene_pmids = []
+            genes = ri[3]
+            for g in genes:
+                gene_pmids.append('{0}: {1}'.format(g, ', '.join(pmid_to_link(x) for x in ri[4][g])))
+            cell_types.append((ri[0], ri[1], ri[2], ', '.join(ri[3]), ', '.join(gene_pmids)))
+        return json.dumps(cell_types, cls=SimpleEncoder)
+    except Exception as e:
+        import traceback
+        text = traceback.format_exc()
+        print(text)
+        return 'Error: ' + str(e)
 
 @db_query.route('/db_query/get_mesh_tree')
 def get_mesh_tree():

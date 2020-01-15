@@ -62,10 +62,30 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
         'layout': {
             'xaxis': {'title': cluster_2_name, 'automargin': True},
             'yaxis': {'title': cluster_1_name, 'automargin': True},
+            'font': {'size': 16},
             'height': 550,
+            'width': 700,
+
         }
     }
     return json.dumps(output, cls=SimpleEncoder)
+
+def gene_similarity(data_sampled_all_genes, all_gene_names, selected_gene_names, mode='full'):
+    """
+    Creates a diagonal gene-gene similarity map using data from all sampled cells.
+    mode can be either 'full' or 'reduced'. If 'mode' is full, then this returns a heatmap showing
+
+    Returns a json dendrogram from plotly
+    """
+    # TODO: this should be able to use either m_full or the full data matrix
+    gene_name_indices = {x: i for i, x in enumerate(all_gene_names)}
+    selected_gene_names = [x for x in selected_gene_names if x in gene_name_indices]
+    gene_indices = np.array([gene_name_indices[x] for x in selected_gene_names])
+    print('gene heatmap selected gene names:', selected_gene_names)
+    print('gene heatmap selected gene ids:', gene_indices)
+    selected_gene_indices = {x: i for i, x in enumerate(selected_gene_names)}
+    data_subset = data_sampled_all_genes[gene_indices, :]
+
 
 def dendrogram(data_sampled_all_genes, all_gene_names, selected_gene_names, cluster_name, cluster_data, use_log=False,
         use_normalize=False):
@@ -137,7 +157,7 @@ def dendrogram(data_sampled_all_genes, all_gene_names, selected_gene_names, clus
     for data in heatmap:
         fig.add_trace(data)
     # Edit Layout
-    fig.update_layout({'width':700, 'height':50+len(selected_gene_names)*20,
+    fig.update_layout({'width':700, 'height':100+len(selected_gene_names)*25,
                          'showlegend':False, 'hovermode': 'closest',
                          })
     fig.update_layout(xaxis={'domain': [.15, 1],
@@ -172,5 +192,6 @@ def dendrogram(data_sampled_all_genes, all_gene_names, selected_gene_names, clus
                                    'zeroline': False,
                                    'showticklabels': False,
                                    'ticks':""})
+    fig.update_layout({'font': {'size': 16}})
     return fig.to_json()
 

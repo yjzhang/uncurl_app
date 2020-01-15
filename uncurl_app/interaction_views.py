@@ -62,6 +62,16 @@ def get_sca(user_id):
     return sca
 
 @cache.memoize()
+def get_sca_dim_red(user_id):
+    sca = get_sca(user_id)
+    return sca.dim_red
+
+@cache.memoize()
+def get_sca_baseline_vis(user_id):
+    sca = get_sca(user_id)
+    return sca.baseline_vis
+
+@cache.memoize()
 def get_sca_top_genes(user_id):
     sca = get_sca(user_id)
     return sca.top_genes
@@ -227,7 +237,7 @@ def calc_size(labels):
     return size
 
 def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
-        color_vals=None, text_labels=None):
+        color_vals=None, label_text=None):
     """
     Converts data into a form that will be sent as json for building the
     scatterplot. Output should be formatted in a way that can be used by
@@ -239,7 +249,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
         colorscale (str)
         mode (str): either 'cluster' or 'entropy'
         color_vals (array): 1d array of length n, of real values that will be used for coloring
-        text_labels (list of strings): list of labels to place on the plot, 1 for each cluster.
+        label_text (list or array): labels for each point, with length n
     """
     # have size depend on data shape
     size = calc_size(labels)
@@ -254,7 +264,11 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
         cluster_names = label_values
     # cell_ids indicates the ids of the cells used...
     cell_ids = np.arange(len(labels))
-    # TODO: use colorlover to use different colors in case...
+    if label_text is None:
+        label_text = np.array([str(x) for x in cell_ids])
+    else:
+        label_text = np.array(label_text)
+    plot_type = 'scattergl' if len(label_text) > 5000 else 'scatter'
     if mode == 'cluster':
         if len(label_values) > 10:
             from . import colors
@@ -271,19 +285,19 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
             print(color_values)
         else:
             color_values = label_values
-        # TODO: plot text - randomly select a cell and plot it there.
         data =  [
             {
                 'x': dim_red[0,labels==c].tolist(),
                 'y': dim_red[1,labels==c].tolist(),
                 'mode': 'markers',
+                'type': plot_type,
                 'name': cluster_names[i],
                 'marker': {
                     'size': size,
                     'color': color_values[i],
                     'colorscale': colorscale,
                 },
-                'text': list(map(str, cell_ids[labels==c].tolist())),
+                'text': list(label_text[labels==c]),
             }
             for i, c in enumerate(label_values)
         ]
@@ -298,6 +312,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                 'x': dim_red[0,labels==c].tolist(),
                 'y': dim_red[1,labels==c].tolist(),
                 'mode': 'markers',
+                'type': plot_type,
                 'name': 'cluster ' + str(c),
                 'marker': {
                     'size': size,
@@ -307,7 +322,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                     'cmax': cmax,
                     'showscale': True if c==0 else False,
                 },
-                'text': list(map(str, color_vals[labels==c].tolist())),
+                'text': list(label_text[labels==c]),
             }
             for c in range(len(set(labels)))
         ]
@@ -676,12 +691,19 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
         use_log = 'dendrogram_use_log' in data_form and data_form['dendrogram_use_log'] != '0'
         use_normalize = 'dendrogram_normalize' in data_form and data_form['dendrogram_normalize'] != '0'
         return dendrogram_data(user_id, color_track_name, selected_genes, use_log=use_log, use_normalize=use_normalize)
+    elif plot_type == 'Genes':
+        print('plotting genes')
+        dim_red = sca.gene_dim_red
+        labels = sca.gene_clusters
+        gene_names = get_sca_gene_names(user_id)
+        return scatterplot_data(dim_red, labels,
+                label_text=gene_names)
     else:
         dim_red = None
         if plot_type == 'Cells':
-            dim_red = sca.dim_red
+            dim_red = get_sca_dim_red(user_id)
         elif plot_type == 'Baseline':
-            dim_red = sca.baseline_vis
+            dim_red = get_sca_baseline_vis(user_id)
         if cell_color_value == 'entropy':
             return scatterplot_data(dim_red, sca.labels,
                     colorscale='Viridis',

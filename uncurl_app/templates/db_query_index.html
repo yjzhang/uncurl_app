@@ -19,41 +19,21 @@ var id_to_name = {};
 // 'toggle' is a jquery method that changes the visibility of the element.
 function toggle_query_visibility() {
     var value = $('#database_select').val();
-    if (value == "cellmarker") {
-        $('#cellmarker_view').toggle(true);
-        $('#cellmesh_view').toggle(false);
-        $('#cellmesh_anatomy_view').toggle(false);
-        $('#go_view').toggle(false);
-    } else if (value == "cellmesh") {
-        $('#cellmarker_view').toggle(false);
-        $('#cellmesh_view').toggle(true);
-        $('#cellmesh_anatomy_view').toggle(false);
-        $('#go_view').toggle(false);
-    } else if (value == 'cellmesh_anatomy') {
-        $('#cellmarker_view').toggle(false);
-        $('#cellmesh_view').toggle(false);
-        $('#cellmesh_anatomy_view').toggle(true);
-        $('#go_view').toggle(false);
-    } else if (value == 'go') {
-        $('#cellmarker_view').toggle(false);
-        $('#cellmesh_view').toggle(false);
-        $('#cellmesh_anatomy_view').toggle(false);
-        $('#go_view').toggle(true);
+    var views = ['cellmarker_view', 'cellmesh_view', 'cellmesh_anatomy_view', 'go_view', 'kegg_view'];
+    var value = $('#database-select').val();
+    var view_select = value + '_view';
+    for (var i in views) {
+        if (views[i] == view_select) {
+            $('#'+views[i]).toggle(true);
+        } else {
+            $('#'+views[i]).toggle(false);
+        }
     }
 };
 
 function set_enrichr_results(data, query) {
     // create table
-    results_view = $('#cellmarker_results');
-    if (query == 'cellmarker') {
-        results_view = $('#cellmarker_results');
-    } else if (query == 'cellmesh') {
-        results_view = $('#cellmesh_results');
-    } else if (query == 'cellmesh_anatomy') {
-        results_view = $('#cellmesh_anatomy_results');
-    } else if (query == 'go') {
-        results_view = $('#go_results');
-    }
+    results_view = $('#' + query + '_results');
     results_view.empty();
     var table = $('<table>');
     var header = $('<tr>');
@@ -73,7 +53,6 @@ function set_enrichr_results(data, query) {
 
 function update_gene_query(query) {
     // query is a string that can be 'enrichr', 'cellmarker', etc...
-    // TODO: do something that makes this work for 
     var input_array = $('#gene-set-query-form').serializeArray();
     var data = {};
     $(input_array).each(function(index, obj){
@@ -245,6 +224,21 @@ window.onload = function() {
             <button class="btn btn-default" id="cellmesh_anatomy_submit" type="button" onclick="update_gene_query('go');">Submit GO query</button>
             <div id="go_results"></div>
         </div>
+
+        <div id="kegg_view" style="display:none;">
+            <h5 data-toggle="tooltip" title="Query Gene Ontology for terms matching the selected genes.">Query GO with selected genes</h4>
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                <label for="kegg_species" data-toggle="tooltip" title="Which species to query for Gene Ontology. Currently human and mouse are available.">Species:</label>
+                <select class="form-control" id="kegg_species" name="kegg_species">
+                    <option value="human" selected>Homo sapiens</option>
+                    <option value="mouse">Mus musculus</option>
+                    <option value="all">Both</option>
+                </select>
+            </div>
+            <button class="btn btn-default" id="kegg_submit" type="button" onclick="update_gene_query('kegg');">Submit KEGG query</button>
+            <div id="kegg_results"></div>
+        </div>
+
 
     </form>
 </div>
