@@ -100,7 +100,7 @@ function update_barplot(cluster_number) {
         }
         data = JSON.parse(data);
         cache.barplots[key] = data;
-        if (data.data[0].type != 'histogram') {
+        if (data.data[0].type == 'bar') {
             var gene_names = data.data[0].y;
             $('#top-genes-view').val(gene_names.join('\n'));
             if (gene_names.length > 20) {
@@ -117,7 +117,11 @@ function update_barplot(cluster_number) {
     return true;
 };
 
-// TODO: toggle special areas for the scatterplot
+// TODO: update the barplot for gene selection
+function update_barplot_genes() {
+};
+
+// toggle special areas for the scatterplot
 function toggle_scatterplot_type() {
     var plot_type = $('input[name="scatter-type"]:checked').val();
     if (plot_type == 'Cluster_heatmap') {
@@ -130,6 +134,7 @@ function toggle_scatterplot_type() {
         $('#heatmap-names-area').toggle(false);
         $('#dendrogram-names-area').toggle(false);
     }
+    // TODO
 };
 
 // this function is called on startup, and whenever the radio buttons
@@ -237,27 +242,8 @@ function update_gene_query(query) {
         set_enrichr_results(cache.enrichr[key], query);
         return true;
     }
-    var results_view = $('#enrichr_results');
-    var update_url = '/update_enrichr';
-    if (query == 'cellmarker') {
-        results_view = $('#cellmarker_results');
-        update_url = '/update_cellmarker';
-    } else if (query == 'cellmesh') {
-        results_view = $('#cellmesh_results');
-        update_url = '/update_cellmesh';
-    } else if (query == 'cellmesh_anatomy') {
-        results_view = $('#cellmesh_anatomy_results');
-        update_url = '/update_cellmesh_anatomy';
-    } else if (query == 'go') {
-        results_view = $('#go_results');
-        update_url = '/update_go';
-    } else if (query == 'subtiwiki') {
-        results_view = $('#subtiwiki_results');
-        update_url = '/update_subtiwiki';
-    } else if (query == 'kegg') {
-        results_view = $('#kegg_results');
-        update_url = '/update_kegg';
-    }
+    var results_view = $('#' + query + '_results');
+    var update_url = '/update_' + query;
     results_view.empty();
     results_view.append("<br>" + "Query in progress..." + '<img src="/static/ajax-loader.gif"/>');
     $.ajax({url: window.location.pathname + update_url,

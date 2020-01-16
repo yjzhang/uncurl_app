@@ -103,6 +103,7 @@ def get_sca_top_1vr(user_id):
 
 @cache.memoize()
 def get_sca_top_genes_custom(user_id, color_track, mode='1_vs_rest'):
+    """Output is array of shape [k, genes] for 1_vs_rest or [k, k, genes] for pairwise."""
     sca = get_sca(user_id)
     return sca.calculate_diffexp(color_track, mode=mode)
 
@@ -269,6 +270,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
     else:
         label_text = np.array(label_text)
     plot_type = 'scattergl' if len(label_text) > 5000 else 'scatter'
+    # select color scheme
     if mode == 'cluster':
         if len(label_values) > 10:
             from . import colors
@@ -339,6 +341,51 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
             },
     }, cls=SimpleEncoder)
 
+
+def volcano_plot_data(user_id, colormap, cluster1, cluster2):
+    """
+    Returns plotly json representation of a volcano plot
+    """
+    # get custom colormap
+    sca = get_sca(user_id)
+    gene_names = get_sca_gene_names(user_id)
+    if colormap is not None and colormap not in ['cluster', 'gene', 'entropy', 'weights', 'read_counts']:
+        color_track, is_discrete = get_sca_color_track(user_id, colormap)
+        lockfile_name = os.path.join(sca.data_dir, colormap + '_writing_diffexp')
+        with lockfile_context(lockfile_name) as _lock:
+            selected_diffexp, selected_pvals = get_sca_top_genes_custom(user_id, colormap, 'pairwise')
+    # default colormap
+    else:
+        selected_diffexp = get_sca_pairwise_ratios(user_id)
+        selected_pvals = get_sca_pairwise_pvals(user_id)
+    # get pval data, 
+    diffexp_data = selected_diffexp[cluster1, cluster2, :]
+    pval_data = selected_pvals[cluster1, cluster2, :]
+    pval_2v1_data = selected_pvals[cluster2, cluster1, :]
+    pval_combined = np.fmin(pval_data, pval_2v1_data)
+    # TODO: create a scatterplot
+    data = [{
+                'x': np.log2(diffexp_data + 2e-16),
+                'y': -np.log10(pval_combined + 2e-16),
+                'mode': 'markers',
+                'type': 'scattergl',
+                'marker': {
+                    'size': 5,
+                },
+                'text': list(gene_names)
+    }]
+    return json.dumps({
+            'data': data,
+            'layout': {
+                'title': 'Genes',
+                'xaxis': {'title': 'log2 fold change', 'autorange': True},
+                'yaxis': {'title': '-log10 p-value', 'autorange': True},
+                'hovermode': 'closest',
+            },
+    }, cls=SimpleEncoder)
+
+
+
 @cache.memoize()
 def heatmap_data(user_id, label_name_1, label_name_2, **params):
     """
@@ -364,9 +411,8 @@ def dendrogram_data(user_id, color_track_name, selected_genes, use_log=False, us
     color_track, is_discrete = get_sca_color_track(user_id, color_track_name)
     all_genes = get_sca_gene_names(user_id)
     data = get_sca_data_sampled_all_genes(user_id)
-    # TODO:
     if len(selected_genes) == 0:
-        # TODO: get top 5 genes from each cluster
+        # get top 5 genes from each cluster
         if color_track_name == 'cluster':
             top_genes = get_sca_top_1vr(user_id)
         else:
@@ -377,13 +423,6 @@ def dendrogram_data(user_id, color_track_name, selected_genes, use_log=False, us
             selected_genes += selected_gene_names
     from .advanced_plotting import dendrogram
     return dendrogram(data, all_genes, selected_genes, color_track_name, color_track, use_log=use_log, use_normalize=use_normalize)
-
-@interaction_views.route('/user/<user_id>/all_top_genes')
-def all_top_genes(user_id):
-    """
-    Returns the top n genes for all clusters
-    """
-    # TODO
 
 
 @interaction_views.route('/user/<user_id>/stats')
@@ -416,8 +455,8 @@ def data_stats(user_id):
         sca = get_sca(user_id)
         summary = data_stats.Summary(data_paths=None, gene_paths=None, base_path=path, data=sca.data)
         read_count_hist_data, gene_count_hist_data, gene_mean_hist_data = summary.generate_plotly_jsons()
-    # TODO: mean read count, median read count, mean gene count, median gene count
-    # TODO: show genes per cell, switch to using plotly instead of bokeh (remove bokeh as a dependency)
+    # mean read count, median read count, mean gene count, median gene count
+    # show genes per cell, switch to using plotly instead of bokeh (remove bokeh as a dependency)
     return render_template('stats.html',
             user_id=user_id,
             read_count_hist_data=read_count_hist_data,
@@ -489,6 +528,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         gns = set(gene_names)
         selected_gene_names = split_gene_names(selected_gene)
         selected_gene_names = [x for x in selected_gene_names if x in gns]
+    # top by c-score - this is unused
     if top_or_bulk == 'top':
         if len(selected_gene.strip()) > 0:
             top_genes = get_sca_top_genes(user_id)[int(input_value)]
@@ -499,8 +539,8 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         return barplot_data(selected_top_genes,
                 selected_gene_names, input_value,
                 x_label='c-score',
-                title='Top genes for cluster {0}'.format(input_value),
-                )
+                title='Top genes for cluster {0}'.format(input_value))
+    # p-value of c-score - this is unused
     elif top_or_bulk == 'pval':
         if len(selected_gene.strip()) > 0:
             top_genes = get_sca_pvals(user_id)[int(input_value)]
@@ -512,6 +552,12 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                 selected_gene_names, input_value,
                 title='Top genes for cluster {0}'.format(input_value),
                 x_label='p-value of c-score')
+    elif top_or_bulk == 'volcano_pairwise':
+        print('creating volcano plot')
+        colormap = str(data_form['cell_color'])
+        cluster1 = int(data_form['cluster1'])
+        cluster2 = int(data_form['cluster2'])
+        return volcano_plot_data(user_id, colormap, cluster1, cluster2)
     elif top_or_bulk == 'sep':
         # show separation score
         sep_scores = sca.separation_scores[int(input_value)]
@@ -698,6 +744,8 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
         gene_names = get_sca_gene_names(user_id)
         return scatterplot_data(dim_red, labels,
                 label_text=gene_names)
+    elif plot_type == 'Gene_heatmap':
+        print('plotting gene heatmap')
     else:
         dim_red = None
         if plot_type == 'Cells':
@@ -795,7 +843,6 @@ def cell_info(user_id):
     selected_clusters = [int(x) for x in selected_clusters]
     color_map = request.form['color_map']
     # TODO: return more results: more cluster info - cluster median read count, cluster median gene count
-    # TODO: change this by colormap as well
     return cell_info_result(user_id, selected_cells, selected_clusters, color_map)
 
 @cache.memoize()
