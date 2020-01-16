@@ -381,6 +381,7 @@ def volcano_plot_data(user_id, colormap, cluster1, cluster2):
                 'xaxis': {'title': 'log2 fold change', 'autorange': True},
                 'yaxis': {'title': '-log10 p-value', 'autorange': True},
                 'hovermode': 'closest',
+                'margin': {'t': 40},
             },
     }, cls=SimpleEncoder)
 
