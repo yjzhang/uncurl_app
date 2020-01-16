@@ -346,24 +346,25 @@ def volcano_plot_data(user_id, colormap, cluster1, cluster2):
     """
     Returns plotly json representation of a volcano plot
     """
-    # get custom colormap
     sca = get_sca(user_id)
     gene_names = get_sca_gene_names(user_id)
+    # get custom colormap
     if colormap is not None and colormap not in ['cluster', 'gene', 'entropy', 'weights', 'read_counts']:
         color_track, is_discrete = get_sca_color_track(user_id, colormap)
         lockfile_name = os.path.join(sca.data_dir, colormap + '_writing_diffexp')
         with lockfile_context(lockfile_name) as _lock:
             selected_diffexp, selected_pvals = get_sca_top_genes_custom(user_id, colormap, 'pairwise')
+        color_to_index, index_to_color = color_track_map(color_track)
     # default colormap
     else:
         selected_diffexp = get_sca_pairwise_ratios(user_id)
         selected_pvals = get_sca_pairwise_pvals(user_id)
+        index_to_color = list(range(selected_diffexp.shape[0]))
     # get pval data, 
     diffexp_data = selected_diffexp[cluster1, cluster2, :]
     pval_data = selected_pvals[cluster1, cluster2, :]
     pval_2v1_data = selected_pvals[cluster2, cluster1, :]
     pval_combined = np.fmin(pval_data, pval_2v1_data)
-    # TODO: create a scatterplot
     data = [{
                 'x': np.log2(diffexp_data + 2e-16),
                 'y': -np.log10(pval_combined + 2e-16),
@@ -377,7 +378,7 @@ def volcano_plot_data(user_id, colormap, cluster1, cluster2):
     return json.dumps({
             'data': data,
             'layout': {
-                'title': 'Genes',
+                'title': 'Top genes for label {0} vs label {1}'.format(index_to_color[cluster1], index_to_color[cluster2]),
                 'xaxis': {'title': 'log2 fold change', 'autorange': True},
                 'yaxis': {'title': '-log10 p-value', 'autorange': True},
                 'hovermode': 'closest',
