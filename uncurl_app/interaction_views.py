@@ -324,9 +324,9 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                     'cmax': cmax,
                     'showscale': True if c==0 else False,
                 },
-                'text': list(label_text[labels==c]),
+                'text': list(color_values[c]),
             }
-            for c in range(len(set(labels)))
+            for c in label_values
         ]
     return json.dumps({
             'data': data,
