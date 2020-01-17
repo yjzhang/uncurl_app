@@ -324,7 +324,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                     'cmax': cmax,
                     'showscale': True if c==0 else False,
                 },
-                'text': list(color_values[c]),
+                'text': list(map(str, color_values[c])),
             }
             for c in label_values
         ]
