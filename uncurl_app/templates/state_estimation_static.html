@@ -45,7 +45,7 @@
 
     <div id="visualization" class="wrapper">
 
-        <div class="top-left" id="left-hand-panel-1" style="width: 750px;">
+        <div class="top-left" id="left-hand-panel-1" style="display:table; width: 750px;">
             <!-- controls for which types of plots to show -->
             <div id="plot-type-options">
                 <input type="radio" id="Means" value="Means" name="scatter-type"onclick="toggle_scatterplot_type();">
@@ -111,9 +111,10 @@
                 <div class="form-group">
                     <div class="form-inline">
                         <label for="heatmap_genes_1" data-toggle="tooltip" title="If empty, uses the top 5 genes for each cluster.">Selected genes 1:</label>
-                        <textarea class="form-control" id="heatmap_genes_1" cols="30" rows="3" name="heatmap_genes_1"></textarea>
+                        <textarea class="form-control" id="heatmap_genes_1" cols="10" rows="3" name="heatmap_genes_1"></textarea>
                         <label for="heatmap_genes_2" data-toggle="tooltip" title="If empty, uses the top 5 genes for each cluster.">Selected genes 2:</label>
-                        <textarea class="form-control" id="heatmap_genes_2" cols="30" rows="3" name="heatmap_genes_2"></textarea>
+                        <textarea class="form-control" id="heatmap_genes_2" cols="10" rows="3" name="heatmap_genes_2"></textarea>
+                        <button class="btn btn-default" id="dendrogram_names_submit" onclick="update_scatterplot()">Submit</button>
                     </div>
                 </div>
             </div>

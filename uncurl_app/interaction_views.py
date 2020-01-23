@@ -432,12 +432,15 @@ def dendrogram_data(user_id, color_track_name, selected_genes, use_log=False, us
     from .advanced_plotting import dendrogram
     return dendrogram(data, all_genes, selected_genes, color_track_name, color_track, use_log=use_log, use_normalize=use_normalize)
 
+@cache.memoize()
 def gene_heatmap_data(user_id, genes_1, genes_2):
     """
     Returns a gene heatmap
     """
-    # TODO
-
+    data_sampled_all_genes = get_sca_data_sampled_all_genes(user_id)
+    all_gene_names = get_sca_gene_names(user_id)
+    from .advanced_plotting import gene_similarity
+    return gene_similarity(data_sampled_all_genes, all_gene_names, genes_1, genes_2)
 
 @interaction_views.route('/user/<user_id>/stats')
 def data_stats(user_id):
@@ -761,8 +764,8 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
                 label_text=gene_names)
     elif plot_type == 'Gene_heatmap':
         print('plotting gene heatmap')
-        gene_names_1 = split_gene_names(data_form['gene_names_1'])
-        gene_names_2 = split_gene_names(data_form['gene_names_2'])
+        gene_names_1 = split_gene_names(data_form['heatmap_genes_1'])
+        gene_names_2 = split_gene_names(data_form['heatmap_genes_2'])
         return gene_heatmap_data(user_id, gene_names_1, gene_names_2)
         # TODO
     else:

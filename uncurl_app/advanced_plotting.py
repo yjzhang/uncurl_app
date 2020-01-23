@@ -99,19 +99,24 @@ def gene_similarity(data_sampled_all_genes, all_gene_names, gene_names_left, gen
     if method == 'pearson':
         for i in range(len(gene_indices_left)):
             for j in range(len(gene_indices_top)):
-                correlations[i, j] = scipy.stats.pearsonr(data_subset_1[i], data_subset_2[j])
+                correlations[i, j] = scipy.stats.pearsonr(data_subset_1[i], data_subset_2[j])[0]
+    correlations[np.isnan(correlations)] = 0.0
     output = {
         'data': [{
             'z': correlations.tolist(),
-            'x': selected_gene_names_top.tolist(),
-            'y': selected_gene_names_left.tolist(),
-            'colorscale': 'Reds',
+            'x': selected_gene_names_top,
+            'y': selected_gene_names_left,
+            'colorscale': 'RdBu',
+            'zmin': -1.0,
+            'zmax': 1.0,
             'type': 'heatmap',
         }],
         'layout': {
-            'font': {'size': 16},
-            'height': max(550, 100+len(gene_indices_left)*25),
-            'width': max(700, 100+len(gene_indices_top)*25),
+            'xaxis': {'title': 'gene set 1', 'automargin': True},
+            'yaxis': {'title': 'gene set 2', 'automargin': True},
+            'font': {'size': 14},
+            'height': max(550, 150+len(gene_indices_left)*20),
+            'width': max(700, 150+len(gene_indices_top)*20),
         }
     }
     return json.dumps(output, cls=SimpleEncoder)
