@@ -342,7 +342,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
     }, cls=SimpleEncoder)
 
 
-def volcano_plot_data(user_id, colormap, cluster1, cluster2):
+def volcano_plot_data(user_id, colormap, cluster1, cluster2, selected_genes=None):
     """
     Returns plotly json representation of a volcano plot
     """
@@ -360,6 +360,12 @@ def volcano_plot_data(user_id, colormap, cluster1, cluster2):
         selected_diffexp = get_sca_pairwise_ratios(user_id)
         selected_pvals = get_sca_pairwise_pvals(user_id)
         index_to_color = list(range(selected_diffexp.shape[0]))
+    if selected_genes is not None:
+        gene_indices = {g:i for i, g in enumerate(gene_names)}
+        selected_gene_indices = np.array([gene_indices[g] for g in selected_genes])
+        selected_diffexp = selected_diffexp[:,:,selected_gene_indices]
+        selected_pvals = selected_pvals[:,:,selected_gene_indices]
+        gene_names = selected_genes
     # get pval data, 
     diffexp_data = selected_diffexp[cluster1, cluster2, :]
     pval_data = selected_pvals[cluster1, cluster2, :]
@@ -425,6 +431,12 @@ def dendrogram_data(user_id, color_track_name, selected_genes, use_log=False, us
             selected_genes += selected_gene_names
     from .advanced_plotting import dendrogram
     return dendrogram(data, all_genes, selected_genes, color_track_name, color_track, use_log=use_log, use_normalize=use_normalize)
+
+def gene_heatmap_data(user_id, genes_1, genes_2):
+    """
+    Returns a gene heatmap
+    """
+    # TODO
 
 
 @interaction_views.route('/user/<user_id>/stats')
@@ -523,6 +535,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
     """
     sca = get_sca(user_id)
     selected_gene = ''
+    selected_gene_names = None
     gene_names = get_sca_gene_names(user_id)
     if 'selected_gene' in data_form:
         selected_gene = data_form['selected_gene']
@@ -559,7 +572,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         colormap = str(data_form['cell_color'])
         cluster1 = int(data_form['cluster1'])
         cluster2 = int(data_form['cluster2'])
-        return volcano_plot_data(user_id, colormap, cluster1, cluster2)
+        return volcano_plot_data(user_id, colormap, cluster1, cluster2, selected_genes=selected_gene_names)
     elif top_or_bulk == 'sep':
         # show separation score
         sep_scores = sca.separation_scores[int(input_value)]
@@ -748,6 +761,10 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
                 label_text=gene_names)
     elif plot_type == 'Gene_heatmap':
         print('plotting gene heatmap')
+        gene_names_1 = split_gene_names(data_form['gene_names_1'])
+        gene_names_2 = split_gene_names(data_form['gene_names_2'])
+        return gene_heatmap_data(user_id, gene_names_1, gene_names_2)
+        # TODO
     else:
         dim_red = None
         if plot_type == 'Cells':

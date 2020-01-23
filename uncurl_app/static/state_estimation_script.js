@@ -127,12 +127,19 @@ function toggle_scatterplot_type() {
     if (plot_type == 'Cluster_heatmap') {
         $('#heatmap-names-area').toggle(true);
         $('#dendrogram-names-area').toggle(false);
+        $('#gene-heatmap-options-area').toggle(false);
     } else if (plot_type == 'Dendrogram') {
         $('#heatmap-names-area').toggle(false);
         $('#dendrogram-names-area').toggle(true);
+        $('#gene-heatmap-options-area').toggle(false);
+    } else if(plot_type == 'Gene_heatmap') {
+        $('#heatmap-names-area').toggle(false);
+        $('#dendrogram-names-area').toggle(false);
+        $('#gene-heatmap-options-area').toggle(true);
     } else {
         $('#heatmap-names-area').toggle(false);
         $('#dendrogram-names-area').toggle(false);
+        $('#gene-heatmap-options-area').toggle(false);
     }
     // TODO
 };
@@ -164,6 +171,10 @@ function update_scatterplot() {
         upload_data['dendrogram_genes'] = dendrogram_genes;
         upload_data['dendrogram_use_log'] = $('#dendrogram_use_log').is(':checked') ? 1 : 0;
         upload_data['dendrogram_normalize'] = $('#dendrogram_normalize').is(':checked') ? 1 : 0;
+    }
+    if (plot_type == 'Gene_heatmap') {
+        upload_data['heatmap_genes_1'] = $('#heatmap_genes_1').val();
+        upload_data['heatmap_genes_2'] = $('#heatmap_genes_2').val();
     }
     $("#update-area").empty();
     $("#update-area").append('Updating scatterplot <img src="/static/ajax-loader.gif"/>');

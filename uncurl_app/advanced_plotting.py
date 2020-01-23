@@ -70,21 +70,52 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
     }
     return json.dumps(output, cls=SimpleEncoder)
 
-def gene_similarity(data_sampled_all_genes, all_gene_names, selected_gene_names, mode='full'):
+def gene_similarity(data_sampled_all_genes, all_gene_names, gene_names_left, gene_names_top, mode='full', method='pearson'):
     """
     Creates a diagonal gene-gene similarity map using data from all sampled cells.
-    mode can be either 'full' or 'reduced'. If 'mode' is full, then this returns a heatmap showing
+
+    mode can be either 'full' or 'reduced'. If 'mode' is full, then this uses the full data matrix for comparison.
+    If mode is 'reduced', then this uses the M matrix from uncurl.
 
     Returns a json dendrogram from plotly
     """
     # TODO: this should be able to use either m_full or the full data matrix
+    import scipy.stats
     gene_name_indices = {x: i for i, x in enumerate(all_gene_names)}
-    selected_gene_names = [x for x in selected_gene_names if x in gene_name_indices]
-    gene_indices = np.array([gene_name_indices[x] for x in selected_gene_names])
-    print('gene heatmap selected gene names:', selected_gene_names)
-    print('gene heatmap selected gene ids:', gene_indices)
-    selected_gene_indices = {x: i for i, x in enumerate(selected_gene_names)}
-    data_subset = data_sampled_all_genes[gene_indices, :]
+    selected_gene_names_left = [x for x in gene_names_left if x in gene_name_indices]
+    gene_indices_left = np.array([gene_name_indices[x] for x in selected_gene_names_left])
+    selected_gene_names_top = [x for x in gene_names_top if x in gene_name_indices]
+    gene_indices_top = np.array([gene_name_indices[x] for x in selected_gene_names_top])
+    print('gene heatmap selected gene names:', selected_gene_names_left)
+    print('gene heatmap selected gene ids:', gene_indices_left)
+    data_subset_1 = data_sampled_all_genes[gene_indices_left, :]
+    data_subset_2 = data_sampled_all_genes[gene_indices_top, :]
+    from scipy import sparse
+    if sparse.issparse(data_subset_1):
+        data_subset_1 = data_subset_1.toarray()
+        data_subset_2 = data_subset_2.toarray()
+    # TODO: have different methods for calculating the correlation matrix
+    correlations = np.zeros((len(gene_indices_left), len(gene_indices_top)))
+    if method == 'pearson':
+        for i in range(len(gene_indices_left)):
+            for j in range(len(gene_indices_top)):
+                correlations[i, j] = scipy.stats.pearsonr(data_subset_1[i], data_subset_2[j])
+    output = {
+        'data': [{
+            'z': correlations.tolist(),
+            'x': selected_gene_names_top.tolist(),
+            'y': selected_gene_names_left.tolist(),
+            'colorscale': 'Reds',
+            'type': 'heatmap',
+        }],
+        'layout': {
+            'font': {'size': 16},
+            'height': max(550, 100+len(gene_indices_left)*25),
+            'width': max(700, 100+len(gene_indices_top)*25),
+        }
+    }
+    return json.dumps(output, cls=SimpleEncoder)
+
 
 
 def dendrogram(data_sampled_all_genes, all_gene_names, selected_gene_names, cluster_name, cluster_data, use_log=False,
