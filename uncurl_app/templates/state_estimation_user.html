@@ -141,6 +141,11 @@ window.onload = function() {
                     <label for="cell-norm" data-toggle="tooltip" title="If this is checked, then the data will be normalized so that each cell has the same read count (equal to the median read count over all cells).">Normalize cells by read count:</label>
                     <input type="checkbox" id="cell-norm" name="normalize" value="1" checked>
                 </div>
+
+                <div class="form-group">
+                    <label for="use_fdr" data-toggle="tooltip" title="If this is checked, then FDR would be used for differential expression rather than the raw p-value from the t-test.">Use FDR for differential expression:</label>
+                    <input type="checkbox" id="use_fdr" name="use_fdr" value="1" checked>
+                </div>
             </div>
             </fieldset>
 

@@ -47,7 +47,7 @@ For details on the method, see <a href="https://academic.oup.com/bioinformatics/
 
         <div id="all_file_inputs">
 
-            <div id="file_input-1" class="file_input" style="border: 1px solid black;">
+            <div id="file_input-1" class="file_input" style="border: 1px solid black; padding: 10px;">
                 <div class="form-group">
                     <label for="fileinput-1">Upload a text file formatted as a space-separated matrix, where each row is a gene and each column is a cell. Alternatively, this can be a sparse mtx (Matrix Market) file. Both types of input can be gzipped.</label>
                     <input type="file" class="form-control-file" id="fileinput-1" name="fileinput-1"></input>
@@ -81,7 +81,7 @@ For details on the method, see <a href="https://academic.oup.com/bioinformatics/
             <!--New file inputs go here -->
         </div>
         <!-- TODO: button to add new upload group -->
-        <button type="button" class="btn btn-default" onclick="duplicate_input();">Add new sample</button>
+        <button type="button" class="btn btn-default" onclick="duplicate_input();" style="margin-top: 10px;">Add new sample</button>
 
 
         <!-- TODO: disable this for now
