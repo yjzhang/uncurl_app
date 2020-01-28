@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block head %}
+
+{{ super() }}
+
+<script src="{{ url_for('static', filename='jquery-3.3.1.min.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='state_estimation_style.css') }}" type="text/css"/>
+
+<!-- TODO: get genes for selected cell types -->
+
+<script>
+
+var cache = {};
+cache.enrichr = {};
+var tree = {};
+var id_to_name = {};
+
+// toggles visibility of the bottom-left gene query view
+// 'toggle' is a jquery method that changes the visibility of the element.
+function toggle_query_visibility() {
+    var views = ['cellmarker_view', 'cellmesh_view', 'cellmesh_anatomy_view', 'go_view', 'kegg_view'];
+    var value = $('#database_select').val();
+    var view_select = value + '_view';
+    for (var i in views) {
+        if (views[i] == view_select) {
+            $('#'+views[i]).toggle(true);
+        } else {
+            $('#'+views[i]).toggle(false);
+        }
+    }
+};
+
+function set_enrichr_results(data, query) {
+    // create table
+    results_view = $('#' + query + '_results');
+    results_view.empty();
+    var table = $('<table>');
+    var header = $('<tr>');
+    for (var j = 0; j<data[0].length; j++) {
+        header.append('<th>'+data[0][j]+'</th>');
+    }
+    table.append(header);
+    for (var i = 1; i<data.length; i++) {
+        var row = $('<tr>');
+        for (var j = 0; j<data[i].length; j++) {
+            row.append('<td>'+data[i][j]+'</td>');
+        }
+        table.append(row);
+    }
+    results_view.append(table);
+}; 
+
+function update_gene_query(query) {
+    // query is a string that can be 'enrichr', 'cellmarker', etc...
+    var input_array = $('#gene-set-query-form').serializeArray();
+    var data = {};
+    $(input_array).each(function(index, obj){
+        data[obj.name] = obj.value;
+    });
+    console.log('update_gene_query');
+    console.log(data);
+    var key = JSON.stringify(data);
+    if (cache.enrichr.hasOwnProperty(key)) {
+        set_enrichr_results(cache.enrichr[key], query);
+        return true;
+    }
+    results_view = $('#' + query + '_results');
+    results_view.empty();
+    results_view.append("<br>" + "Query in progress..." + '<img src="/static/ajax-loader.gif"/>');
+    $.ajax({url: '/db_query/cell_info',
+        type: "POST",
+        data: data,
+    }).done(function(results) {
+        results_view.empty();
+        if (results.startsWith('Error')) {
+            results_view.append(results);
+        } else {
+            results = JSON.parse(results);
+            cache.enrichr[key] = results;
+            set_enrichr_results(results, query);
+        }
+    });
+    return true;
+};
+
+window.onload = function() {
+    toggle_query_visibility();
+
+//    $.ajax({url: '/db_query/get_mesh_tree',
+//        type: "GET",
+//    }).done(function(results) {
+//        console.log(results);
+//        results = JSON.parse(results);
+//        tree = results.tree;
+//        id_to_name = results.id_to_name; 
+//    });
+};
+
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container container-main" role="main">
+    <h4>Given a cell type, return all genes belonging to that cell type.</h4>
+    <form id="gene-set-query-form">
+
+        <!-- onchange: make the cellmarker view visible -->
+        <div class="form-inline">
+            <label for="database_select" data-toggle="tooltip" title="Which database to query for the given gene set. Current options are Enrichr and CellMarker.">Database:</label>
+            <select class="form-control" id="database_select" name="database_select" style="width:200px; margin-top: 5px;" onchange="toggle_query_visibility();">
+                <option value="cellmarker">CellMarker</option>
+                <option value="cellmesh" selected>CellMeSH</option>
+                <option value="cellmesh_anatomy">CellMeSH-Anatomy</option>
+                <option value="kegg">KEGG</option>
+            </select>
+        </div>
+
+        <div class="form-inline">
+            <label for="mode">Mode:</label>
+            <select class="form-control" id="mode" name="mode" style="width:200px; margin-top: 5px;">
+                <option value="gene_papers" selected>Genes and papers</option>
+                <option value="all_genes">Genes only</option>
+            </select>
+        </div>
+
+        <div id="cellmarker_view" style="display:none;">
+            <h5 data-toggle="tooltip" title="Query the CellMarker database for cell types matching the selected genes.">Query CellMarker with selected genes</h4>
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                <label for="cellmarker_cell_type">Cell type:</label>
+                <select class="form-control" id="cellmarker_cell_type" name="cellmarker_cell_type">
+                    {% for cell in cell_lists['cellmarker'] %}
+                    <option value="{{ cell }}">{{ cell }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                <label for="species" data-toggle="tooltip" title="Which species to query for cell types. Currently human and mouse are available.">Species:</label>
+                <select class="form-control" id="species" name="species">
+                    <option value="all" selected>All</option>
+                    <option value="Human">Human</option>
+                    <option value="Mouse">Mouse</option>
+                </select>
+            </div>
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                <label for="cells_or_tissues">Cells or tissues:</label>
+                <select class="form-control" id="cells_or_tissues" name="cells_or_tissues">
+                    <option value="cells" selected>Cells</option>
+                    <option value="tissues">Tissues</option>
+                </select>
+            </div>
+
+            <button class="btn btn-default" id="cellmarker-submit" type="button" onclick="update_gene_query('cellmarker')">Submit CellMarker query</button>
+            <div id="cellmarker_results"></div>
+        </div>
+
+        <div id="cellmesh_view" style="display:none;">
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 500px;">
+                <label for="cellmesh_cell_type">Cell type:</label>
+                <select class="form-control" id="cellmesh_cell_type" name="cellmesh_cell_type">
+                    <!-- TODO: load cell types -->
+                    {% for cell in cell_lists['cellmesh'] %}
+                    <option value="{{ cell }}">{{ cell }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 500px;">
+                <label for="cellmesh_species" data-toggle="tooltip" title="Which species to query for cell types. Currently human and mouse are available.">Species:</label>
+                <select class="form-control" id="cellmesh_species" name="cellmesh_species">
+                    <!-- TODO: not available yet <option value="all" >All</option>-->
+                    <option value="human" selected>Homo sapiens</option>
+                    <option value="mouse">Mus musculus</option>
+                    <option value="c_elegans">C. Elegans</option>
+                </select>
+                <label for="cellmesh_threshold" data-toggle="tooltip" title="Minimum number of citations">Threshold:</label>
+                <input class="form-control" type="number" id="cellmesh_threshold" name="cellmesh_threshold" value="1" style="width: 50px;">
+            </div>
+
+            <button class="btn btn-default" id="cellmesh-submit" type="button" onclick="update_gene_query('cellmesh');">Submit CellMesh query</button>
+            <div id="cellmesh_results"></div>
+        </div>
+
+
+        <div id="cellmesh_anatomy_view" style="display:none;">
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 500px;">
+                <label for="cellmesh_anatomy_cell_type">Cell type:</label>
+                <select class="form-control" id="cellmesh_anatomy_cell_type" name="cellmesh_anatomy_cell_type">
+                    {% for cell in cell_lists['cellmesh_anatomy'] %}
+                    <option value="{{ cell }}">{{ cell }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 500px;">
+                <label for="cellmesh_anatomy_species" data-toggle="tooltip" title="Which species to query for cell types. Currently human and mouse are available.">Species:</label>
+                <select class="form-control" id="cellmesh_anatomy_species" name="cellmesh_anatomy_species">
+                    <!-- TODO: not available yet <option value="all" >All</option>-->
+                    <option value="human" selected>Homo sapiens</option>
+                    <option value="mouse">Mus musculus</option>
+                    <option value="c_elegans">C. Elegans</option>
+                </select>
+                <label for="cellmesh_anatomy_threshold" data-toggle="tooltip" title="Minimum number of citations">Threshold:</label>
+                <input class="form-control" type="number" id="cellmesh_anatomy_threshold" name="cellmesh_anatomy_threshold" value="1" style="width: 50px;">
+            </div>
+            <button class="btn btn-default" id="cellmesh-anatomy-submit" type="button" onclick="update_gene_query('cellmesh_anatomy');">Submit CellMesh query</button>
+            <div id="cellmesh_anatomy_results"></div>
+        </div>
+
+
+        <div id="kegg_view" style="display:none;">
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 500px;">
+                <label for="kegg_cell_type">Cell type:</label>
+                <select class="form-control" id="kegg_cell_type" name="kegg_cell_type">
+                    {% for cell in cell_lists['kegg'] %}
+                    <option value="{{ cell }}">{{ cell }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 500px;">
+                <label for="kegg_species" data-toggle="tooltip" title="Which species to query for cell types. Currently human and mouse are available.">Species:</label>
+                <select class="form-control" id="kegg_species" name="kegg_species">
+                    <!-- TODO: not available yet <option value="all" >All</option>-->
+                    <option value="human" selected>Homo sapiens</option>
+                    <option value="mouse">Mus musculus</option>
+                </select>
+            </div>
+            <button class="btn btn-default" id="cellmesh-anatomy-submit" type="button" onclick="update_gene_query('kegg');">Submit CellMesh query</button>
+            <div id="kegg_results"></div>
+        </div>
+
+
+
+    </form>
+</div>
+{% endblock %}
+
