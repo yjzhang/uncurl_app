@@ -78,6 +78,10 @@ function update_barplot(cluster_number) {
             $('#top-genes-view').val(gene_names.join('\n'));
         }
         Plotly.newPlot("top-genes", data.data, data.layout);
+        if (top_or_bulk == 'volcano_pairwise') {
+            var view = $('#top-genes')[0];
+            view.on('plotly_selected', on_gene_select);
+        }
         $("#update-area").empty();
         $("#update-area").append('Barplot updated');
         return true;
@@ -111,6 +115,10 @@ function update_barplot(cluster_number) {
             data.data[0].y.reverse();
         }
         Plotly.newPlot("top-genes", data.data, data.layout);
+        if (top_or_bulk == 'volcano_pairwise') {
+            var view = $('#top-genes')[0];
+            view.on('plotly_selected', on_gene_select);
+        }
         $("#update-area").empty();
         $("#update-area").append('Barplot updated');
     });
@@ -308,6 +316,31 @@ function on_select(data) {
     $("#update-area").append("Number of selected cells: " + current_selected_cells.length);
     // update custom criteria cell selection
     set_selection_target_to_selected_cells();
+};
+
+// function for handling selections on a gene scatter plot
+// send it to the bottom view
+function on_gene_select(data) {
+    console.log('on_gene_select');
+    if (!data) {
+        return false;
+    }
+    var gene_names = [];
+    for (var i = 0; i < data.points.length; i++) {
+        gene_names.push(data.points[i].text);
+    }
+    // push gene names to the box
+    $('#top-genes-view').val(gene_names.join('\n'));
+};
+
+// function for handling clicks on the gene scatter plot
+// select all genes within that cluster and send them to the query box.
+function on_gene_click(data) {
+    // TODO
+    console.log('on_gene_click');
+    if (!data) {
+        return false;
+    }
 };
 
 // Gets basic cell info - read counts and gene counts
