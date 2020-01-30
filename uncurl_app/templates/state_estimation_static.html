@@ -106,7 +106,6 @@
                 <button class="btn btn-default" id="dendrogram_names_submit" onclick="update_scatterplot()">Submit</button>
             </div>
 
-            <!-- TODO -->
             <div id="gene-heatmap-options-area" style="display:none;" class="form-inline align-items-center">
                 <div class="form-group">
                     <div class="form-inline">
@@ -114,7 +113,13 @@
                         <textarea class="form-control" id="heatmap_genes_1" cols="10" rows="3" name="heatmap_genes_1"></textarea>
                         <label for="heatmap_genes_2" data-toggle="tooltip" title="If empty, uses the top 5 genes for each cluster.">Selected genes 2:</label>
                         <textarea class="form-control" id="heatmap_genes_2" cols="10" rows="3" name="heatmap_genes_2"></textarea>
-                        <button class="btn btn-default" id="dendrogram_names_submit" onclick="update_scatterplot()">Submit</button>
+                        <!-- TODO: select cluster, populate label/cluster options here with labels from updating the gene set -->
+                        <label for="gene_heatmap_cluster">Selected cluster:</label>
+                        <select class="form-control" id="gene_heatmap_cluster" name="gene_heatmap_cluster">
+                            <option value="all" selected>All cells</option>
+                        </select>
+
+                        <button class="btn btn-default" id="gene_heatmap_submit" onclick="update_scatterplot()">Submit</button>
                     </div>
                 </div>
             </div>

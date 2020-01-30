@@ -144,6 +144,16 @@ function toggle_scatterplot_type() {
         $('#heatmap-names-area').toggle(false);
         $('#dendrogram-names-area').toggle(false);
         $('#gene-heatmap-options-area').toggle(true);
+        var select = $('#gene_heatmap_cluster');
+        // clear select children
+        select.empty();
+        select.append($('<option>').attr('value', 'all').text('All cells'));
+        // get all cluster values
+        for (var i in current_scatterplot_data.data) {
+            var value = current_scatterplot_data.data[i];
+            console.log('cluster ' + i);
+            select.append($("<option>").attr('value', i).text(value.name));
+        }
     } else {
         $('#heatmap-names-area').toggle(false);
         $('#dendrogram-names-area').toggle(false);
@@ -183,6 +193,7 @@ function update_scatterplot() {
     if (plot_type == 'Gene_heatmap') {
         upload_data['heatmap_genes_1'] = $('#heatmap_genes_1').val();
         upload_data['heatmap_genes_2'] = $('#heatmap_genes_2').val();
+        upload_data['gene_heatmap_cluster'] = $('#gene_heatmap_cluster').val();
     }
     $("#update-area").empty();
     $("#update-area").append('Updating scatterplot <img src="/static/ajax-loader.gif"/>');

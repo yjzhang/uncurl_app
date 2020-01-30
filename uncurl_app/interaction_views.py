@@ -433,14 +433,25 @@ def dendrogram_data(user_id, color_track_name, selected_genes, use_log=False, us
     return dendrogram(data, all_genes, selected_genes, color_track_name, color_track, use_log=use_log, use_normalize=use_normalize)
 
 @cache.memoize()
-def gene_heatmap_data(user_id, genes_1, genes_2):
+def gene_heatmap_data(user_id, genes_1, genes_2, color_track_name, cluster_id):
     """
     Returns a gene heatmap
     """
     data_sampled_all_genes = get_sca_data_sampled_all_genes(user_id)
-    all_gene_names = get_sca_gene_names(user_id)
+    sca = get_sca(user_id)
+    try:
+        color_track, is_discrete = get_sca_color_track(user_id, color_track_name)
+        if not is_discrete:
+            raise Exception()
+    except:
+        color_track = sca.labels
     from .advanced_plotting import gene_similarity
-    return gene_similarity(data_sampled_all_genes, all_gene_names, genes_1, genes_2)
+    all_gene_names = get_sca_gene_names(user_id)
+    if cluster_id == 'all':
+        return gene_similarity(data_sampled_all_genes, all_gene_names, genes_1, genes_2)
+    color_to_index, index_to_color = color_track_map(color_track)
+    color_label = index_to_color[int(cluster_id)]
+    return gene_similarity(data_sampled_all_genes[:,color_track==color_label], all_gene_names, genes_1, genes_2)
 
 @interaction_views.route('/user/<user_id>/stats')
 def data_stats(user_id):
@@ -766,7 +777,10 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
         print('plotting gene heatmap')
         gene_names_1 = split_gene_names(data_form['heatmap_genes_1'])
         gene_names_2 = split_gene_names(data_form['heatmap_genes_2'])
-        return gene_heatmap_data(user_id, gene_names_1, gene_names_2)
+        color_track_name = data_form['cell_color']
+        cluster_id = data_form['gene_heatmap_cluster']
+        return gene_heatmap_data(user_id, gene_names_1, gene_names_2,
+                color_track_name=color_track_name, cluster_id=cluster_id)
         # TODO
     else:
         dim_red = None
