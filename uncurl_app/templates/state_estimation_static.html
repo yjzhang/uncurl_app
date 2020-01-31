@@ -67,6 +67,9 @@
 
                 <input type="radio" id="Gene_heatmap" value="Gene_heatmap" name="scatter-type" onclick="toggle_scatterplot_type();">
                 <label for="Gene_heatmap" data-toggle="tooltip" title="Gene correlation heatmap.">Gene heatmap</label>
+
+                <input type="radio" id="Diffcorr_heatmap" value="Diffcorr_heatmap" name="scatter-type" onclick="toggle_scatterplot_type();">
+                <label for="Diffcorr_heatmap">Differential gene correlation heatmap</label>
             </div>
 
 
@@ -118,12 +121,34 @@
                         <select class="form-control" id="gene_heatmap_cluster" name="gene_heatmap_cluster">
                             <option value="all" selected>All cells</option>
                         </select>
-
                         <button class="btn btn-default" id="gene_heatmap_submit" onclick="update_scatterplot()">Submit</button>
                     </div>
                 </div>
             </div>
 
+            <div id="diffcorr-heatmap-options-area" style="display:none;" class="form-inline align-items-center">
+                <div class="form-group">
+                    <div class="form-inline">
+                        <label for="diffcorr_genes_1" data-toggle="tooltip" title="If empty, uses the top 5 genes for each cluster.">Selected genes 1:</label>
+                        <textarea class="form-control" id="diffcorr_genes_1" cols="10" rows="3" name="diffcorr_genes_1"></textarea>
+                        <label for="diffcorr_genes_2" data-toggle="tooltip" title="If empty, uses the top 5 genes for each cluster.">Selected genes 2:</label>
+                        <textarea class="form-control" id="diffcorr_genes_2" cols="10" rows="3" name="diffcorr_genes_2"></textarea>
+                    </div>
+                    <div class="form-inline">
+                        <label for="diffcorr_cluster_1">Cluster 1:</label>
+                        <select class="form-control" id="diffcorr_cluster_1" name="diffcorr_cluster_1">
+                        </select>
+                        <label for="diffcorr_cluster_2">Cluster 2:</label>
+                        <select class="form-control" id="diffcorr_cluster_2" name="diffcorr_cluster_2">
+                        </select>
+                        <select class="form-control" id="diffcorr_value" name="diffcor_value">
+                            <option value="p" selected>P-value</option>
+                            <option value="diff">Difference of correlations</option>
+                        </select>
+                        <button class="btn btn-default" id="diffcorr_submit" onclick="update_scatterplot()">Submit</button>
+                    </div>
+                </div>
+            </div>
 
             <div id="means-scatter-plot" style="margin-top: 5px"></div>
 

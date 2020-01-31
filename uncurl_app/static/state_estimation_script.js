@@ -136,14 +136,17 @@ function toggle_scatterplot_type() {
         $('#heatmap-names-area').toggle(true);
         $('#dendrogram-names-area').toggle(false);
         $('#gene-heatmap-options-area').toggle(false);
+        $('#diffcorr-heatmap-options-area').toggle(false);
     } else if (plot_type == 'Dendrogram') {
         $('#heatmap-names-area').toggle(false);
         $('#dendrogram-names-area').toggle(true);
         $('#gene-heatmap-options-area').toggle(false);
+        $('#diffcorr-heatmap-options-area').toggle(false);
     } else if(plot_type == 'Gene_heatmap') {
         $('#heatmap-names-area').toggle(false);
         $('#dendrogram-names-area').toggle(false);
         $('#gene-heatmap-options-area').toggle(true);
+        $('#diffcorr-heatmap-options-area').toggle(false);
         var select = $('#gene_heatmap_cluster');
         // clear select children
         select.empty();
@@ -154,12 +157,30 @@ function toggle_scatterplot_type() {
             console.log('cluster ' + i);
             select.append($("<option>").attr('value', i).text(value.name));
         }
-    } else {
+    } else if(plot_type == 'Diffcorr_heatmap') {
         $('#heatmap-names-area').toggle(false);
         $('#dendrogram-names-area').toggle(false);
         $('#gene-heatmap-options-area').toggle(false);
+        $('#diffcorr-heatmap-options-area').toggle(true);
+        var select = $('#diffcorr_cluster_1');
+        var select2 = $('#diffcorr_cluster_2');
+        // clear select children
+        select.empty();
+        select2.empty();
+        // get all cluster values
+        for (var i in current_scatterplot_data.data) {
+            var value = current_scatterplot_data.data[i];
+            console.log('cluster ' + i);
+            select.append($("<option>").attr('value', i).text(value.name));
+            select2.append($("<option>").attr('value', i).text(value.name));
+        }
+    } 
+    else {
+        $('#heatmap-names-area').toggle(false);
+        $('#dendrogram-names-area').toggle(false);
+        $('#gene-heatmap-options-area').toggle(false);
+        $('#diffcorr-heatmap-options-area').toggle(false);
     }
-    // TODO
 };
 
 // this function is called on startup, and whenever the radio buttons
@@ -194,6 +215,13 @@ function update_scatterplot() {
         upload_data['heatmap_genes_1'] = $('#heatmap_genes_1').val();
         upload_data['heatmap_genes_2'] = $('#heatmap_genes_2').val();
         upload_data['gene_heatmap_cluster'] = $('#gene_heatmap_cluster').val();
+    }
+    if (plot_type == 'Diffcorr_heatmap') {
+        upload_data['diffcorr_genes_1'] = $('#diffcorr_genes_1').val();
+        upload_data['diffcorr_genes_2'] = $('#diffcorr_genes_2').val();
+        upload_data['diffcorr_cluster_1'] = $('#diffcorr_cluster_1').val();
+        upload_data['diffcorr_cluster_2'] = $('#diffcorr_cluster_2').val();
+        upload_data['diffcorr_value'] = $('#diffcorr_value').val();
     }
     $("#update-area").empty();
     $("#update-area").append('Updating scatterplot <img src="/static/ajax-loader.gif"/>');

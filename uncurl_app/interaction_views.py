@@ -453,6 +453,28 @@ def gene_heatmap_data(user_id, genes_1, genes_2, color_track_name, cluster_id):
     color_label = index_to_color[int(cluster_id)]
     return gene_similarity(data_sampled_all_genes[:,color_track==color_label], all_gene_names, genes_1, genes_2)
 
+@cache.memoize()
+def diff_corr_heatmap_data(user_id, genes_1, genes_2, color_track_name, cluster_id_1, cluster_id_2, value='p'):
+    """
+    Returns a gene heatmap
+    """
+    data_sampled_all_genes = get_sca_data_sampled_all_genes(user_id)
+    sca = get_sca(user_id)
+    try:
+        color_track, is_discrete = get_sca_color_track(user_id, color_track_name)
+        if not is_discrete:
+            raise Exception()
+    except:
+        color_track = sca.labels
+    from .advanced_plotting import differential_correlation
+    all_gene_names = get_sca_gene_names(user_id)
+    color_to_index, index_to_color = color_track_map(color_track)
+    color_label_1 = index_to_color[int(cluster_id_1)]
+    color_label_2 = index_to_color[int(cluster_id_2)]
+    cells_1 = (color_track == color_label_1)
+    cells_2 = (color_track == color_label_2)
+    return differential_correlation(data_sampled_all_genes, all_gene_names, genes_1, genes_2, cells_1, cells_2, value=value)
+
 @interaction_views.route('/user/<user_id>/stats')
 def data_stats(user_id):
     """
@@ -781,7 +803,17 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
         cluster_id = data_form['gene_heatmap_cluster']
         return gene_heatmap_data(user_id, gene_names_1, gene_names_2,
                 color_track_name=color_track_name, cluster_id=cluster_id)
-        # TODO
+    elif plot_type == 'Diffcorr_heatmap':
+        print('plotting differential correlation gene heatmap')
+        gene_names_1 = split_gene_names(data_form['diffcorr_genes_1'])
+        gene_names_2 = split_gene_names(data_form['diffcorr_genes_2'])
+        color_track_name = data_form['cell_color']
+        cluster_id_1 = data_form['diffcorr_cluster_1']
+        cluster_id_2 = data_form['diffcorr_cluster_2']
+        value = data_form['diffcorr_value']
+        return diff_corr_heatmap_data(user_id, gene_names_1, gene_names_2,
+                color_track_name=color_track_name, cluster_id_1=cluster_id_1,
+                cluster_id_2=cluster_id_2, value=value)
     else:
         dim_red = None
         if plot_type == 'Cells':

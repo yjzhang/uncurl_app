@@ -112,14 +112,140 @@ def gene_similarity(data_sampled_all_genes, all_gene_names, gene_names_left, gen
             'type': 'heatmap',
         }],
         'layout': {
-            'xaxis': {'title': 'gene set 1', 'automargin': True},
-            'yaxis': {'title': 'gene set 2', 'automargin': True},
+            'xaxis': {'title': 'gene set 2', 'automargin': True},
+            'yaxis': {'title': 'gene set 1', 'automargin': True},
             'font': {'size': 14},
             'height': max(550, 150+len(gene_indices_left)*20),
             'width': max(700, 150+len(gene_indices_top)*20),
         }
     }
     return json.dumps(output, cls=SimpleEncoder)
+
+def differential_correlation(data_sampled_all_genes, all_gene_names, gene_names_left, gene_names_top,
+        group1_cells,
+        group2_cells,
+        mode='full',
+        value='diff', method='pearson'):
+    """
+    Creates a heatmap of differential correlation for two groups of cells and two sets of genes.
+
+    mode can be either 'full' or 'reduced'. If 'mode' is full, then this uses the full data matrix for comparison.
+    If mode is 'reduced', then this uses the M matrix from uncurl.
+
+    value can be either 'diff' or 'p'. If 'diff', then it shows the difference between the correlations. Otherwise,
+    it calculates p-values for the correlations, and colors based on -log10(pval).
+
+    Returns a json dendrogram from plotly
+    """
+    # TODO: this should be able to use either m_full or the full data matrix
+    import scipy.stats
+    gene_name_indices = {x: i for i, x in enumerate(all_gene_names)}
+    selected_gene_names_left = [x for x in gene_names_left if x in gene_name_indices]
+    gene_indices_left = np.array([gene_name_indices[x] for x in selected_gene_names_left])
+    selected_gene_names_top = [x for x in gene_names_top if x in gene_name_indices]
+    gene_indices_top = np.array([gene_name_indices[x] for x in selected_gene_names_top])
+    print('gene heatmap selected gene names:', selected_gene_names_left)
+    print('gene heatmap selected gene ids:', gene_indices_left)
+    # calculate correlations for group1
+    data_subset_1 = data_sampled_all_genes[gene_indices_left, :]
+    data_subset_1 = data_subset_1[:, group1_cells]
+    data_subset_2 = data_sampled_all_genes[gene_indices_top, :]
+    data_subset_2 = data_subset_2[:, group1_cells]
+    n1 = data_subset_1.shape[1]
+    from scipy import sparse
+    if sparse.issparse(data_subset_1):
+        data_subset_1 = data_subset_1.toarray()
+        data_subset_2 = data_subset_2.toarray()
+    # TODO: have different methods for calculating the correlation matrix
+    correlations_1 = np.zeros((len(gene_indices_left), len(gene_indices_top)))
+    if method == 'pearson':
+        for i in range(len(gene_indices_left)):
+            for j in range(len(gene_indices_top)):
+                if gene_indices_left[i] == gene_indices_top[j]:
+                    continue
+                correlations_1[i, j] = scipy.stats.pearsonr(data_subset_1[i], data_subset_2[j])[0]
+    correlations_1[np.isnan(correlations_1)] = 0.0
+    # calculate correlations for group2
+    data_subset_1 = data_sampled_all_genes[gene_indices_left, :]
+    data_subset_1 = data_subset_1[:, group2_cells]
+    data_subset_2 = data_sampled_all_genes[gene_indices_top, :]
+    data_subset_2 = data_subset_2[:, group2_cells]
+    n2 = data_subset_1.shape[1]
+    from scipy import sparse
+    if sparse.issparse(data_subset_1):
+        data_subset_1 = data_subset_1.toarray()
+        data_subset_2 = data_subset_2.toarray()
+    # TODO: have different methods for calculating the correlation matrix
+    correlations_2 = np.zeros((len(gene_indices_left), len(gene_indices_top)))
+    if method == 'pearson':
+        for i in range(len(gene_indices_left)):
+            for j in range(len(gene_indices_top)):
+                if gene_indices_left[i] == gene_indices_top[j]:
+                    continue
+                correlations_2[i, j] = scipy.stats.pearsonr(data_subset_1[i], data_subset_2[j])[0]
+    correlations_2[np.isnan(correlations_2)] = 0.0
+    # TODO: calculate differential correlation
+    if value == 'diff':
+        correlations_diff = correlations_1 - correlations_2
+        z = correlations_diff.tolist()
+        title = 'Difference of correlations'
+        zmin = -1.0
+        zmax = 1.0
+        colorscale = 'RdBu'
+    else:
+        correlations_1[correlations_1==1.0] = 0.0
+        correlations_2[correlations_2==1.0] = 0.0
+        z1 = correlations_to_z(correlations_1)
+        z2 = correlations_to_z(correlations_2)
+        pv = z_score_diff(z1, z2, n1, n2)
+        z = -np.log10(pv + 1e-16)
+        title = '-log10(p-value) of difference of correlations'
+        zmin = 0.0
+        zmax = 16.0
+        colorscale = 'Reds'
+    output = {
+        'data': [{
+            'z': z,
+            'x': selected_gene_names_top,
+            'y': selected_gene_names_left,
+            'colorscale': colorscale,
+            'zmin': zmin,
+            'zmax': zmax,
+            'type': 'heatmap',
+        }],
+        'layout': {
+            'xaxis': {'title': 'gene set 2', 'automargin': True},
+            'yaxis': {'title': 'gene set 1', 'automargin': True},
+            'title': title,
+            'font': {'size': 14},
+            'height': max(550, 150+len(gene_indices_left)*20),
+            'width': max(700, 150+len(gene_indices_top)*20),
+        }
+    }
+    return json.dumps(output, cls=SimpleEncoder)
+
+def correlations_to_z(correlations):
+    """
+    Given an array of correlation values, this converts these values into
+    z-scores using Fisher's transformation.
+    """
+    c = np.arctanh(correlations)
+    c[np.isnan(c)] = 0.0
+    c[np.isinf(c)] = 0.0
+    return c
+
+def z_score_diff(z1, z2, n1, n2):
+    """
+    Calculates a two-sided z test
+    """
+    import scipy.stats
+    z_diff = (z1 - z2)
+    var1 = 1./(n1 - 3)
+    var2 = 1./(n2 - 3)
+    z_score = z_diff/np.sqrt(var1 + var2)
+    p = scipy.stats.norm.cdf(z_score)
+    p = -2*np.abs(p-0.5) + 1
+    return p
 
 
 
