@@ -9,6 +9,7 @@ cache.cellmarker = {};
 var currently_selected_cluster = 0;
 
 var current_scatterplot_data = {};
+var current_cluster_values = {};
 
 var all_selected_clusters = [];
 var current_selected_cells = [];
@@ -159,35 +160,12 @@ function toggle_scatterplot_type() {
         $('#dendrogram-names-area').toggle(false);
         $('#gene-heatmap-options-area').toggle(true);
         $('#diffcorr-heatmap-options-area').toggle(false);
-        var select = $('#gene_heatmap_cluster');
-        // clear select children
-        select.empty();
-        select.append($('<option>').attr('value', 'all').text('All cells'));
-        // get all cluster values
-        for (var i in current_scatterplot_data.data) {
-            var value = current_scatterplot_data.data[i];
-            console.log('cluster ' + i);
-            select.append($("<option>").attr('value', i).text(value.name));
-        }
     } else if(plot_type == 'Diffcorr_heatmap') {
         $('#heatmap-names-area').toggle(false);
         $('#dendrogram-names-area').toggle(false);
         $('#gene-heatmap-options-area').toggle(false);
         $('#diffcorr-heatmap-options-area').toggle(true);
-        var select = $('#diffcorr_cluster_1');
-        var select2 = $('#diffcorr_cluster_2');
-        // clear select children
-        select.empty();
-        select2.empty();
-        // get all cluster values
-        for (var i in current_scatterplot_data.data) {
-            var value = current_scatterplot_data.data[i];
-            console.log('cluster ' + i);
-            select.append($("<option>").attr('value', i).text(value.name));
-            select2.append($("<option>").attr('value', i).text(value.name));
-        }
-    } 
-    else {
+    } else {
         $('#heatmap-names-area').toggle(false);
         $('#dendrogram-names-area').toggle(false);
         $('#gene-heatmap-options-area').toggle(false);
@@ -243,6 +221,9 @@ function update_scatterplot() {
         var data = cache.scatterplots[key];
         Plotly.newPlot("means-scatter-plot", data.data, data.layout);
         current_scatterplot_data = data;
+        if (data.data.length > 1) {
+            update_cluster_selections();
+        }
         bind_click();
         bind_select();
         $("#update-area").empty();
@@ -267,15 +248,35 @@ function update_scatterplot() {
         $("#update-area").empty();
         $("#update-area").append('Scatterplot updated');
         // update selections that require cluster names
-        var cluster_select = $('#cell_search_cluster');
-        cluster_select.empty();
-        for (var i in current_scatterplot_data.data) {
-            var value = current_scatterplot_data.data[i];
-            cluster_select.append($("<option>").attr('value', i).text(value.name));
+        if (data.data.length > 1) {
+            update_cluster_selections();
         }
     });
     return true;
 };
+
+// updates all fields that involve selecting clusters.
+// This is called whenever the scatterplot changes...
+function update_cluster_selections() {
+    var s1 = $('#barplot_cluster_select_1');
+    var s2 = $('#barplot_cluster_select_2');
+    var s3 = $('#gene_heatmap_cluster');
+    var s4 = $('#diffcorr_cluster_1');
+    var s5 = $('#diffcorr_cluster_2');
+    var s6 = $('#cell_search_cluster');
+    var cluster_selects = [s1, s2, s3, s4, s5, s6];
+    for (var s in cluster_selects) {
+        var select = cluster_selects[s];
+        select.empty();
+        if (s == 2) {
+            select.append($('<option>').attr('value', 'all').text('All cells'));
+        }
+        for (var i in current_scatterplot_data.data) {
+            var value = current_scatterplot_data.data[i];
+            select.append($("<option>").attr('value', i).text(value.name));
+        }
+    }
+}
 
 function set_enrichr_results(data, query) {
     // create table
@@ -670,6 +671,20 @@ function on_cell_color_change() {
     }
 };
 
+function on_top_or_bulk_change() {
+    var option = $('#top-or-bulk').val();
+    // if the selected option has "pairwise":
+    if (option.includes('pairwise')) {
+        $('#barplot-cluster-select-view').css('display', 'block');
+    } else {
+        $('#barplot-cluster-select-view').css('display', 'none');
+        if (option == "hist") {
+        } else {
+            update_barplot(currently_selected_cluster);
+        }
+    }
+}
+
 
 window.onload = function() {
     // activate tooltips
@@ -683,36 +698,12 @@ window.onload = function() {
     update_scatterplot();
 
     // bind dropdowns to update_barplot
-    $('#top-or-bulk').change(function() {
-        var option = $('#top-or-bulk').val();
-        // if the selected option has "pairwise":
-        if (option.includes('pairwise')) {
-            $('#barplot-cluster-select-view').css('display', 'block');
-            // set the select values for the current color scheme...
-            var select_1 = $('#barplot_cluster_select_1');
-            var select_2 = $('#barplot_cluster_select_2');
-            // clear select children
-            select_1.empty();
-            select_2.empty();
-            // get all cluster values
-            for (var i in current_scatterplot_data.data) {
-                var value = current_scatterplot_data.data[i];
-                console.log('cluster ' + i);
-                select_1.append($("<option>").attr('value', i).text(value.name));
-                select_2.append($("<option>").attr('value', i).text(value.name));
-            }
-        } else {
-            $('#barplot-cluster-select-view').css('display', 'none');
-            if (option == "hist") {
-            } else {
-                update_barplot(currently_selected_cluster);
-            }
-        }
-    });
+    $('#top-or-bulk').change(on_top_or_bulk_change);
     $('#num-genes').change(function() {
         update_barplot(currently_selected_cluster);
     });
     update_barplot(currently_selected_cluster);
+    on_top_or_bulk_change();
 
     // bind update enrichr button to update_enrichr
     $('#enrichr-submit').click(function() {
