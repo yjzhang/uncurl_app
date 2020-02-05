@@ -129,6 +129,18 @@ function update_barplot(cluster_number) {
 function update_barplot_genes() {
 };
 
+// saves the scatterplot as an svg
+function download_scatterplot_svg() {
+    var plot = $('#means-scatter-plot')[0];
+    Plotly.downloadImage(plot, {format: 'svg'});
+}
+
+// saves the barplot as an svg
+function download_barplot_svg() {
+    var plot = $('#top-genes')[0];
+    Plotly.downloadImage(plot, {format: 'svg'});
+}
+
 // toggle special areas for the scatterplot
 function toggle_scatterplot_type() {
     var plot_type = $('input[name="scatter-type"]:checked').val();

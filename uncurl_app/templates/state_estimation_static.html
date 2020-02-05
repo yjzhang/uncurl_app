@@ -152,7 +152,9 @@
 
             <div id="means-scatter-plot" style="margin-top: 5px"></div>
 
-
+            <div style="margin-top: 0px; margin-bottom: 10px;">
+                <button class="btn btn-default" onclick="download_scatterplot_svg()">Download plot as svg</button>
+            </div>
 
             <div class="form-inline">
                 <label for="cell-color" data-toggle="tooltip" title="How the cells should be colored - either by their cluster label, or by their cluster label entropy.">Cell labels:</label>
@@ -169,6 +171,7 @@
                     <option value="new">Upload cell labels</option>
                     <option value="custom">Custom cell selection</option>
                 </select>
+
             </div>
 
             <div id="cluster-select-area" style="display:none;" class="form-inline align-items-center">
@@ -363,6 +366,9 @@
 
             <!-- Plot of top gene/p-value bar plots goes here -->
             <div id="top-genes" style="width: 500px;"></div>
+            <div>
+                <button class="btn btn-default" onclick="download_barplot_svg()">Download plot as svg</button>
+            </div>
 
         </div>
 
