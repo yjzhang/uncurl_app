@@ -393,7 +393,6 @@ def volcano_plot_data(user_id, colormap, cluster1, cluster2, selected_genes=None
     }, cls=SimpleEncoder)
 
 
-
 @cache.memoize()
 def heatmap_data(user_id, label_name_1, label_name_2, **params):
     """
@@ -609,6 +608,40 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         cluster1 = int(data_form['cluster1'])
         cluster2 = int(data_form['cluster2'])
         return volcano_plot_data(user_id, colormap, cluster1, cluster2, selected_genes=selected_gene_names)
+    elif top_or_bulk == 'top_gene_expression':
+        # TODO: get top genes by raw average expression
+        colormap = str(data_form['cell_color'])
+        cluster_id = int(input_value)
+        sca = get_sca(user_id)
+        data = get_sca_data_sampled_all_genes(user_id)
+        input_label = input_value
+        if colormap is not None and colormap not in ['cluster', 'gene', 'entropy', 'weights', 'read_counts']:
+            color_track, is_discrete = get_sca_color_track(user_id, colormap)
+            color_to_index, index_to_color = color_track_map(color_track)
+            color_label_1 = index_to_color[int(cluster_id)]
+            selected_cells = (color_track == color_label_1)
+            input_label = index_to_color[input_value]
+        # default colormap
+        else:
+            labels = sca.labels
+            selected_cells = (labels == cluster_id)
+        data_subset = data[:, selected_cells]
+        # TODO: calculate average gene expression for the selected cluster
+        data_means = np.array(data_subset.mean(1)).flatten()
+        print(np.sort(data_means)[::-1][:10])
+        if selected_gene_names is not None:
+            gene_indices = {g:i for i, g in enumerate(gene_names)}
+            selected_gene_indices = np.array([gene_indices[g] for g in selected_gene_names])
+            data_means_subset = data_means[selected_gene_indices]
+        else:
+            selected_gene_indices = np.argsort(data_means)[::-1]
+            print(selected_gene_indices[:20])
+            selected_gene_indices = selected_gene_indices[:num_genes]
+            data_means_subset = data_means[selected_gene_indices]
+            selected_gene_names = np.array([gene_names[i] for i in selected_gene_indices])
+            print(selected_gene_names)
+        return barplot_data(zip(range(len(selected_gene_names)), data_means_subset), selected_gene_names, input_label,
+                    x_label='Mean gene expression', title='Top expressed genes in cluster {0}'.format(input_label))
     elif top_or_bulk == 'sep':
         # show separation score
         sep_scores = sca.separation_scores[int(input_value)]
