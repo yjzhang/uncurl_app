@@ -35,31 +35,41 @@ class Summary(object):
                 self.is_gz = is_gz
             else:
                 self.is_gz = True
+                data_paths_new = []
                 for i, data_path in enumerate(data_paths):
                     data_path = str(data_path)
                     is_gz = data_path.endswith('gz')
+                    data_path_new = data_path
                     # convert data shape
                     if shapes[i] == 'cell_gene':
-                        data_is_sparse = True
                         try:
                             data = scipy.io.mmread(data_path)
                         except:
                             data = np.loadtxt(data_path)
-                            data_is_sparse = False
+                            data_path_new = data_path[:-4] + '.mtx'
                         os.remove(data_path)
                         data = data.T
-                        if data_is_sparse:
-                            if is_gz:
-                                data_path = data_path[:-3]
-                            scipy.io.mmwrite(data_path, data)
-                            if is_gz:
-                                import subprocess
-                                subprocess.call(['gzip', data_path])
-                        else:
-                            np.savetxt(data_path, data)
+                        if is_gz:
+                            data_path_new = data_path_new[:-3]
+                        scipy.io.mmwrite(data_path_new, data)
+                        if is_gz:
+                            import subprocess
+                            subprocess.call(['gzip', data_path_new])
+                            data_path_new += '.gz'
+                    else:
+                        # always convert data to mtx
+                        if data_path.endswith('.txt'):
+                            data = np.loadtxt(data_path)
+                            os.remove(data_path)
+                            data_path_new = data_path[:-4] + '.mtx'
+                            scipy.io.mmwrite(data_path_new, data)
+                            import subprocess
+                            subprocess.call(['gzip', data_path_new])
+                            data_path_new += '.gz'
+                    data_paths_new.append(data_path_new)
                 # call merge_datasets
                 from uncurl_analysis import merge_datasets
-                data_path, gene_path = merge_datasets.merge_files(data_paths, gene_paths, dataset_names, base_path)
+                data_path, gene_path = merge_datasets.merge_files(data_paths_new, gene_paths, dataset_names, base_path)
             try:
                 data = scipy.io.mmread(data_path)
             except:
