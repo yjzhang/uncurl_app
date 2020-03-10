@@ -4,7 +4,7 @@ import os
 import uuid
 
 from flask import Markup, render_template, request, redirect, send_from_directory, url_for, Blueprint, current_app
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 
 import numpy as np
 import uncurl
