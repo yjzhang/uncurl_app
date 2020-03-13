@@ -5,4 +5,4 @@ services:
     ports:
     - "8589:8888"
     volumes:
-    - ./tmp:/tmp
+    - /cse/web/research/uncurl/tmp:/tmp
