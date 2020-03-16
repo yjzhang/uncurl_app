@@ -3,6 +3,7 @@ services:
   web:
     build: .
     ports:
-    - "8589:8888"
+      - "127.0.0.1:8589:8888"
     volumes:
-    - /cse/web/research/uncurl/tmp:/tmp
+      - /cse/web/research/uncurl/tmp:/tmp
+      - /cse/web/research/uncurl/uncurl_test:/uncurl_test
