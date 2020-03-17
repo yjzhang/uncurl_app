@@ -3,7 +3,9 @@ stages:
 
 deploy_test:
   stage: deploy
-  script: docker-compose up -d
+  script:
+    - docker-compose build
+    - docker-compose up -d
   tags:
     - lab-docker-test
   only:
@@ -11,7 +13,9 @@ deploy_test:
 
 deploy_prod:
   stage: deploy
-  script: docker-compose up -d
+  script:
+    - docker-compose build
+    - docker-compose up -d
   tags:
     - lab-docker-prod
   only:
