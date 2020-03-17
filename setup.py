@@ -5,7 +5,7 @@ install_requires = []
 
 setup(
     name='uncurl_app',
-    version='0.1.0',
+    version='0.3.0',
     author='Yue Zhang',
     author_email='yjzhang@cs.washington.edu',
     url='https://github.com/yjzhang/uncurl_app',
