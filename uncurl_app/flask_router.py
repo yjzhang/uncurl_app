@@ -20,11 +20,11 @@ def get_test_dirs(base='test_data'):
 
 def initialize():
     try:
-        test_dirs = get_test_dirs('test_data')
+        test_dirs = get_test_dirs(current_app.config['TEST_DATA_DIR'])
     except:
         test_dirs = []
     try:
-        user_dirs = get_test_dirs('/tmp/uncurl')
+        user_dirs = get_test_dirs(current_app.config['USER_DATA_DIR'])
     except:
         user_dirs = []
     flask_router.user_dirs = user_dirs
