@@ -1,0 +1,22 @@
+stages:
+- deploy
+
+deploy_test:
+  stage: deploy
+  script:
+    - docker-compose build
+    - docker-compose up -d
+  tags:
+    - lab-docker-test
+  only:
+    - master
+
+deploy_prod:
+  stage: deploy
+  script:
+    - docker-compose build
+    - docker-compose up -d
+  tags:
+    - lab-docker-prod
+  only:
+    - tags

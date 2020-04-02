@@ -1337,7 +1337,7 @@ def split_or_merge_cluster(user_id):
 
 @interaction_views.route('/user/<user_id>/view/upload_color_track', methods=['POST'])
 def upload_color_track(user_id):
-    from werkzeug import secure_filename
+    from werkzeug.utils import secure_filename
     sca = get_sca(user_id)
     print('upload_color_track:', request.form)
     print(request.files)

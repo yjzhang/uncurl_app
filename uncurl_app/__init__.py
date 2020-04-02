@@ -11,7 +11,10 @@ def create_app(config_filename=None):
     Bootstrap(app)
 
     # maximum file length is 250MB
-    app.config['MAX_CONTENT_LENGTH'] = 250 * 1024 * 1024
+    if 'MAX_CONTENT_LENGTH' in os.environ:
+        app.config['MAX_CONTENT_LENGTH'] = int(os.environ['MAX_CONTENT_LENGTH'])
+    else:
+        app.config['MAX_CONTENT_LENGTH'] = 250 * 1024 * 1024
     # default args to pass to uncurl.run_state_estimation
     app.config['UNCURL_ARGS'] = {
             'threads': 2,
@@ -22,9 +25,15 @@ def create_app(config_filename=None):
     }
     # set the test data dir correctly
     # find current directory, go up
-    app.config['TEST_DATA_DIR'] = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    if 'TEST_DATA_DIR' in os.environ:
+        app.config['TEST_DATA_DIR'] = os.environ['TEST_DATA_DIR']
+    else:
+        app.config['TEST_DATA_DIR'] = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                     'test_data')
-    app.config['USER_DATA_DIR'] = '/tmp/uncurl/'
+    if 'USER_DATA_DIR' in os.environ:
+        app.config['USER_DATA_DIR'] = os.environ['USER_DATA_DIR']
+    else:
+        app.config['USER_DATA_DIR'] = '/tmp/uncurl/'
     app.config['BULK_DATA_DIR'] = 'bulk_data/'
 
     app.config['CACHE_TYPE'] = 'redis'
@@ -50,7 +59,10 @@ def create_app_split_seq(data_dir='./', config_filename=None):
         process_split_seq(data_dir)
     app = Flask(__name__)
     Bootstrap(app)
-    app.config['MAX_CONTENT_LENGTH'] = 1000 * 1024 * 1024
+    if 'MAX_CONTENT_LENGTH' in os.environ:
+        app.config['MAX_CONTENT_LENGTH'] = int(os.environ['MAX_CONTENT_LENGTH'])
+    else:
+        app.config['MAX_CONTENT_LENGTH'] = 1000 * 1024 * 1024
     # default args to pass to uncurl.run_state_estimation
     app.config['UNCURL_ARGS'] = {
             'threads': 2,
@@ -59,7 +71,10 @@ def create_app_split_seq(data_dir='./', config_filename=None):
     }
     app.config['NMF_ARGS'] = {
     }
-    app.config['TEST_DATA_DIR'] = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    if 'TEST_DATA_DIR' in os.environ:
+        app.config['TEST_DATA_DIR'] = os.environ['TEST_DATA_DIR']
+    else:
+        app.config['TEST_DATA_DIR'] = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                     'test_data')
     # go up 1 from path
     app.config['USER_DATA_DIR'] = os.path.dirname(data_dir)
