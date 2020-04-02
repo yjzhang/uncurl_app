@@ -676,6 +676,10 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         x_label = 'Fold change (1 vs rest)'
         if top_or_bulk == 'selected_color_pval':
             x_label = 'p-value of fold change (1 vs rest)'
+        if 'pval' in top_or_bulk:
+            # TODO: make note of whether p-val is FDR-corrected and
+            # note that in the x-value
+            x_label = 'p-value of fold change'
         # selected genes
         if len(selected_gene.strip()) > 0:
             selected_top_genes = [x for x in selected_diffexp if gene_names[x[0]] in set(selected_gene_names)]
