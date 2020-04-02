@@ -20,7 +20,6 @@ var id_to_name = {};
 function toggle_query_visibility() {
     var value = $('#database_select').val();
     var views = ['cellmarker_view', 'cellmesh_view', 'cellmesh_anatomy_view', 'go_view', 'kegg_view'];
-    var value = $('#database-select').val();
     var view_select = value + '_view';
     for (var i in views) {
         if (views[i] == view_select) {
@@ -171,9 +170,9 @@ window.onload = function() {
             <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
                 <label for="mesh_test_type" data-toggle="tooltip" title="Currently, only the hypergeometric test is available.">Statistical test:</label>
                 <select class="form-control" id="mesh_test_type" name="mesh_test_type">
-                    <option value="hypergeom" selected>Hypergeometric test</option>
+                    <option value="hypergeom">Hypergeometric test</option>
                     <option value="norm_hypergeom">tf-idf Normalized Hypergeometric test</option>
-                    <option value="prob">Probabilistic model</option>
+                    <option value="prob" selected>Probabilistic model</option>
                     <option value="gsva">GSVA</option>
                 </select>
             </div>
