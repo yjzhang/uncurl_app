@@ -78,7 +78,7 @@ function update_barplot(cluster_number) {
             var gene_names = data.data[0].y;
             $('#top-genes-view').val(gene_names.join('\n'));
         }
-        Plotly.newPlot("top-genes", data.data, data.layout);
+        Plotly.newPlot("top-genes", data.data, data.layout, config={showSendToCloud: true});
         if (top_or_bulk == 'volcano_pairwise') {
             var view = $('#top-genes')[0];
             view.on('plotly_selected', on_gene_select);
@@ -115,7 +115,7 @@ function update_barplot(cluster_number) {
             data.data[0].x.reverse();
             data.data[0].y.reverse();
         }
-        Plotly.newPlot("top-genes", data.data, data.layout);
+        Plotly.newPlot("top-genes", data.data, data.layout, config={showSendToCloud: true});
         if (top_or_bulk == 'volcano_pairwise') {
             var view = $('#top-genes')[0];
             view.on('plotly_selected', on_gene_select);
@@ -219,7 +219,7 @@ function update_scatterplot() {
     // if the plot parameters have been used before, we retrieve them from the cache...
     if (cache.scatterplots.hasOwnProperty(key)) {
         var data = cache.scatterplots[key];
-        Plotly.newPlot("means-scatter-plot", data.data, data.layout);
+        Plotly.newPlot("means-scatter-plot", data.data, data.layout, config={showSendToCloud:true});
         current_scatterplot_data = data;
         if (data.data.length > 1) {
             update_cluster_selections();
@@ -241,7 +241,7 @@ function update_scatterplot() {
         }
         data = JSON.parse(data);
         cache.scatterplots[key] = data;
-        Plotly.newPlot("means-scatter-plot", data.data, data.layout);
+        Plotly.newPlot("means-scatter-plot", data.data, data.layout, config={showSendToCloud:true});
         current_scatterplot_data = data;
         bind_click();
         bind_select();
