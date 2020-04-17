@@ -253,7 +253,7 @@ def data_download(x, user_id):
     if x!='test':
         path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     else:
-        path = os.path.join('test_data', user_id)
+        path = os.path.join(current_app.config['TEST_DATA_DIR'], user_id)
     files = os.listdir(path)
     files.sort()
     return render_template('data_download.html',
