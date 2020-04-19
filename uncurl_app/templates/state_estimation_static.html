@@ -154,6 +154,7 @@
 
             <div style="margin-top: 0px; margin-bottom: 10px;">
                 <button class="btn btn-default" onclick="download_scatterplot_svg()">Download plot as svg</button>
+                <button class="btn btn-default" onclick="download_scatterplot_data()" style="margin-left: 5px;">Download plot data as table</button>
             </div>
 
             <div class="form-inline">
@@ -235,6 +236,9 @@
                         <div class="form-inline">
                             <label for="label_name">Label name:</label>
                             <input class="form-control" id="label_name" name="label_name" style="width:200px;">
+                            <!-- TODO: color input here - change color... should this be persisted on the server??? -->
+                            <label for="label_color">Label color (optional):</label>
+                            <input class="form-control" type="color" id="label_color" style="width: 50px;">
                         </div>
                         <form id="all_criteria_form">
                             <div id="all_criteria">

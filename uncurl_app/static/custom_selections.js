@@ -113,6 +113,7 @@ function get_custom_colormap() {
                 var criteria = data.labels[0].criteria;
                 var label_name = data.labels[0].name;
                 set_criteria(criteria, label_name);
+                $('#label_color').val(data.labels[0]['color']);
             } else {
                 // TODO: have some default criteria?
                 set_criteria([], '');
@@ -147,6 +148,9 @@ function add_custom_criterion(and_or) {
 function submit_label() {
     var colormap_name = $('#cell-color').val();
     var label_name = $('#label_name').val();
+    var label_color = $('#label_color').val();
+    console.log(label_color);
+    console.log(label_color == '#000000');
     var criteria_form = $('#all_criteria_form').serializeArray();
     var criteria_data = {};
     $(criteria_form).each(function(index, obj){
@@ -160,6 +164,7 @@ function submit_label() {
             name: colormap_name,
             label: label_name,
             criteria: JSON.stringify(criteria_data),
+            color: label_color,
         }
     }).done(function(data) {
         if (data.startsWith('Error')) {
@@ -224,6 +229,9 @@ function update_custom_label() {
                 // add label to label_select
                 var label_data = JSON.parse(data);
                 set_criteria(label_data.criteria, label_name);
+                console.log('label_data');
+                console.log(label_data);
+                $('#label_color').val(label_data['color']);
             }
         });
     }

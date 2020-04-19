@@ -11,6 +11,8 @@ var currently_selected_cluster = 0;
 var current_scatterplot_data = {};
 var current_cluster_values = {};
 
+var current_barplot_data = {};
+
 var all_selected_clusters = [];
 var current_selected_cells = [];
 var currently_merging = false;
@@ -78,6 +80,7 @@ function update_barplot(cluster_number) {
             var gene_names = data.data[0].y;
             $('#top-genes-view').val(gene_names.join('\n'));
         }
+        current_barplot_data = data;
         Plotly.newPlot("top-genes", data.data, data.layout, config={showSendToCloud: true});
         if (top_or_bulk == 'volcano_pairwise') {
             var view = $('#top-genes')[0];
@@ -115,6 +118,7 @@ function update_barplot(cluster_number) {
             data.data[0].x.reverse();
             data.data[0].y.reverse();
         }
+        current_barplot_data = data;
         Plotly.newPlot("top-genes", data.data, data.layout, config={showSendToCloud: true});
         if (top_or_bulk == 'volcano_pairwise') {
             var view = $('#top-genes')[0];
@@ -140,6 +144,67 @@ function download_scatterplot_svg() {
 function download_barplot_svg() {
     var plot = $('#top-genes')[0];
     Plotly.downloadImage(plot, {format: 'svg'});
+}
+
+// TODO: download scatterplot/barplot data as a tab-separated table
+function download_scatterplot_data() {
+    // TODO: look at the different data types, convert to tsv
+    var plot_type = $('input[name="scatter-type"]:checked').val();
+    var data = current_scatterplot_data.data;
+    // scatterplot data
+    if (plot_type == 'Baseline' || plot_type == 'Cells' || plot_type == 'Means' || plot_type == 'Genes') {
+        var output_string = 'cluster_name\tid\tx\ty\n';
+        for (var track_index in data) {
+            var track = data[track_index];
+            var track_length = track.x.length;
+            for (var i = 0; i < track_length; i++) {
+                output_string += track.name + '\t' + track.text[i] + '\t' + track.x[i] + '\t' + track.y[i] + '\n';
+            }
+        }
+        var output = "data:application/octet-stream," + encodeURI(output_string);
+        location.href = output;
+    } else if (plot_type == 'Dendrogram') {
+        var heatmap_data = data[data.length - 1];
+        var cluster_names = current_scatterplot_data.layout.xaxis.ticktext;
+        var gene_names = current_scatterplot_data.layout.yaxis.ticktext;
+        var output_string = 'Gene_name\t';
+        for (var i in cluster_names) { 
+            output_string += cluster_names[i] + '\t';
+        }
+        output_string += '\n';
+        for (var i in gene_names) {
+            var color_data = heatmap_data.z[i];
+            output_string += gene_names[i] + '\t';
+            for (var j in cluster_names) {
+                output_string += color_data[j] + '\t';
+            }
+            output_string += '\n'
+        }
+        var output = "data:application/octet-stream," + encodeURI(output_string);
+        location.href = output;
+    } else if (plot_type == 'Cluster_heatmap' || plot_type == 'Gene_heatmap' || plot_type == 'Diffcorr_heatmap') {
+        var x_names = data[0].x;
+        var y_names = data[0].y;
+        var output_string = 'y\t';
+        for (var i in x_names) {
+            output_string += x_names[i] + '\t';
+        }
+        output_string += '\n';
+        for (var i in y_names) {
+            var color_data = data[0].z[i];
+            output_string += y_names[i] + '\t';
+            for (var j in x_names) {
+                output_string += color_data[j] + '\t';
+            }
+            output_string += '\n'
+        }
+        var output = "data:application/octet-stream," + encodeURI(output_string);
+        location.href = output;
+    }
+}
+
+function download_barplot_data() {
+    var data = current_barplot_data.data;
 }
 
 // toggle special areas for the scatterplot

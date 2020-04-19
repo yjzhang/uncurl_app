@@ -8,6 +8,7 @@ redis
 uncurl-seq
 gunicorn
 colorlover
+plotly
 git+git://github.com/yjzhang/simplex_sample.git
 git+git://github.com/yjzhang/uncurl_analysis.git
 git+git://github.com/yjzhang/cellmarker_python.git

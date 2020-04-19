@@ -113,11 +113,14 @@ def get_sca_gene_names(user_id):
     return sca.gene_names
 
 @cache.memoize()
-def get_sca_color_track(user_id, color_track):
+def get_sca_color_track(user_id, color_track, return_color=False):
     sca = get_sca(user_id)
     if color_track == 'cluster':
         return sca.labels, True
-    return sca.get_color_track(color_track)
+    if return_color:
+        return sca.get_color_track(color_track, return_colors=True)
+    else:
+        return sca.get_color_track(color_track)
 
 @cache.memoize()
 def get_sca_data_sampled_all_genes(user_id):
@@ -238,7 +241,7 @@ def calc_size(labels):
     return size
 
 def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
-        color_vals=None, label_text=None):
+        color_vals=None, label_text=None, color_dict=None):
     """
     Converts data into a form that will be sent as json for building the
     scatterplot. Output should be formatted in a way that can be used by
@@ -251,6 +254,7 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
         mode (str): either 'cluster' or 'entropy'
         color_vals (array): 1d array of length n, of real values that will be used for coloring
         label_text (list or array): labels for each point, with length n
+        color_dict (None or dict): mapping of labels to rgb values
     """
     # have size depend on data shape
     size = calc_size(labels)
@@ -271,8 +275,9 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
         label_text = np.array(label_text)
     plot_type = 'scattergl' if len(label_text) > 5000 else 'scatter'
     # select color scheme
+    # TODO: allow for custom colors 
     if mode == 'cluster':
-        if len(label_values) > 10:
+        if len(label_values) > 10 or color_dict is not None:
             from . import colors
             if len(label_values) <= 25:
                 scale0 = colors.CL_25
@@ -284,9 +289,16 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                 else:
                     import colorlover as cl
                     color_values = cl.to_rgb(cl.interp(colors.CL_25, len(label_values)))
-            print(color_values)
         else:
             color_values = label_values
+        # TODO
+        if color_dict is not None:
+            color_values = color_values.copy()
+            print('getting color_dict values:', color_dict)
+            for i, v in enumerate(label_values):
+                if v in color_dict and color_dict[v] is not None:
+                    color_values[i] = color_dict[v]
+        print('scatterplot color_values:', color_values)
         data =  [
             {
                 'x': dim_red[0,labels==c].tolist(),
@@ -904,12 +916,14 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
                 return scatterplot_data(dim_red, color_track)
         else:
             # try to get color track
-            color_track, is_discrete = get_sca_color_track(user_id, cell_color_value)
+            # TODO: get color values as well
+            color_track, is_discrete, color = get_sca_color_track(user_id, cell_color_value, return_color=True)
+            print('scatterplot retrieved color:', color)
             if color_track is None:
                 return scatterplot_data(dim_red, sca.labels)
             else:
                 if is_discrete:
-                    return scatterplot_data(dim_red, color_track)
+                    return scatterplot_data(dim_red, color_track, color_dict=color)
                 else:
                     return scatterplot_data(dim_red, sca.labels,
                             mode='entropy', color_vals=color_track)
@@ -1477,10 +1491,14 @@ def update_colormap_label_criteria(user_id):
     sca = get_sca(user_id)
     colormap_name = data_form['name']
     label_name = data_form['label']
+    color = data_form['color']
+    print('colormap color:', color)
+    if color == '#000000':
+        color = None
     if 'criteria' in data_form:
         # load criteria from json
         criteria = load_criteria_from_dict(json.loads(data_form['criteria']))
-        sca.update_custom_color_track_label(colormap_name, label_name, criteria)
+        sca.update_custom_color_track_label(colormap_name, label_name, criteria, color=color)
         # clear cache for scatterplot results
         print('deleting cached results...')
         cache.delete_memoized(update_barplot_result)
