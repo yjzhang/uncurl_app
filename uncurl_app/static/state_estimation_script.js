@@ -495,6 +495,7 @@ function get_cell_info() {
         $("#update-area").append("Selected clusters: " + selection_string + "<br>");
         $("#update-area").append("Median read count for cluster: " + results.cluster_reads + "<br>");
         $("#update-area").append("Median gene count for cluster: " + results.cluster_genes + "<br>");
+        $("#update-area").append("Total nonzero gene count for cluster: " + results.total_gene_count + "<br>");
     });
 };
 

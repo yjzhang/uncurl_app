@@ -951,6 +951,7 @@ def cell_info(user_id):
         - cluster (int)
         - cluster_median_read_count (float)
         - cluster_median_gene_count (float)
+        - cluster_total_gene_count (float) - total genes that are nonzero in any cell in the cluster
         - values for all of the uploaded color maps
     """
     print('cell_info: ', request.form)
@@ -961,7 +962,7 @@ def cell_info(user_id):
     selected_clusters = selected_clusters.split(',')
     selected_clusters = [int(x) for x in selected_clusters]
     color_map = request.form['color_map']
-    # TODO: return more results: more cluster info - cluster median read count, cluster median gene count
+    # TODO: return more results: more cluster info - cluster total count
     return cell_info_result(user_id, selected_cells, selected_clusters, color_map)
 
 @cache.memoize()
@@ -975,10 +976,10 @@ def cell_info_result(user_id, selected_cells, selected_clusters, color_map):
         cell_data = data[:, cell]
         gene_counts.append(cell_data.count_nonzero())
         read_counts.append(cell_data.sum())
-    cluster_reads, cluster_genes = get_cluster_stats(sca, data, selected_clusters[0], color_map)
+    cluster_reads, cluster_genes, total_gene_count = get_cluster_stats(sca, data, selected_clusters[0], color_map)
     return json.dumps({'gene_counts': gene_counts,
         'read_counts': read_counts, 'cluster_reads': cluster_reads,
-        'cluster_genes': cluster_genes}, cls=SimpleEncoder)
+        'cluster_genes': cluster_genes, 'total_gene_count': total_gene_count}, cls=SimpleEncoder)
 
 def get_cluster_stats(sca, data, cluster_id, colormap='cluster'):
     # get cluster median read count, cluster median gene count
@@ -996,9 +997,12 @@ def get_cluster_stats(sca, data, cluster_id, colormap='cluster'):
     cell_data = data[:, color_track==cluster_id]
     read_counts = np.array(cell_data.sum(0)).flatten()
     gene_counts = np.zeros(cell_data.shape[1])
+    # TODO: get total count of nonzero genes in cluster
+    total_gene_sum = np.array(cell_data.sum(1)).flatten()
+    total_gene_count = (total_gene_sum > 0).sum()
     for i in range(len(gene_counts)):
         gene_counts[i] = cell_data[:,i].count_nonzero()
-    return np.median(read_counts), np.median(gene_counts)
+    return np.median(read_counts), np.median(gene_counts), total_gene_count
 
 @interaction_views.route('/user/<user_id>/view/update_enrichr', methods=['GET', 'POST'])
 def update_enrichr(user_id):
