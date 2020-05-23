@@ -87,7 +87,7 @@ def cluster_correlation_heatmap(data_sampled_all_genes, color_track, method='pea
         correlations = np.corrcoef(cluster_means)
     elif method == 'spearman':
         import scipy.stats
-        correlations = scipy.stats.spearmanr(cluster_means)
+        correlations, pval = scipy.stats.spearmanr(cluster_means, axis=1)
     output = {
         'data': [{
             'z': correlations.tolist(),

@@ -442,7 +442,7 @@ def dendrogram_data(user_id, color_track_name, selected_genes, use_log=False, us
     return dendrogram(data, all_genes, selected_genes, color_track_name, color_track, use_log=use_log, use_normalize=use_normalize)
 
 @cache.memoize()
-def cluster_correlation_heatmap_data(user_id, color_track_name, method='pearson'):
+def cluster_correlation_heatmap_data(user_id, color_track_name, method='spearman'):
     """
     Correlation between the mean gene expression profiles of all clusters for the given color track.
     """
