@@ -275,7 +275,6 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
         label_text = np.array(label_text)
     plot_type = 'scattergl' if len(label_text) > 5000 else 'scatter'
     # select color scheme
-    # TODO: allow for custom colors 
     if mode == 'cluster':
         if len(label_values) > 10 or color_dict is not None:
             from . import colors
@@ -291,7 +290,6 @@ def scatterplot_data(dim_red, labels, colorscale='Portland', mode='cluster',
                     color_values = cl.to_rgb(cl.interp(colors.CL_25, len(label_values)))
         else:
             color_values = label_values
-        # TODO
         if color_dict is not None:
             color_values = color_values.copy()
             print('getting color_dict values:', color_dict)
@@ -442,6 +440,18 @@ def dendrogram_data(user_id, color_track_name, selected_genes, use_log=False, us
             selected_genes += selected_gene_names
     from .advanced_plotting import dendrogram
     return dendrogram(data, all_genes, selected_genes, color_track_name, color_track, use_log=use_log, use_normalize=use_normalize)
+
+@cache.memoize()
+def cluster_correlation_heatmap_data(user_id, color_track_name, method='pearson'):
+    """
+    Correlation between the mean gene expression profiles of all clusters for the given color track.
+    """
+    if color_track_name in ['entropy', 'gene', 'weights', 'read_count']:
+        color_track_name = 'cluster'
+    color_track, is_discrete = get_sca_color_track(user_id, color_track_name)
+    data = get_sca_data_sampled_all_genes(user_id)
+    from .advanced_plotting import cluster_correlation_heatmap
+    return cluster_correlation_heatmap(data, color_track, method)
 
 @cache.memoize()
 def gene_heatmap_data(user_id, genes_1, genes_2, color_track_name, cluster_id):
@@ -863,6 +873,10 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
         return diff_corr_heatmap_data(user_id, gene_names_1, gene_names_2,
                 color_track_name=color_track_name, cluster_id_1=cluster_id_1,
                 cluster_id_2=cluster_id_2, value=value)
+    elif plot_type == 'Correlation_heatmap':
+        print('plotting cluster correlation heatmap')
+        color_track_name = data_form['cell_color']
+        return cluster_correlation_heatmap_data(user_id, color_track_name)
     else:
         dim_red = None
         if plot_type == 'Cells':

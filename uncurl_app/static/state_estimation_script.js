@@ -182,7 +182,7 @@ function download_scatterplot_data() {
         }
         var output = "data:application/octet-stream," + encodeURI(output_string);
         location.href = output;
-    } else if (plot_type == 'Cluster_heatmap' || plot_type == 'Gene_heatmap' || plot_type == 'Diffcorr_heatmap') {
+    } else if (plot_type == 'Cluster_heatmap' || plot_type == 'Gene_heatmap' || plot_type == 'Diffcorr_heatmap' || plot_type == 'Correlation_heatmap') {
         var x_names = data[0].x;
         var y_names = data[0].y;
         var output_string = 'y\t';

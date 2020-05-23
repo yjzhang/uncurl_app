@@ -70,6 +70,47 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
     }
     return json.dumps(output, cls=SimpleEncoder)
 
+
+def cluster_correlation_heatmap(data_sampled_all_genes, color_track, method='pearson'):
+    """
+    Create a heatmap of correlation between cluster means
+    """
+    all_clusters = list(sorted(list(set(color_track))))
+    cluster_means = []
+    for cluster in all_clusters:
+        data_subset = data_sampled_all_genes[:, color_track==cluster]
+        data_mean = data_subset.mean(1)
+        data_mean = np.array(data_mean).flatten()
+        cluster_means.append(data_mean)
+    cluster_means = np.vstack(cluster_means)
+    if method == 'pearson':
+        correlations = np.corrcoef(cluster_means)
+    elif method == 'spearman':
+        import scipy.stats
+        correlations = scipy.stats.spearmanr(cluster_means)
+    output = {
+        'data': [{
+            'z': correlations.tolist(),
+            'x': [str(x) for x in all_clusters],
+            'y': [str(x) for x in all_clusters],
+            #'colorscale': 'RdBu',
+            'colorscale': 'Reds',
+            #'zmin': -1.0,
+            #'zmax': 1.0,
+            'type': 'heatmap',
+        }],
+        'layout': {
+            'title': 'Cluster correlation heatmap',
+            'xaxis': {'title': 'clusters', 'automargin': True},
+            'yaxis': {'title': 'clusters', 'automargin': True},
+            'font': {'size': 16},
+            'height': max(550, 150+len(all_clusters)*20),
+            'width': max(700, 150+len(all_clusters)*20),
+        }
+    }
+    return json.dumps(output, cls=SimpleEncoder)
+
+
 def gene_similarity(data_sampled_all_genes, all_gene_names, gene_names_left, gene_names_top, mode='full', method='pearson'):
     """
     Creates a diagonal gene-gene similarity map using data from all sampled cells.
