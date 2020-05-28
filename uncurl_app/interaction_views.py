@@ -1617,6 +1617,13 @@ def rerun_uncurl(user_id):
     new_user_id = str(uuid.uuid4())
     new_path = user_id_to_path(new_user_id)
 
+    # TODO: should we copy everything and use some trickery to get around this???
+    # TODO: copy genes as well. OR we might as well just copy everything, and use cell_subset.
+    #path = sca.data_dir
+    #shutil.copytree(path, user_id_to_path(new_user_id))
+    #import subprocess
+    #subprocess.call("sed -i 's/{0}/{1}/g' /tmp/uncurl/{1}/*.json".format(user_id, new_user_id), shell=True)
+
     # get data subset from sca
     if is_cells:
         data_subset = sca.get_data_subset(cell_ids)
