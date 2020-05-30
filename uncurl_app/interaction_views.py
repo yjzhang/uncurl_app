@@ -803,8 +803,79 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
             color_to_index, index_to_color = color_track_map(color_track)
             gene_cluster_data = gene_data[color_track == index_to_color[cluster_id]]
             return histogram_data(gene_cluster_data, gene_data, index_to_color[cluster_id], selected_gene)
+    elif top_or_bulk == 'double_pairs_comparison':
+        print('double_pairs_comparison')
+        print(data_form)
+        colormap = str(data_form['cell_color'])
+        c1 = str(data_form['cluster1'])
+        c2 = str(data_form['cluster2'])
+        c3 = str(data_form['cluster3'])
+        c4 = str(data_form['cluster4'])
+        return get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4)
     else:
         return 'Error: '
+
+def get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4):
+    """
+    Plot a two-dimensional scatterplot: x-axis shows cluster1-cluster2, y-axis shows cluster3-cluster4
+    """
+    print('get_double_pairs_comparison_data')
+    # TODO: compare double pairs...
+    if colormap in ['cluster', 'gene', 'entropy', 'weights']:
+        colormap = 'cluster'
+    c1 = int(c1)
+    c2 = int(c2)
+    c3 = int(c3)
+    c4 = int(c4)
+    data_sampled_all_genes = get_sca_data_sampled_all_genes(user_id)
+    color_track, is_discrete = get_sca_color_track(user_id, colormap)
+    color_to_index, index_to_color = color_track_map(color_track)
+    print(color_track)
+    print(c1, c2, c3, c4)
+    # TODO: get means for each of the clusters
+    # TODO: this is incorrect
+    c1_mean = data_sampled_all_genes[:, color_track == index_to_color[c1]].mean(1)
+    c1_mean = np.array(c1_mean).flatten()
+    c2_mean = data_sampled_all_genes[:, color_track == index_to_color[c2]].mean(1)
+    c2_mean = np.array(c2_mean).flatten()
+    c3_mean = data_sampled_all_genes[:, color_track == index_to_color[c3]].mean(1)
+    c3_mean = np.array(c3_mean).flatten()
+    c4_mean = data_sampled_all_genes[:, color_track == index_to_color[c4]].mean(1)
+    c4_mean = np.array(c4_mean).flatten()
+    # TODO: divide by max of c1 and c2
+    c1_c2 = (c1_mean - c2_mean)/(c1_mean + c2_mean + 1e-8)
+    print('c1_c2.max():', c1_c2.max())
+    c3_c4 = (c3_mean - c4_mean)/(c3_mean + c4_mean + 1e-8)
+    print('c3_c4.max():', c3_c4.max())
+    q1_count = sum((c1_c2 < 0) & (c3_c4 > 0))
+    q2_count = sum((c1_c2 > 0) & (c3_c4 > 0))
+    q3_count = sum((c1_c2 > 0) & (c3_c4 < 0))
+    q4_count = sum((c1_c2 < 0) & (c3_c4 < 0))
+    gene_names = get_sca_gene_names(user_id)
+    # TODO: also return quadrant counts
+    output = {
+        'data': [{
+            'x': c1_c2,
+            'y': c3_c4,
+            'colorscale': 'Reds',
+            'type': 'scattergl',
+            'mode': 'markers',
+            'text': list(gene_names),
+            'marker': {'size': 5},
+        }],
+        'layout': {
+            'xaxis': {'title': 'cluster1 - cluster2', 'automargin': True},
+            'yaxis': {'title': 'cluster3 - cluster4', 'automargin': True},
+            'margin': {'t': 40},
+        },
+        'misc': {
+            'q1_count': q1_count,
+            'q2_count': q2_count,
+            'q3_count': q3_count,
+            'q4_count': q4_count,
+        }
+    }
+    return json.dumps(output, cls=SimpleEncoder)
 
 @interaction_views.route('/user/<user_id>/view/update_scatterplot', methods=['GET', 'POST'])
 def update_scatterplot(user_id):

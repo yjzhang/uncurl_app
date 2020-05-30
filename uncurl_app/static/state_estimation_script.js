@@ -70,7 +70,21 @@ function update_barplot(cluster_number) {
     var cluster1 = $("#barplot_cluster_select_1").val();
     var cluster2 = $("#barplot_cluster_select_2").val();
     var selected_gene = $("#barplot_gene_select").val();
-    var key = top_or_bulk + String(input_value) + ' ' + String(num_genes) + ' ' + String(cluster1) + ' ' + String(cluster2) + ' ' + String(cell_color) + ' ' + selected_gene;
+    var data = {"top_or_bulk": top_or_bulk,
+               "input_value": input_value,
+               "num_genes": num_genes,
+               "cell_color": cell_color,
+               "cluster1": cluster1,
+               "cluster2": cluster2,
+               "selected_gene": selected_gene};
+    if (top_or_bulk == 'double_pairs_comparison') {
+        data['cluster1'] = $('#double_pair_cluster_1').val();
+        data['cluster2'] = $('#double_pair_cluster_2').val();
+        data['cluster3'] = $('#double_pair_cluster_3').val();
+        data['cluster4'] = $('#double_pair_cluster_4').val();
+    }
+    console.log(data);
+    var key = JSON.stringify(data);
     $("#update-area").empty();
     $("#update-area").append('Updating barplot <img src="/static/ajax-loader.gif"/>');
     if (cache.barplots.hasOwnProperty(key)) {
@@ -82,7 +96,7 @@ function update_barplot(cluster_number) {
         }
         current_barplot_data = data;
         Plotly.newPlot("top-genes", data.data, data.layout, config={showSendToCloud: true});
-        if (top_or_bulk == 'volcano_pairwise') {
+        if (top_or_bulk == 'volcano_pairwise' || top_or_bulk == 'double_pairs_comparison') {
             var view = $('#top-genes')[0];
             view.on('plotly_selected', on_gene_select);
         }
@@ -92,35 +106,29 @@ function update_barplot(cluster_number) {
     }
     $.ajax({url: window.location.pathname + "/update_barplot",
         type: "POST",
-        data: {"top_or_bulk": top_or_bulk,
-               "input_value": input_value,
-               "num_genes": num_genes,
-               "cell_color": cell_color,
-               "cluster1": cluster1,
-               "cluster2": cluster2,
-               "selected_gene": selected_gene},
-    }).done(function(data) {
+        data: data,
+    }).done(function(return_data) {
         update_barplot_is_running = false;
-        if (data.startsWith('Error')) {
+        if (return_data.startsWith('Error')) {
             $("#update-area").empty();
-            $("#update-area").append(data);
+            $("#update-area").append(return_data);
             return false;
         }
-        data = JSON.parse(data);
-        cache.barplots[key] = data;
-        if (data.data[0].type == 'bar') {
-            var gene_names = data.data[0].y;
+        return_data = JSON.parse(return_data);
+        cache.barplots[key] = return_data;
+        if (return_data.data[0].type == 'bar') {
+            var gene_names = return_data.data[0].y;
             $('#top-genes-view').val(gene_names.join('\n'));
             if (gene_names.length > 20) {
-                data.layout.yaxis = {};
-                data.layout.yaxis.showticklabels = false;
+                return_data.layout.yaxis = {};
+                return_data.layout.yaxis.showticklabels = false;
             }
-            data.data[0].x.reverse();
-            data.data[0].y.reverse();
+            return_data.data[0].x.reverse();
+            return_data.data[0].y.reverse();
         }
-        current_barplot_data = data;
-        Plotly.newPlot("top-genes", data.data, data.layout, config={showSendToCloud: true});
-        if (top_or_bulk == 'volcano_pairwise') {
+        current_barplot_data = return_data;
+        Plotly.newPlot("top-genes", return_data.data, return_data.layout, config={showSendToCloud: true});
+        if (top_or_bulk == 'volcano_pairwise' || top_or_bulk == 'double_pairs_comparison') {
             var view = $('#top-genes')[0];
             view.on('plotly_selected', on_gene_select);
         }
@@ -329,7 +337,7 @@ function update_cluster_selections() {
     var s4 = $('#diffcorr_cluster_1');
     var s5 = $('#diffcorr_cluster_2');
     var s6 = $('#cell_search_cluster');
-    var cluster_selects = [s1, s2, s3, s4, s5, s6];
+    var cluster_selects = [s1, s2, s3, s4, s5, s6, $('#double_pair_cluster_1'), $('#double_pair_cluster_2'), $('#double_pair_cluster_3'), $('#double_pair_cluster_4')];
     for (var s in cluster_selects) {
         var select = cluster_selects[s];
         select.empty();
@@ -742,10 +750,15 @@ function on_top_or_bulk_change() {
     // if the selected option has "pairwise":
     if (option.includes('pairwise')) {
         $('#barplot-cluster-select-view').css('display', 'block');
+        $('#barplot_double_pair_cluster_select').css('display', 'none');
     } else {
         $('#barplot-cluster-select-view').css('display', 'none');
         if (option == "hist") {
+            $('#barplot_double_pair_cluster_select').css('display', 'none');
+        } else if (option == "double_pairs_comparison") {
+            $('#barplot_double_pair_cluster_select').css('display', 'block');
         } else {
+            $('#barplot_double_pair_cluster_select').css('display', 'none');
             update_barplot(currently_selected_cluster);
         }
     }

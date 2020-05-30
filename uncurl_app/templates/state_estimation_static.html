@@ -342,6 +342,7 @@
                 <option value="sep">Most similar clusters (separation score)</option>
                 <option value="hist">Histogram for a gene</option>
                 <option value="top_gene_expression">Highly expressed genes</option>
+                <option value="double_pairs_comparison">Double-pair comparison</option>
             </select>
 
             <select class="form-control" id="gene-barplot-select" style="width: 300px; display:none;" data-toggle="tooltip" title="Which quantity to visualize in the barplot: top clusters, 1-vs-rest">
@@ -359,6 +360,22 @@
                 <select class="form-inline form-control" id="barplot_cluster_select_2" name="barplot_cluster_select_2" onchange="update_barplot(0);">
                 </select>
             </div>
+
+            <div style="display:none;" id="barplot_double_pair_cluster_select" class="form-inline align-items-center">
+                <label for="double_pair_cluster_1">Cluster 1:</label>
+                <select class="form-inline form-control" id="double_pair_cluster_1" name="double_pair_cluster_1">
+                </select>
+                <label for="double_pair_cluster_2">Cluster 2:</label>
+                <select class="form-inline form-control" id="double_pair_cluster_2" name="double_pair_cluster_2">
+                </select>
+                <label for="double_pair_cluster_3">Cluster 3:</label>
+                <select class="form-inline form-control" id="double_pair_cluster_3" name="double_pair_cluster_3">
+                </select>
+                <label for="double_pair_cluster_4">Cluster 4:</label>
+                <select class="form-inline form-control" id="double_pair_cluster_4" name="double_pair_cluster_4">
+                </select>
+            </div>
+
 
             <div style="display:block;" id="barplot_gene_select_view" class="form-inline align-items-center">
                 <!--  this contains an interface to select a gene for comparing the selected cluster vs all. -->
