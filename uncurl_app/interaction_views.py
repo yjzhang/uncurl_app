@@ -815,12 +815,12 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
     else:
         return 'Error: '
 
-def get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4):
+@cache.memoize()
+def get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4, nonzero_threshold=0):
     """
     Plot a two-dimensional scatterplot: x-axis shows cluster1-cluster2, y-axis shows cluster3-cluster4
     """
     print('get_double_pairs_comparison_data')
-    # TODO: compare double pairs...
     if colormap in ['cluster', 'gene', 'entropy', 'weights']:
         colormap = 'cluster'
     c1 = int(c1)
@@ -830,10 +830,9 @@ def get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4):
     data_sampled_all_genes = get_sca_data_sampled_all_genes(user_id)
     color_track, is_discrete = get_sca_color_track(user_id, colormap)
     color_to_index, index_to_color = color_track_map(color_track)
-    print(color_track)
     print(c1, c2, c3, c4)
-    # TODO: get means for each of the clusters
-    # TODO: this is incorrect
+    # get means for each of the clusters
+    gene_nonzero_counts = data_sampled_all_genes.getnnz(1)
     c1_mean = data_sampled_all_genes[:, color_track == index_to_color[c1]].mean(1)
     c1_mean = np.array(c1_mean).flatten()
     c2_mean = data_sampled_all_genes[:, color_track == index_to_color[c2]].mean(1)
@@ -842,31 +841,47 @@ def get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4):
     c3_mean = np.array(c3_mean).flatten()
     c4_mean = data_sampled_all_genes[:, color_track == index_to_color[c4]].mean(1)
     c4_mean = np.array(c4_mean).flatten()
-    # TODO: divide by max of c1 and c2
+    # : by sum of c1 and c2
+    if nonzero_threshold == 0:
+        nonzero_threshold = float(data_sampled_all_genes.shape[1])/200
     c1_c2 = (c1_mean - c2_mean)/(c1_mean + c2_mean + 1e-8)
-    print('c1_c2.max():', c1_c2.max())
+    c1_c2[gene_nonzero_counts <= nonzero_threshold] = 0
     c3_c4 = (c3_mean - c4_mean)/(c3_mean + c4_mean + 1e-8)
-    print('c3_c4.max():', c3_c4.max())
+    c3_c4[gene_nonzero_counts <= nonzero_threshold] = 0
     q1_count = sum((c1_c2 < 0) & (c3_c4 > 0))
     q2_count = sum((c1_c2 > 0) & (c3_c4 > 0))
     q3_count = sum((c1_c2 > 0) & (c3_c4 < 0))
     q4_count = sum((c1_c2 < 0) & (c3_c4 < 0))
     gene_names = get_sca_gene_names(user_id)
-    # TODO: also return quadrant counts
+    # also print quadrant counts somehow?
     output = {
-        'data': [{
-            'x': c1_c2,
-            'y': c3_c4,
-            'colorscale': 'Reds',
-            'type': 'scattergl',
-            'mode': 'markers',
-            'text': list(gene_names),
-            'marker': {'size': 5},
-        }],
+        'data': [
+            {
+                'x': c1_c2,
+                'y': c3_c4,
+                'colorscale': 'Reds',
+                'type': 'scattergl',
+                'mode': 'markers',
+                'text': list(gene_names),
+                'marker': {'size': 5},
+            },
+            {
+                'x': [-1, 1, 1, -1],
+                'y': [1, 1, -1, -1],
+                'mode': 'text',
+                'text': [str(x) for x in [q1_count, q2_count, q3_count, q4_count]],
+                'type': 'scatter',
+                'textfont': {
+                    'size': 18,
+                    'color': '#ff7f0e',
+                }
+            }
+        ],
         'layout': {
             'xaxis': {'title': 'cluster1 - cluster2', 'automargin': True},
             'yaxis': {'title': 'cluster3 - cluster4', 'automargin': True},
             'margin': {'t': 40},
+            'hovermode': 'closest',
         },
         'misc': {
             'q1_count': q1_count,
