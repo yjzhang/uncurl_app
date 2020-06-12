@@ -839,8 +839,7 @@ def get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4, nonzero_
         selected_gene_indices = np.array([gene_indices[g] for g in selected_genes])
         #selected_diffexp = selected_diffexp[:,:,selected_gene_indices]
         #selected_pvals = selected_pvals[:,:,selected_gene_indices]
-        data_sampled_all_genes = data_sampled_all_genes[:,selected_gene_indices]
-        color_track = color_track[selected_gene_indices]
+        data_sampled_all_genes = data_sampled_all_genes[selected_gene_indices,:]
         gene_names = selected_genes
     # get means for each of the clusters
     gene_nonzero_counts = data_sampled_all_genes.getnnz(1)
