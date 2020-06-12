@@ -631,7 +631,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         cluster2 = int(data_form['cluster2'])
         return volcano_plot_data(user_id, colormap, cluster1, cluster2, selected_genes=selected_gene_names)
     elif top_or_bulk == 'top_gene_expression':
-        # TODO: get top genes by raw average expression
+        # get top genes by raw average expression
         colormap = str(data_form['cell_color'])
         cluster_id = int(input_value)
         sca = get_sca(user_id)
@@ -648,7 +648,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
             labels = sca.labels
             selected_cells = (labels == cluster_id)
         data_subset = data[:, selected_cells]
-        # TODO: calculate average gene expression for the selected cluster
+        # calculate average gene expression for the selected cluster
         data_means = np.array(data_subset.mean(1)).flatten()
         print(np.sort(data_means)[::-1][:10])
         if selected_gene_names is not None:
@@ -811,12 +811,12 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         c2 = str(data_form['cluster2'])
         c3 = str(data_form['cluster3'])
         c4 = str(data_form['cluster4'])
-        return get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4)
+        return get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4, selected_genes=selected_gene_names)
     else:
         return 'Error: '
 
 @cache.memoize()
-def get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4, nonzero_threshold=0):
+def get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4, nonzero_threshold=0, selected_genes=None):
     """
     Plot a two-dimensional scatterplot: x-axis shows cluster1-cluster2, y-axis shows cluster3-cluster4
     """
@@ -827,10 +827,21 @@ def get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4, nonzero_
     c2 = int(c2)
     c3 = int(c3)
     c4 = int(c4)
+    print(c1, c2, c3, c4)
     data_sampled_all_genes = get_sca_data_sampled_all_genes(user_id)
+    gene_names = get_sca_gene_names(user_id)
     color_track, is_discrete = get_sca_color_track(user_id, colormap)
     color_to_index, index_to_color = color_track_map(color_track)
-    print(c1, c2, c3, c4)
+    # TODO: use log fold change instead of normalized difference?
+    # get selected genes
+    if selected_genes is not None:
+        gene_indices = {g:i for i, g in enumerate(gene_names)}
+        selected_gene_indices = np.array([gene_indices[g] for g in selected_genes])
+        #selected_diffexp = selected_diffexp[:,:,selected_gene_indices]
+        #selected_pvals = selected_pvals[:,:,selected_gene_indices]
+        data_sampled_all_genes = data_sampled_all_genes[:,selected_gene_indices]
+        color_track = color_track[selected_gene_indices]
+        gene_names = selected_genes
     # get means for each of the clusters
     gene_nonzero_counts = data_sampled_all_genes.getnnz(1)
     c1_mean = data_sampled_all_genes[:, color_track == index_to_color[c1]].mean(1)
@@ -852,7 +863,6 @@ def get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4, nonzero_
     q2_count = sum((c1_c2 > 0) & (c3_c4 > 0))
     q3_count = sum((c1_c2 > 0) & (c3_c4 < 0))
     q4_count = sum((c1_c2 < 0) & (c3_c4 < 0))
-    gene_names = get_sca_gene_names(user_id)
     # also print quadrant counts somehow?
     output = {
         'data': [
@@ -882,6 +892,7 @@ def get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4, nonzero_
             'yaxis': {'title': 'cluster3 - cluster4', 'automargin': True},
             'margin': {'t': 40},
             'hovermode': 'closest',
+            'showlegend': False,
         },
         'misc': {
             'q1_count': q1_count,
