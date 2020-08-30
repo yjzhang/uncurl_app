@@ -157,7 +157,10 @@ def user_id_to_path(user_id):
         path = os.path.join(current_app.config['TEST_DATA_DIR'], user_id)
         return path
     else:
-        return os.path.join(current_app.config['USER_DATA_DIR'], user_id)
+        path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
+        if not os.path.exists(path):
+            path = os.path.join(current_app.config['SECONDARY_USER_DATA_DIR'], user_id)
+        return path
 
 def barplot_data(gene_values, gene_names, cluster_name, x_label,
         title=None):
@@ -381,6 +384,10 @@ def volcano_plot_data(user_id, colormap, cluster1, cluster2, selected_genes=None
     pval_data = selected_pvals[cluster1, cluster2, :]
     pval_2v1_data = selected_pvals[cluster2, cluster1, :]
     pval_combined = np.fmin(pval_data, pval_2v1_data)
+    if sca.params['use_fdr']:
+        y_desc = '-log10 FDR'
+    else:
+        y_desc = '-log10 p-value'
     data = [{
                 'x': np.log2(diffexp_data + 2e-16),
                 'y': -np.log10(pval_combined + 2e-16),
@@ -396,7 +403,7 @@ def volcano_plot_data(user_id, colormap, cluster1, cluster2, selected_genes=None
             'layout': {
                 'title': 'Top genes for label {0} vs label {1}'.format(index_to_color[cluster1], index_to_color[cluster2]),
                 'xaxis': {'title': 'log2 fold change', 'autorange': True},
-                'yaxis': {'title': '-log10 p-value', 'autorange': True},
+                'yaxis': {'title': y_desc, 'autorange': True},
                 'hovermode': 'closest',
                 'margin': {'t': 40},
             },
@@ -699,9 +706,13 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         if top_or_bulk == 'selected_color_pval':
             x_label = 'p-value of fold change (1 vs rest)'
         if 'pval' in top_or_bulk:
-            # TODO: make note of whether p-val is FDR-corrected and
+            # make note of whether p-val is FDR-corrected and
             # note that in the x-value
-            x_label = 'p-value of fold change'
+            is_fdr = sca.params['use_fdr']
+            if is_fdr:
+                x_label = 'FDR'
+            else:
+                x_label = 'p-value of fold change'
         # selected genes
         if len(selected_gene.strip()) > 0:
             selected_top_genes = [x for x in selected_diffexp if gene_names[x[0]] in set(selected_gene_names)]
@@ -739,7 +750,11 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
             else:
                 data = get_sca_pairwise_pvals(user_id)
                 genes, values = array_to_top_genes(data, cluster1, cluster2, is_pvals=True, num_genes=num_genes)
-                desc = 'p-values of ratios'
+                is_fdr = sca.params['use_fdr']
+                if is_fdr:
+                    desc = 'FDR of ratios'
+                else:
+                    desc = 'p-value of ratios'
             # generate barplot
             if len(selected_gene.strip()) > 0:
                 genes, values = array_to_top_genes(data, cluster1, cluster2, is_pvals=(top_or_bulk=='top_pairwise'), num_genes=1000000)
@@ -766,7 +781,11 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                 desc = 'ratios'
             else:
                 genes, values = array_to_top_genes(selected_pvals, cluster1, cluster2, is_pvals=True, num_genes=num_genes)
-                desc = 'p-values of ratios'
+                is_fdr = sca.params['use_fdr']
+                if is_fdr:
+                    desc = 'FDR of ratios'
+                else:
+                    desc = 'p-value of ratios'
             if len(selected_gene.strip()) > 0:
                 if top_or_bulk == 'top_pairwise':
                     genes, values = array_to_top_genes(selected_diffexp, cluster1, cluster2, is_pvals=(top_or_bulk=='top_pairwise'), num_genes=1000000)

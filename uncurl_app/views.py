@@ -214,11 +214,15 @@ def state_estimation_result(user_id):
                 uncurl_is_done=False,
                 has_result=False)
 
-# this gzips the directory and returns
+# this gzips the directory and returns a download
 @views.route('/<x>/results/<user_id>/download_all')
 def state_estimation_download_all(x, user_id):
     if x!='test':
         path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
+        if not os.path.exists(path):
+            path = os.path.join(current_app.config['SECONDARY_USER_DATA_DIR'], user_id)
+            if not os.path.exists(path):
+                return error('Data not found', 404)
     else:
         path = os.path.join(current_app.config['TEST_DATA_DIR'], user_id)
     filename = user_id + '.tar.gz'

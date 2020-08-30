@@ -34,6 +34,10 @@ def create_app(config_filename=None):
         app.config['USER_DATA_DIR'] = os.environ['USER_DATA_DIR']
     else:
         app.config['USER_DATA_DIR'] = '/tmp/uncurl/'
+    if 'SECONDARY_USER_DATA_DIR' in os.environ:
+        app.config['SECONDARY_USER_DATA_DIR'] = os.environ['SECONDARY_USER_DATA_DIR']
+    else:
+        app.config['SECONDARY_USER_DATA_DIR'] = '/tmp/uncurl_2/'
     app.config['BULK_DATA_DIR'] = 'bulk_data/'
 
     app.config['CACHE_TYPE'] = 'redis'
