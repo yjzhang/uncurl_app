@@ -64,7 +64,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         self.assertEqual('0.5', cell_frac.get_attribute('value'))
         gene_frac = self.driver.find_element_by_id('genes-frac')
         self.assertEqual('0.5', gene_frac.get_attribute('value'))
-        time.sleep(60)
+        time.sleep(120)
         # initial processing be completed by now
         print(self.driver.current_url)
         # refresh page

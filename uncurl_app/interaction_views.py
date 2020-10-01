@@ -148,7 +148,7 @@ def array_to_top_genes(data_array, cluster1, cluster2, is_pvals=False, num_genes
     values = data_cluster[order[:num_genes]]
     return genes, values
 
-def user_id_to_path(user_id):
+def user_id_to_path(user_id, use_secondary=True):
     """
     Given a user id, returns the path to the analysis object's base directory.
     """
@@ -158,7 +158,7 @@ def user_id_to_path(user_id):
         return path
     else:
         path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
-        if not os.path.exists(path):
+        if not os.path.exists(path) and use_secondary:
             path = os.path.join(current_app.config['SECONDARY_USER_DATA_DIR'], user_id)
         return path
 
@@ -1658,7 +1658,7 @@ def copy_dataset(user_id):
     try:
         new_user_id = str(uuid.uuid4())
         new_user_id = new_user_id + user_id[36:]
-        shutil.copytree(path, user_id_to_path(new_user_id))
+        shutil.copytree(path, user_id_to_path(new_user_id, use_secondary=False))
         # change user id in json files (this is a bad hack lol)
         import subprocess
         subprocess.call("sed -i 's/{0}/{1}/g' /tmp/uncurl/{1}/*.json".format(user_id, new_user_id), shell=True)
@@ -1730,7 +1730,7 @@ def rerun_uncurl(user_id):
 
     # create new user_id
     new_user_id = str(uuid.uuid4())
-    new_path = user_id_to_path(new_user_id)
+    new_path = user_id_to_path(new_user_id, use_secondary=False)
 
     # TODO: should we copy everything and use some trickery to get around this???
     # TODO: copy genes as well. OR we might as well just copy everything, and use cell_subset.
