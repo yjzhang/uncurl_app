@@ -60,12 +60,13 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
             'type': 'heatmap',
         }],
         'layout': {
-            'xaxis': {'title': cluster_2_name, 'automargin': True},
-            'yaxis': {'title': cluster_1_name, 'automargin': True},
+            'xaxis': {'title': cluster_2_name, 'automargin': True,
+                'type': 'category'},
+            'yaxis': {'title': cluster_1_name, 'automargin': True,
+                'type': 'category'},
             'font': {'size': 16},
             'height': 550,
             'width': 700,
-
         }
     }
     return json.dumps(output, cls=SimpleEncoder)
