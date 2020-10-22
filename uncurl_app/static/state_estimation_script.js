@@ -52,7 +52,7 @@ function bind_click() {
         //$("#update-area").empty();
         $("#update-area").append("\nselected clusters: " + selection_string);
     });
-};
+}
 
 // function called whenever a scatterplot is clicked or
 // when the dropdown is changed...
@@ -72,6 +72,7 @@ function update_barplot(cluster_number) {
     var selected_gene = $("#barplot_gene_select").val();
     var data = {"top_or_bulk": top_or_bulk,
                "input_value": input_value,
+               "all_selected_clusters": all_selected_clusters,
                "num_genes": num_genes,
                "cell_color": cell_color,
                "cluster1": cluster1,
@@ -83,13 +84,17 @@ function update_barplot(cluster_number) {
         data['cluster3'] = $('#double_pair_cluster_3').val();
         data['cluster4'] = $('#double_pair_cluster_4').val();
     }
+    if (top_or_bulk == 'violin') {
+        data['violin_use_log'] = $('#violin_use_log').is(':checked') ? 1 : 0;
+        data['violin_all_clusters'] = $('#violin_all_clusters').is(':checked') ? 1 : 0;
+    }
     console.log(data);
     var key = JSON.stringify(data);
     $("#update-area").empty();
     $("#update-area").append('Updating barplot <img src="/static/ajax-loader.gif"/>');
     if (cache.barplots.hasOwnProperty(key)) {
         update_barplot_is_running = false;
-        var data = cache.barplots[key];
+        data = cache.barplots[key];
         if (data.data[0].type != 'histogram') {
             var gene_names = data.data[0].y;
             $('#top-genes-view').val(gene_names.join('\n'));
@@ -751,14 +756,18 @@ function on_top_or_bulk_change() {
     if (option.includes('pairwise')) {
         $('#barplot-cluster-select-view').css('display', 'block');
         $('#barplot_double_pair_cluster_select').css('display', 'none');
+        $('#barplot_violin_plot_options').css('display', 'none');
     } else {
         $('#barplot-cluster-select-view').css('display', 'none');
-        if (option == "hist") {
+        if (option == "violin") {
             $('#barplot_double_pair_cluster_select').css('display', 'none');
+            $('#barplot_violin_plot_options').css('display', 'block');
         } else if (option == "double_pairs_comparison") {
             $('#barplot_double_pair_cluster_select').css('display', 'block');
+            $('#barplot_violin_plot_options').css('display', 'none');
         } else {
             $('#barplot_double_pair_cluster_select').css('display', 'none');
+            $('#barplot_violin_plot_options').css('display', 'none');
             update_barplot(currently_selected_cluster);
         }
     }

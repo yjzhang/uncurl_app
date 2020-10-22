@@ -410,6 +410,53 @@ def volcano_plot_data(user_id, colormap, cluster1, cluster2, selected_genes=None
     }, cls=SimpleEncoder)
 
 
+def violin_plot_data(gene_values_all, cell_labels, gene_name,
+        title=None, use_all_clusters=False, selected_clusters=None):
+    """
+    Returns a violin plot for a single gene, possibly over multiple clusters.
+
+    Args:
+        gene_values_cluster: 1d array of gene expression for the selected cluster, for the selected gene
+        gene_values_all: 1d array of gene expression for all cells, for the selected gene
+    """
+    if title is None:
+        title = 'Plot for gene {0}'.format(gene_name)
+    selected_clusters = set(selected_clusters)
+    if use_all_clusters:
+        selected_clusters = set(cell_labels)
+    selected_cells = np.array([x in selected_clusters for x in cell_labels])
+    gene_values_cluster = gene_values_all[selected_cells]
+    cell_labels = cell_labels[selected_cells]
+    data = [{
+        'y': gene_values_cluster.tolist(),
+        'x': [str(x) for x in cell_labels],
+        'type': 'violin',
+        'opacity': 0.5,
+        #'marker': {'color': 'green'},
+        'box': True,
+    },
+    {
+        'y': gene_values_all.tolist(),
+        'type': 'violin',
+        'opacity': 0.5,
+        'name': 'all cells',
+        #'marker': {'color': 'blue'},
+        'box': True,
+    }]
+    return json.dumps({
+        'data': data,
+        'layout': {
+            'title': title,
+            'barmode': 'overlay',
+            'showlegend': True,
+            'xaxis': {'title': 'Cluster', 'type': 'category'},
+            'yaxis': {'title': 'Gene level', 'zeroline': False},
+            'width': max(400, 150*len(selected_clusters))
+        },
+    }, cls=SimpleEncoder)
+
+
+
 @cache.memoize()
 def heatmap_data(user_id, label_name_1, label_name_2, **params):
     """
@@ -831,8 +878,43 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         c3 = str(data_form['cluster3'])
         c4 = str(data_form['cluster4'])
         return get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4, selected_genes=selected_gene_names)
+    elif top_or_bulk == 'violin':
+        print('violin_plot')
+        print(data_form)
+        selected_gene = data_form['selected_gene']
+        use_log_transform = False
+        if 'violin_use_log' in data_form:
+            use_log_transform = (data_form['violin_use_log'] == '1')
+        use_all_clusters = False
+        if 'violin_all_clusters' in data_form:
+            use_all_clusters = (data_form['violin_all_clusters'] == '1')
+        use_baseline_clusters = True
+        colormap = str(data_form['cell_color'])
+        cluster_id = input_value
+        all_selected_clusters = [cluster_id]
+        if 'all_selected_clusters[]' in data_form:
+            all_selected_clusters = data_form.getlist('all_selected_clusters[]', type=int)
+            print('selected clusters for violin plot:', all_selected_clusters)
+        if colormap is not None and colormap not in ['cluster', 'gene', 'entropy', 'weights']:
+            try:
+                color_track, is_discrete = get_sca_color_track(user_id, colormap)
+                if is_discrete:
+                    use_baseline_clusters = False
+            except:
+                pass
+        gene_data = get_gene_data(user_id, selected_gene)
+        if use_log_transform:
+            gene_data = np.log10(gene_data + 1)
+        if use_baseline_clusters:
+            return violin_plot_data(gene_data, sca.labels, selected_gene, use_all_clusters=use_all_clusters, selected_clusters=all_selected_clusters)
+        else:
+            color_track, is_discrete = get_sca_color_track(user_id, colormap)
+            color_to_index, index_to_color = color_track_map(color_track)
+            all_selected_clusters = [index_to_color[c] for c in all_selected_clusters]
+            return violin_plot_data(gene_data, color_track, selected_gene, use_all_clusters=use_all_clusters, selected_clusters=all_selected_clusters)
     else:
         return 'Error: '
+
 
 @cache.memoize()
 def get_double_pairs_comparison_data(user_id, colormap, c1, c2, c3, c4, nonzero_threshold=0, selected_genes=None):
@@ -1097,14 +1179,15 @@ def cell_info(user_id):
 @cache.memoize()
 def cell_info_result(user_id, selected_cells, selected_clusters, color_map):
     # get read count + gene count for all cells
+    # TODO: don't really need cell info; need more cluster info
     sca = get_sca(user_id)
     read_counts = []
     gene_counts = []
     data = get_sca_data_sampled_all_genes(user_id)
-    for cell in selected_cells:
-        cell_data = data[:, cell]
-        gene_counts.append(cell_data.count_nonzero())
-        read_counts.append(cell_data.sum())
+    #for cell in selected_cells:
+    #    cell_data = data[:, cell]
+    #    gene_counts.append(cell_data.count_nonzero())
+    #    read_counts.append(cell_data.sum())
     cluster_reads, cluster_genes, total_gene_count = get_cluster_stats(sca, data, selected_clusters[0], color_map)
     return json.dumps({'gene_counts': gene_counts,
         'read_counts': read_counts, 'cluster_reads': cluster_reads,
@@ -1732,8 +1815,6 @@ def rerun_uncurl(user_id):
     new_user_id = str(uuid.uuid4())
     new_path = user_id_to_path(new_user_id, use_secondary=False)
 
-    # TODO: should we copy everything and use some trickery to get around this???
-    # TODO: copy genes as well. OR we might as well just copy everything, and use cell_subset.
     #path = sca.data_dir
     #shutil.copytree(path, user_id_to_path(new_user_id))
     #import subprocess

@@ -340,7 +340,7 @@
                 <option value="pval_pairwise">Pairwise p-value</option>
                 <option value="volcano_pairwise">Pairwise volcano plot</option>
                 <option value="sep">Most similar clusters (separation score)</option>
-                <option value="hist">Histogram for a gene</option>
+                <option value="violin">Violin plots for a gene</option>
                 <option value="top_gene_expression">Highly expressed genes</option>
                 <option value="double_pairs_comparison">Double-pair comparison</option>
             </select>
@@ -382,6 +382,14 @@
                 <label for="barplot_gene_select">Genes of interest (optional):</label>
                 <input list="gene_names" id="barplot_gene_select" class="form-control" style="width: 200px;">
                 <button type="button" class="btn btn-default" id="barplot_gene_submit" onclick="update_barplot(currently_selected_cluster);">Submit</button>
+            </div>
+
+            <div style="display:none;" id="barplot_violin_plot_options" class="form-inline">
+                <!-- Options for plotting a violin plot -->
+                <label for="violin_use_log">Use log-transform:</label>
+                <input type="checkbox" id="violin_use_log" name="violin_use_log" value="1">
+                <label for="violin_all_clusters">Use all clusters:</label>
+                <input type="checkbox" id="violin_all_clusters" name="violin_all_clusters" value="0">
             </div>
 
             <div style="margin-top: 4; margin-bottom: 0; width: 300px;" class="form-inline align-items-center">
