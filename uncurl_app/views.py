@@ -10,7 +10,6 @@ import numpy as np
 import uncurl
 
 from .cache import cache
-from .flask_router import flask_router
 
 from .generate_analysis import generate_uncurl_analysis, get_progress
 from .data_stats import Summary

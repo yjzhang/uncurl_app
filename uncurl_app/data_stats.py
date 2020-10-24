@@ -33,6 +33,7 @@ class Summary(object):
                 else:
                     raise Exception('data not found')
                 self.is_gz = is_gz
+                gene_path = gene_paths[0]
             else:
                 self.is_gz = True
                 data_paths_new = []
@@ -76,24 +77,28 @@ class Summary(object):
                 data = np.loadtxt(data_path)
         else:
             self.is_gz = True
+        self.data = sparse.csc_matrix(data)
+        print(gene_path)
+        print(gene_paths)
+        try:
+            self.gene_names = np.loadtxt(gene_path, dtype=str)
+        except:
+            self.gene_names = np.array([str(x) for x in range(data.shape[0])])
         self.cell_read_counts = np.array(data.sum(0)).flatten()
-        self.cell_gene_counts = np.array((data>0).sum(0)).flatten()
+        if sparse.issparse(data):
+            self.cell_gene_counts = data.getnnz(0)
+        else:
+            self.cell_gene_counts = np.count_nonzero(data, 0)
         self.sorted_read_counts = np.sort(self.cell_read_counts)
         self.sorted_gene_counts = np.sort(self.cell_gene_counts)
         self.cells = data.shape[1]
         self.genes = data.shape[0]
-        if sparse.issparse(data):
-            self.is_sparse = True
-            data_csc = sparse.csc_matrix(data)
-            m, v = sparse_means_var_csc(data_csc.data,
-                    data_csc.indices, data_csc.indptr, data.shape[1],
-                    data.shape[0])
-            self.gene_means = m
-            self.gene_vars = v
-        else:
-            self.is_sparse = False
-            self.gene_means = data.mean(1).flatten()
-            self.gene_vars = data.var(1).flatten()
+        self.is_sparse = True
+        m, v = sparse_means_var_csc(self.data.data,
+                self.data.indices, self.data.indptr, self.data.shape[1],
+                self.data.shape[0])
+        self.gene_means = m
+        self.gene_vars = v
         self.sorted_gene_means = np.sort(self.gene_means)
         self.path = base_path
 
@@ -113,6 +118,9 @@ class Summary(object):
         top_05 = int(self.cells/20) # 5%
         preproc_params = {'min_reads': int(self.sorted_read_counts[top_05]),
                           'max_reads': int(self.sorted_read_counts[-top_05]),
+                          'min_unique_genes': 0,
+                          'max_unique_genes': 20000,
+                          'max_mt_frac': 1.0,
                           'genes_frac': 0.2,
                           'nbins': 5,
                           'cell_frac': cell_frac,
@@ -195,28 +203,33 @@ class Summary(object):
         }, cls=SimpleEncoder)
         with open(os.path.join(self.path, 'gene_count_hist_data.json'), 'w') as f:
             f.write(gene_count_hist_data)
-        top_5_gene = int(self.genes/20) # 5%
-        gene_means_max = self.sorted_gene_means[-top_5_gene]
-        gene_mean_hist_data = json.dumps({
-             'data': [{
-                'x': self.gene_means.tolist(),
-                'type': 'histogram',
-                'histnorm': 'probability',
-                'opacity': 1.0,
-                'name': 'Gene means',
-                'marker': {'color': 'blue'},
-            }],
-            'layout': {
-                'title': 'Mean expression per gene',
-                'barmode': 'overlay',
-                'showlegend': False,
-                'xaxis': {'title': 'Gene Mean Expression Level', 'range': [0.0, gene_means_max]},
-                'yaxis': {'title': 'Gene Fraction'},
-            },
-        }, cls=SimpleEncoder)
-        with open(os.path.join(self.path, 'gene_mean_hist_data.json'), 'w') as f:
-            f.write(gene_mean_hist_data)
-        return read_count_hist_data, gene_count_hist_data, gene_mean_hist_data
+        # plot mtRNA frac as a histogram, no need to plot gene means
+        mt_genes = map(lambda x: x.startswith('Mt-') or x.startswith('MT-') or x.startswith('mt-'), self.gene_names)
+        mt_genes = np.array(list(mt_genes))
+        if len(mt_genes) > 0:
+            mt_gene_counts = np.array(self.data[mt_genes, :].sum(0)).flatten()
+            mt_gene_frac = mt_gene_counts/self.cell_read_counts
+            mt_frac_hist_data = json.dumps({
+                 'data': [{
+                    'x': mt_gene_frac.tolist(),
+                    'type': 'histogram',
+                    'opacity': 1.0,
+                    'name': 'Gene means',
+                    'marker': {'color': 'blue'},
+                }],
+                'layout': {
+                    'title': 'Fraction of mitochondrial genes per cell',
+                    'barmode': 'overlay',
+                    'showlegend': False,
+                    'xaxis': {'title': 'Mt Frac'},
+                    'yaxis': {'title': 'Cell Counts'},
+                },
+            }, cls=SimpleEncoder)
+            with open(os.path.join(self.path, 'gene_mean_hist_data.json'), 'w') as f:
+                f.write(mt_frac_hist_data)
+        else:
+            mt_frac_hist_data = None
+        return read_count_hist_data, gene_count_hist_data, mt_frac_hist_data
 
     def load_plotly_json(self):
         """
