@@ -20,11 +20,8 @@ def db_query_index():
     anatomy_id_names = cellmesh.get_all_cell_id_names(db_dir=cellmesh.ANATOMY_DB_DIR,
             include_cell_lines=True, include_chromosomes=True)
     anatomy_names = [x[1] for x in anatomy_id_names]
-    cell_id_names = cellmesh.get_all_cell_id_names(include_cell_components=False)
-    cell_names = [x[1] for x in cell_id_names]
     return render_template('db_query_index.html',
-            anatomy_names=anatomy_names,
-            cell_names=cell_names)
+            anatomy_names=anatomy_names)
 
 
 @db_query.route('/db_query/submit', methods=['POST'])
@@ -45,17 +42,17 @@ def db_query_submit():
             cell_types = [result[0]]
         elif db == 'cellmesh':
             import cellmesh
-            mesh_subset = request.form['anatomy_mesh_subset']
-            test_type = request.form['anatomy_mesh_test_type']
+            mesh_subset = request.form['cellmesh_subset']
             if len(mesh_subset) > 1:
-                mesh_subset = [cellmesh.get_cell_id_from_name(mesh_subset)]
+                mesh_subset = [cellmesh.get_cell_id_from_name(mesh_subset,
+                    db_dir=cellmesh.ANATOMY_DB_DIR)]
             else:
                 mesh_subset = None
             test_type = request.form['mesh_test_type']
             species = request.form['cellmesh_species']
             result = []
             if test_type == 'hypergeom':
-                result = cellmesh.hypergeometric_test(top_genes, species=species, return_header=True)
+                result = cellmesh.hypergeometric_test(top_genes, species=species, return_header=True, cell_type_subset=mesh_subset)
             elif test_type == 'norm_hypergeom':
                 result = cellmesh.normed_hypergeometric_test(top_genes, return_header=True, species=species)
             elif test_type == 'prob':

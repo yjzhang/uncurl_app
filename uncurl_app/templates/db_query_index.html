@@ -189,10 +189,9 @@ window.onload = function() {
             <!-- TODO: have a list of potential sub-types -->
             <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
                 <label for="cellmesh_subset" data-toggle="tooltip" title="Query will include all children of this term.">MeSH root:</label>
-                <input list="cellmesh_terms" class="form-control" id="cellmesh_subset" name="anatomy_mesh_subset">
+                <input list="cellmesh_terms" class="form-control" id="cellmesh_subset" name="cellmesh_subset">
                 <datalist id="cellmesh_terms">
-                    <!-- TODO: add anatomy terms -->
-                    {% for name in cell_names %}
+                    {% for name in anatomy_names %}
                     <option value="{{ name }}">
                     {% endfor %}
                 </datalist>
@@ -226,7 +225,6 @@ window.onload = function() {
                 <label for="anatomy_mesh_subset" data-toggle="tooltip" title="Query will only include all children of this MeSH term. Leave blank to use all MeSH anatomy terms.">MeSH root:</label>
                 <input list="anatomy_mesh_terms" class="form-control" id="anatomy_mesh_subset" name="anatomy_mesh_subset">
                 <datalist id="anatomy_mesh_terms">
-                    <!-- TODO: add anatomy terms -->
                     {% for name in anatomy_names %}
                     <option value="{{ name }}">
                     {% endfor %}

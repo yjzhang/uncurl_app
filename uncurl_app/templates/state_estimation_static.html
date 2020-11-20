@@ -506,14 +506,7 @@
 
                         <div id="cellmesh_anatomy_view" style="display:none;">
                             <h5 data-toggle="tooltip" title="Query the CellMeSH database for cell types matching the selected genes.">Query CellMeSH with selected genes</h4>
-                            <!-- TODO: have a list of potential sub-types -->
-                            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
-                                <label for="anatomy_mesh_subset" data-toggle="tooltip" title="Comma-separated list of MeSH Anatomy IDs; query will include all children of these terms.">MeSH ID subset:</label>
-                                <input list="anatomy_mesh_root_terms" class="form-control" id="anatomy_mesh_subset" name="anatomy_mesh_subset">
-                                <datalist id="anatomy_mesh_root_terms">
-                                    <option value="">
-                                </datalist>
-                            </div>
+
                             <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
                                 <label for="anatomy_mesh_test_type" data-toggle="tooltip" title="Currently, only the hypergeometric test is available.">Statistical test:</label>
                                 <select class="form-control" id="anatomy_mesh_test_type" name="anatomy_mesh_test_type">
@@ -531,6 +524,15 @@
                                     <option value="both">Human + mouse</option>
                                     <option value="c_elegans">C. Elegans</option>
                                 </select>
+                            </div>
+                            <div class="form-inline" style="margin-top: 5px; margin-bottom: 5px; width: 300px;">
+                                <label for="anatomy_mesh_subset" data-toggle="tooltip" title="Query will only include all children of this MeSH term. Leave blank to use all MeSH anatomy terms.">MeSH root (optional):</label>
+                                <input list="anatomy_mesh_terms" class="form-control" id="anatomy_mesh_subset" name="anatomy_mesh_subset">
+                                <datalist id="anatomy_mesh_terms">
+                                    {% for name in anatomy_names %}
+                                    <option value="{{ name }}">
+                                    {% endfor %}
+                                </datalist>
                             </div>
                             <button class="btn btn-default" id="cellmesh_anatomy_submit" type="button" onclick="update_gene_query('cellmesh_anatomy');">Submit CellMesh Anatomy query</button>
                             <div id="cellmesh_anatomy_results"></div>

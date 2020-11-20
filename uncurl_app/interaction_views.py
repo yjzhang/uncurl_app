@@ -602,13 +602,21 @@ def view_plots(user_id):
         test_or_user = 'test'
         data_user_id = user_id[5:]
     sca = get_sca(user_id)
+    import cellmesh
+    anatomy_id_names = cellmesh.get_all_cell_id_names(db_dir=cellmesh.ANATOMY_DB_DIR,
+            include_cell_lines=True, include_chromosomes=True)
+    anatomy_names = [x[1] for x in anatomy_id_names]
+    cell_id_names = cellmesh.get_all_cell_id_names(include_cell_components=False)
+    cell_names = [x[1] for x in cell_id_names]
     return render_template('state_estimation_static.html', user_id=user_id,
             test_or_user=test_or_user,
             data_user_id=data_user_id,
             gene_names=get_sca_gene_names(user_id),
             gene_sets=enrichr_api.ENRICHR_LIBRARIES,
             color_tracks=sca.get_color_track_names(),
-            use_bacillus=True)
+            use_bacillus=True,
+            anatomy_names=anatomy_names,
+            cell_names=cell_names)
 
 
 @interaction_views.route('/user/<user_id>/view/update_barplot', methods=['GET', 'POST'])
@@ -1349,19 +1357,20 @@ def update_cellmesh_result(user_id, top_genes, test, species='human', return_jso
 @interaction_views.route('/user/<user_id>/view/update_cellmesh_anatomy', methods=['GET', 'POST'])
 def update_cellmesh_anatomy(user_id):
     top_genes = [x.strip().upper() for x in split_gene_names(request.form['top_genes'])]
-    mesh_subset = request.form['anatomy_mesh_subset']
+    mesh_subset = request.form['anatomy_mesh_subset'].strip()
     species = request.form['anatomy_species']
     test = request.form['anatomy_mesh_test_type']
     return update_cellmesh_anatomy_result(top_genes, mesh_subset=mesh_subset, species=species, test=test)
 
 @cache.memoize()
 def update_cellmesh_anatomy_result(top_genes, mesh_subset=None, species='human', return_json=True, test='hypergeom'):
+    import cellmesh
     if len(mesh_subset) > 1:
-        mesh_subset = [x.strip(', ') for x in mesh_subset.split()]
+        mesh_subset = [cellmesh.get_cell_id_from_name(mesh_subset,
+            db_dir=cellmesh.ANATOMY_DB_DIR)]
     else:
         mesh_subset = None
     # TODO: validate mesh_subset
-    import cellmesh
     if test == 'hypergeom':
         result = cellmesh.hypergeometric_test(top_genes, species=species, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR,
                 cell_type_subset=mesh_subset)
@@ -1370,7 +1379,7 @@ def update_cellmesh_anatomy_result(top_genes, mesh_subset=None, species='human',
                 db_dir=cellmesh.ANATOMY_DB_DIR)
     elif test == 'prob':
         from cellmesh import prob_method
-        result = prob_method.prob_test(top_genes, species=species, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR)
+        result = prob_method.prob_test(top_genes, species=species, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR, cell_type_subset=mesh_subset)
     elif test == 'gsva':
         from cellmesh import gsva_ext_method
         result = gsva_ext_method.gsva_ext_test(top_genes, species=species, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR)
