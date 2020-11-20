@@ -15,7 +15,17 @@ def pmid_to_link(pmid):
 
 @db_query.route('/db_query')
 def db_query_index():
-    return render_template('db_query_index.html')
+    # TODO: get anatomy terms?
+    import cellmesh
+    anatomy_id_names = cellmesh.get_all_cell_id_names(db_dir=cellmesh.ANATOMY_DB_DIR,
+            include_cell_lines=True, include_chromosomes=True)
+    anatomy_names = [x[1] for x in anatomy_id_names]
+    cell_id_names = cellmesh.get_all_cell_id_names(include_cell_components=False)
+    cell_names = [x[1] for x in cell_id_names]
+    return render_template('db_query_index.html',
+            anatomy_names=anatomy_names,
+            cell_names=cell_names)
+
 
 @db_query.route('/db_query/submit', methods=['POST'])
 def db_query_submit():
@@ -34,9 +44,15 @@ def db_query_submit():
                 result = cellmarker.hypergeometric_test(top_genes, cells_or_tissues, return_header=True, species=species, return_cl=True)
             cell_types = [result[0]]
         elif db == 'cellmesh':
+            import cellmesh
+            mesh_subset = request.form['anatomy_mesh_subset']
+            test_type = request.form['anatomy_mesh_test_type']
+            if len(mesh_subset) > 1:
+                mesh_subset = [cellmesh.get_cell_id_from_name(mesh_subset)]
+            else:
+                mesh_subset = None
             test_type = request.form['mesh_test_type']
             species = request.form['cellmesh_species']
-            import cellmesh
             result = []
             if test_type == 'hypergeom':
                 result = cellmesh.hypergeometric_test(top_genes, species=species, return_header=True)
@@ -44,21 +60,23 @@ def db_query_submit():
                 result = cellmesh.normed_hypergeometric_test(top_genes, return_header=True, species=species)
             elif test_type == 'prob':
                 from cellmesh import prob_method
-                result = prob_method.prob_test(top_genes, return_header=True, species=species)
+                result = prob_method.prob_test(top_genes, return_header=True, species=species, cell_type_subset=mesh_subset)
             elif test_type == 'gsva':
                 from cellmesh import gsva_ext_method
                 result = gsva_ext_method.gsva_ext_test(top_genes, return_header=True, species=species)
             cell_types = [result[0]]
         elif db == 'cellmesh_anatomy':
+            import cellmesh
             mesh_subset = request.form['anatomy_mesh_subset']
             test_type = request.form['anatomy_mesh_test_type']
             if len(mesh_subset) > 1:
-                mesh_subset = [x.strip() for x in mesh_subset.split(',')]
+                mesh_subset = [cellmesh.get_cell_id_from_name(mesh_subset,
+                    db_dir=cellmesh.ANATOMY_DB_DIR)]
             else:
                 mesh_subset = None
+            print(mesh_subset)
             species = request.form['anatomy_species']
             # TODO: validate mesh_subset
-            import cellmesh
             if test_type == 'hypergeom':
                 result = cellmesh.hypergeometric_test(top_genes, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR,
                         cell_type_subset=mesh_subset, species=species)
@@ -66,7 +84,7 @@ def db_query_submit():
                 result = cellmesh.normed_hypergeometric_test(top_genes, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR, species=species)
             elif test_type == 'prob':
                 from cellmesh import prob_method
-                result = prob_method.prob_test(top_genes, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR, species=species)
+                result = prob_method.prob_test(top_genes, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR, species=species, cell_type_subset=mesh_subset)
             elif test_type == 'gsva':
                 from cellmesh import gsva_ext_method
                 result = gsva_ext_method.gsva_ext_test(top_genes, return_header=True, db_dir=cellmesh.ANATOMY_DB_DIR, species=species)
