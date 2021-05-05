@@ -194,7 +194,7 @@ class Summary(object):
             }
             ],
             'layout': {
-                'title': 'Gene counts per cell',
+                'title': 'Unique gene counts per cell',
                 'barmode': 'overlay',
                 'showlegend': False,
                 'xaxis': {'title': 'Gene Count', 'range': [0, gene_count_max]},
