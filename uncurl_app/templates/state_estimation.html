@@ -12,7 +12,7 @@
 
 var file_input_template = '';
 
-// TODO: function that copies file_input_1, allows addition of new files
+// function that copies file_input_1, allows addition of new files
 function duplicate_input() {
     // find number of criteria the label has...
     var num_files = $('.file_input').length;
@@ -22,7 +22,33 @@ function duplicate_input() {
     template = template.replace(/\(1\)/g, '('+id+')');
     // set selection_and_or-1
     $('#all_file_inputs').append(template);
-};
+}
+
+// validate form before submitting - check that there is a list of gene names...
+function check_submit() {
+    var num_files = $('.file_input').length;
+    for (var i = 1; i <= num_files; i++) {
+        var file_input = document.getElementById('fileinput-' + i);
+        var gene_names_input = document.getElementById('genenames-' + i);
+        if (i == 1 && file_input.files.length == 0) {
+            file_input.focus();
+            alert("Error: no data selected.");
+            return false;
+        }
+        if (file_input.files.length > 0) {
+            if (gene_names_input.files.length == 0) {
+                gene_names_input.focus();
+                return confirm("Warning: no gene names selected. Do you still wish to submit?");
+            }
+        }
+    }
+    var job_name = document.getElementById('username');
+    if (job_name.textLength == 0) {
+        job_name.focus();
+        return confirm("Warning: no name for this job has been entered. Do you still wish to submit?");
+    }
+    return true;
+}
 
 window.onload = function() {
     file_input_template = document.getElementById('file_input-1').outerHTML;
@@ -38,12 +64,12 @@ Upload a file containing single-cell RNASeq data, where each row is a gene and e
 {% block method %}
 This runs UNCURL state estimation on the given dataset, and returns an interactive visualization of the identified cell types.
 
-For details on the method, see <a href="https://academic.oup.com/bioinformatics/article/34/13/i124/5045758">https://academic.oup.com/bioinformatics/article/34/13/i124/5045758</a>
+For details on the method, see <a href="https://doi.org/10.1101/2020.04.15.043737">https://doi.org/10.1101/2020.04.15.043737</a>
 {% endblock %}
         
 
 {% block input %}
-    <form  action="state_estimation/input" method="post" enctype=multipart/form-data>
+    <form onSubmit="return check_submit();" action="state_estimation/input" method="post" enctype=multipart/form-data>
 
         <div id="all_file_inputs">
 
@@ -95,7 +121,6 @@ For details on the method, see <a href="https://academic.oup.com/bioinformatics/
             <label for="username">Optional: enter a name for the job.</label>
             <input type="text" id="username" name="username"></input>
         </div>
-
 
 
         <div class="form-group">
