@@ -5,6 +5,7 @@
 import json
 
 import numpy as np
+from sklearn.metrics.cluster import normalized_mutual_info_score
 
 from .utils import SimpleEncoder
 from .cache import cache
@@ -12,7 +13,7 @@ from .cache import cache
 @cache.memoize()
 def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='coclustering', normalize_row=True, **params):
     """
-    Returns a plotly-formated json that plots the two heatmaps.
+    Returns a plotly-formated json that plots the two clusters together as a heatmap.
 
     Args:
         cluster1 (array): array of strings
@@ -51,6 +52,8 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
     else:
         row_labels = np.array(cluster1_values)
         column_labels = np.array(cluster2_values)
+    # TODO: show some statistic of the similarity between the clusters.
+    nmi = normalized_mutual_info_score(cluster1, cluster2)
     output = {
         'data': [{
             'z': data.tolist(),
@@ -60,6 +63,7 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
             'type': 'heatmap',
         }],
         'layout': {
+            'title': 'Normalized mutual information between clusters: ' + str(nmi),
             'xaxis': {'title': cluster_2_name, 'automargin': True,
                 'type': 'category'},
             'yaxis': {'title': cluster_1_name, 'automargin': True,

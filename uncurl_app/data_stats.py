@@ -13,7 +13,7 @@ class Summary(object):
     This object contains a summary for a single-cell RNASeq dataset.
     """
 
-    def __init__(self, data_paths, gene_paths, base_path, shapes=['gene_cell'], data=None, dataset_names=None):
+    def __init__(self, data_paths, gene_paths, base_path, shapes=['gene_cell'], data=None, dataset_names=None, use_batch_correction=False):
         """
         Args:
             data_path (str): path to data file
@@ -33,7 +33,10 @@ class Summary(object):
                 else:
                     raise Exception('data not found')
                 self.is_gz = is_gz
-                gene_path = gene_paths[0]
+                if gene_paths is None:
+                    gene_path = os.path.join(base_path, 'genes.txt')
+                else:
+                    gene_path = gene_paths[0]
             else:
                 self.is_gz = True
                 data_paths_new = []
@@ -70,7 +73,7 @@ class Summary(object):
                     data_paths_new.append(data_path_new)
                 # call merge_datasets
                 from uncurl_analysis import merge_datasets
-                data_path, gene_path = merge_datasets.merge_files(data_paths_new, gene_paths, dataset_names, base_path)
+                data_path, gene_path = merge_datasets.merge_files(data_paths_new, gene_paths, dataset_names, base_path, use_batch_correction=use_batch_correction)
             try:
                 data = scipy.io.mmread(data_path)
             except:

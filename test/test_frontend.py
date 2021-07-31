@@ -192,6 +192,7 @@ class UncurlFrontendTest(LiveServerTestCase):
         select.select_by_visible_text('CellMeSH')
         self.driver.find_element_by_id('cellmesh-submit').click()
         time.sleep(1)
+        # TODO: test download data
         # test mw
         select = Select(self.driver.find_element_by_id('cell-color'))
         select.select_by_value('gene')
@@ -200,14 +201,20 @@ class UncurlFrontendTest(LiveServerTestCase):
         select.select_by_value('1')
         self.driver.find_element_by_id('gene_name_submit').click()
         time.sleep(1)
-        # TODO: test some custom color map options
-        # TODO - this test is not currently working
+
+    def test_reanalyze_2(self):
+        # this tests subset_cells
+        self.driver.find_element_by_link_text('Example results').click()
+        self.driver.find_element_by_link_text('10x_400_new').click()
         self.driver.execute_script('window.current_selected_cells = [' + ','.join("'" + str(x) + "'" for x in range(50)) + '];')
         self.driver.find_element_by_id('reanalyze').click()
         self.driver.find_element_by_id('subset_cells').click()
         alert = self.driver.switch_to_alert()
         alert.accept()
         time.sleep(10)
+        # TODO: get new results page
+        link = self.driver.find_element_by_xpath("//div[@id='update-area']/a")
+        link.click()
 
     def tearDown(self):
         self.driver.quit()

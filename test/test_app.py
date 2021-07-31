@@ -40,7 +40,8 @@ class UncurlAppTest(unittest.TestCase):
         page = self.app.get('/user/test_10x_400_new/view')
         self.assertEqual(page.status, '200 OK')
         barplot = self.app.post('/user/test_10x_400_new/view/update_barplot',
-                data={'top_or_bulk': 'top',
+                data={'top_or_bulk': 'top_1_vs_rest',
+                      'cell_color': 'cluster',
                       'input_value': 0,
                       'num_genes': 10})
         self.assertEqual(barplot.status, '200 OK')
@@ -50,7 +51,8 @@ class UncurlAppTest(unittest.TestCase):
         self.assertTrue(len(barplot_data['data'][0]['x']) == 10)
         self.assertTrue(len(barplot_data['data'][0]['y']) == 10)
         barplot = self.app.post('/user/test_10x_400_new/view/update_barplot',
-                data={'top_or_bulk': 'top',
+                data={'top_or_bulk': 'top_1_vs_rest',
+                      'cell_color': 'cluster',
                       'input_value': 4,
                       'num_genes': 20})
         self.assertEqual(barplot.status, '200 OK')
@@ -61,6 +63,7 @@ class UncurlAppTest(unittest.TestCase):
         self.assertTrue(len(barplot_data['data'][0]['y']) == 20)
         barplot = self.app.post('/user/test_10x_400_new/view/update_barplot',
                 data={'top_or_bulk': 'top_1_vs_rest',
+                      'cell_color': 'cluster',
                       'input_value': 4,
                       'num_genes': 15})
         self.assertEqual(barplot.status, '200 OK')
@@ -98,9 +101,10 @@ class UncurlAppTest(unittest.TestCase):
         self.assertTrue(len(barplot_data['data'][0]['y']) == 25)
         # test having a gene subset
         barplot = self.app.post('/user/test_10x_400_new/view/update_barplot',
-                data={'top_or_bulk': 'top',
+                data={'top_or_bulk': 'top_1_vs_rest',
                       'input_value': 4,
                       'selected_gene': 'CD8B, REST, CD8A, CD34',
+                      'cell_color': 'cluster',
                       'num_genes': 10})
         self.assertEqual(barplot.status, '200 OK')
         barplot_data = json.loads(barplot.data.decode('utf-8'))
@@ -110,7 +114,7 @@ class UncurlAppTest(unittest.TestCase):
         self.assertEqual(len(barplot_data['data'][0]['y']), 4)
         # test uploaded color map
         barplot = self.app.post('/user/test_10x_400_new/view/update_barplot',
-                data={'top_or_bulk': 'selected_color',
+                data={'top_or_bulk': 'top_1_vs_rest',
                       'cell_color': 'labels_400_cells',
                       'input_value': 0,
                       'selected_gene': 'CD8B, REST, CD8A, CD34',
@@ -178,6 +182,8 @@ class UncurlAppTest(unittest.TestCase):
         self.assertTrue('layout' in scatterplot_data)
         self.assertTrue(len(scatterplot_data['data']) == 8)
         # gene-gene
+        # TODO: gene-gene is unimplemented
+        """
         scatterplot = self.app.post('/user/test_10x_400_new/view/update_scatterplot',
                 data={'scatter_type': 'Gene-gene',
                       'cell_color': 'cluster',
@@ -188,6 +194,7 @@ class UncurlAppTest(unittest.TestCase):
         self.assertTrue('data' in scatterplot_data)
         self.assertTrue('layout' in scatterplot_data)
         self.assertTrue(len(scatterplot_data['data']) == 8)
+        """
         # TODO: test other options
 
 

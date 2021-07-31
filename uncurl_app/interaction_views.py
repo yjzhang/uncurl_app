@@ -36,7 +36,8 @@ def split_gene_names(names):
     """
     Splits on comma, newline, or space
     """
-    return [x for x in re.split(r'[\s,]', names.strip()) if len(x)>0]
+    names = [x for x in re.split(r'[\s,]', names.strip()) if len(x)>0]
+    return names
 
 @contextlib.contextmanager
 def lockfile_context(lockfile_name):
@@ -662,31 +663,7 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
         gns = set(gene_names)
         selected_gene_names = split_gene_names(selected_gene)
         selected_gene_names = [x for x in selected_gene_names if x in gns]
-    # top by c-score - this is unused
-    if top_or_bulk == 'top':
-        if len(selected_gene.strip()) > 0:
-            top_genes = get_sca_top_genes(user_id)[int(input_value)]
-            selected_top_genes = [x for x in top_genes if gene_names[x[0]] in set(selected_gene_names)]
-        else:
-            selected_top_genes = get_sca_top_genes(user_id)[int(input_value)][:num_genes]
-        selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
-        return barplot_data(selected_top_genes,
-                selected_gene_names, input_value,
-                x_label='c-score',
-                title='Top genes for cluster {0}'.format(input_value))
-    # p-value of c-score - this is unused
-    elif top_or_bulk == 'pval':
-        if len(selected_gene.strip()) > 0:
-            top_genes = get_sca_pvals(user_id)[int(input_value)]
-            selected_top_genes = [x for x in top_genes if gene_names[x[0]] in set(selected_gene_names)]
-        else:
-            selected_top_genes = get_sca_pvals(user_id)[input_value][:num_genes]
-        selected_gene_names = [gene_names[x[0]] for x in selected_top_genes]
-        return barplot_data(selected_top_genes,
-                selected_gene_names, input_value,
-                title='Top genes for cluster {0}'.format(input_value),
-                x_label='p-value of c-score')
-    elif top_or_bulk == 'volcano_pairwise':
+    if top_or_bulk == 'volcano_pairwise':
         print('creating volcano plot')
         colormap = str(data_form['cell_color'])
         cluster1 = int(data_form['cluster1'])
@@ -769,8 +746,8 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
             else:
                 x_label = 'p-value of fold change'
         # selected genes
-        if len(selected_gene.strip()) > 0:
-            selected_top_genes = [x for x in selected_diffexp if gene_names[x[0]] in set(selected_gene_names)]
+        if selected_gene_names:
+            selected_top_genes = [x for x in selected_diffexp if gene_names[int(x[0])] in set(selected_gene_names)]
         else:
             selected_top_genes = selected_diffexp[:num_genes]
         print('selected_top_genes:', selected_top_genes)
@@ -814,10 +791,10 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
             if len(selected_gene.strip()) > 0:
                 genes, values = array_to_top_genes(data, cluster1, cluster2, is_pvals=(top_or_bulk=='top_pairwise'), num_genes=1000000)
                 gene_data = list(zip(genes, values))
-                gene_data = [x for x in gene_data if gene_names[x[0]] in set(selected_gene_names)]
+                gene_data = [x for x in gene_data if gene_names[int(x[0])] in set(selected_gene_names)]
             else:
                 gene_data = list(zip(genes, values))
-            selected_gene_names = [gene_names[x[0]] for x in gene_data]
+            selected_gene_names = [gene_names[int(x[0])] for x in gene_data]
             return barplot_data(gene_data,
                     selected_gene_names, None,
                     title='Top genes for cluster {0} vs cluster {1}'.format(cluster1, cluster2),
@@ -847,10 +824,10 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
                 else:
                     genes, values = array_to_top_genes(selected_pvals, cluster1, cluster2, is_pvals=(top_or_bulk=='top_pairwise'), num_genes=1000000)
                 gene_data = list(zip(genes, values))
-                gene_data = [x for x in gene_data if gene_names[x[0]] in set(selected_gene_names)]
+                gene_data = [x for x in gene_data if gene_names[int(x[0])] in set(selected_gene_names)]
             else:
                 gene_data = list(zip(genes, values))
-            selected_gene_names = [gene_names[x[0]] for x in gene_data]
+            selected_gene_names = [gene_names[int(x[0])] for x in gene_data]
             return barplot_data(gene_data,
                     selected_gene_names, None,
                     title='Top genes for label {0} vs label {1}'.format(index_to_color[cluster1], index_to_color[cluster2]),
@@ -1839,6 +1816,8 @@ def rerun_uncurl(user_id):
     os.makedirs(new_path)
     scipy.io.mmwrite(new_data_path, data_subset)
 
+    # copy gene names?
+    shutil.copy(sca.gene_names_f, new_path)
     # run state_estimation_preproc - gets data summary stats 
     state_estimation_preproc_simple(new_user_id, new_path, new_data_path)
     return new_user_id

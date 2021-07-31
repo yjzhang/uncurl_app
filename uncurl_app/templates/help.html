@@ -4,7 +4,7 @@
 <div class="container container-main" role="main">
     <h2>Help</h2>
 
-    <!--TODO: write some documentation... -->
+    <!--TODO: take updated screenshots... -->
 
     <h3 id="uploading_datasets">Uploading datasets</h3>
 
@@ -13,17 +13,15 @@
         <figcaption class="figure-caption text-center">Upload screen</figcaption>
     </figure>
 
-    <p>To upload a new dataset, select a data file containing a gene expression matrix. This file can be a sparse matrix file in Matrix Market format (.mtx, as produced by scipy.io.mmwrite) or a dense matrix as a space or tab-delimited file (as produced by np.savetxt). The file should not contain any headers. Make sure to indicate whether the file is genes-by-cells or cells-by-genes.</p>
+    <p>To upload a new dataset, select a data file containing a gene expression matrix. This file can be a sparse matrix file in Matrix Market format (.mtx, as produced by scipy.io.mmwrite) or a dense matrix as a space or tab-delimited file (as produced by np.savetxt). The file should not contain any headers or column names. Make sure to indicate whether the file is genes-by-cells or cells-by-genes. The input file may be gzipped.</p>
 
     <h3 id="running_uncurl">Running uncurl</h3>
 
-
-    <figure class="figure">
         <img src="{{ url_for('static', filename='data_preview.png') }}" style="width: 600px;" class="figure-img center-block" alt="Data preview">
         <figcaption class="figure-caption text-center">Data preview</figcaption>
     </figure>
 
-    <p>After updating the data, you will eventually be redirected to a view that looks like the one above. On the top, there are two plots. The plot on the left shows the distribution of total read counts per cell. The plot on the right shows the relationship between mean and variance for all genes.</p>
+    <p>After uploading the data, you will eventually be redirected to a view that looks like the one above. On the top, there are two plots. The plot on the left shows the distribution of total read counts per cell. The plot on the right shows the relationship between mean and variance for all genes.</p>
 
     <h4>Uncurl options</h4>
 
@@ -37,10 +35,10 @@
         <li>Visualization method: How to create a scatterplot of cells using the output of Uncurl. One of MDS, PCA, tSNE, or UMAP. Default: tSNE.</li>
         <li>Baseline visualization method: How to create a scatterplot of cells without using Uncurl. One of PCA, tSNE, or UMAP. Default: tSNE.</li>
         <li>Remove cells with read counts greater/less than: This should be self-explanatory. Cells removed this way will not be used in the downstream processing. The default is to remove the top and bottom 5% of cells by total read count. If you want to include all cells, set the first number to 0 and the second number to a very high number.</li>
-        <li>Distribution: For UMI or count-valued data, Poisson usually is best. For normalized counts (FPKM, RPKM,...), you might want to use log-normal. If the data has already been log-transformed, Gaussian might be preferable.</li>
-        <li>Fraction of genes to include: As a preprocessing step, Uncurl selects a subset of genes for inference using variance-based selection. By default, this is 0.2.</li>
-        <li>Fraction of cells to include for visualization: If there is a large number of cells, then the number of cells can be subsampled for the dimensionality reduction, to reduce computational and data transfer requirements. By default, this sets it so that the number of cells retained is at most about 1500. Set this to 1.0 to include all cells.</li>
-        <li>Normalize cells by read count: If this is set to true, then for all cells, the read counts will be divided by the total read count for that cell, and then multiplied by the median read count for all cells.</li>
+        <li>Distribution: For UMI or count-valued data, Poisson usually is best. For normalized counts (FPKM, RPKM,...), you might want to use log-normal. If the data has already been log-transformed, Gaussian might be preferable. Default: Poisson.</li>
+        <li>Fraction of genes to include: As a preprocessing step, Uncurl selects a subset of genes for inference using variance-based selection: binning the data into 5 bins by mean expression level, and selecting the top <i>k</i> fraction of genes by variance. By default, this is 0.2.</li>
+        <li>Fraction of cells to include for visualization: If there is a large number of cells, then the number of cells can be subsampled for the dimensionality reduction, to reduce computational and data transfer requirements. By default, this sets it so that the number of cells retained is at most about 10000. Set this to 1.0 to include all cells.</li>
+        <li>Normalize cells by read count: If this is set to true, then for all cells, the read counts will be divided by the total read count for that cell, and then multiplied by the median read count for all cells. This is only used for UNCURL, not for differential expression. Default: true.</li>
     </ul>
 
     <h3 id="user_interface">User interface</h3>
@@ -52,7 +50,7 @@
 
     <p>After Uncurl has finished running, you will be redirected to a page that looks like the one above. The graph on the left is a scatterplot that shows a dimensionally reduced view of the cells or cluster means. The graph on the right shows the top genes for the selected cluster, or relationships between clusters.</p>
 
-    <p>To change the scatterplot view, click on the radio buttons above the plot, circled in red. The default view shows the cluster means. The "Processed cells" option shows a scatterplot with all cells.</p>
+    <p>To change the scatterplot view, click on the radio buttons above the plot, circled in red. The default view shows a scatterplot of all of the cells in the uploaded dataset.</p>
 
     <p>To change the cluster being shown on the barplot, click on any cell or cluster mean.</p>
 
