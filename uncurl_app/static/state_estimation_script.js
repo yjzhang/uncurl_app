@@ -141,11 +141,11 @@ function update_barplot(cluster_number) {
         $("#update-area").append('Barplot updated');
     });
     return true;
-};
+}
 
 // TODO: update the barplot for gene selection
 function update_barplot_genes() {
-};
+}
 
 // saves the scatterplot as an svg
 function download_scatterplot_svg() {
@@ -249,7 +249,7 @@ function toggle_scatterplot_type() {
         $('#gene-heatmap-options-area').toggle(false);
         $('#diffcorr-heatmap-options-area').toggle(false);
     }
-};
+}
 
 // this function is called on startup, and whenever the radio buttons
 // corresponding to different input types are clicked.
@@ -331,7 +331,7 @@ function update_scatterplot() {
         }
     });
     return true;
-};
+}
 
 // updates all fields that involve selecting clusters.
 // This is called whenever the scatterplot changes...
@@ -375,7 +375,7 @@ function set_enrichr_results(data, query) {
         table.append(row);
     }
     results_view.append(table);
-};
+}
 
 function update_gene_query(query) {
     // query is a string that can be 'enrichr', 'cellmarker', etc...
@@ -409,19 +409,21 @@ function update_gene_query(query) {
         }
     });
     return true;
-};
+}
 
 function bind_select() {
    var plot = $('#means-scatter-plot')[0];
    plot.on('plotly_selected', on_select);
-};
+}
 
 // handler for scatterplot selection events
 function on_select(data) {
     console.log('on_select');
+    console.log(data);
     if (!data) {
         return false;
     }
+    var cell_color = $("#cell-color").val();
     var clusters = new Set([]);
     // identify selected cells
     current_selected_cells = [];
@@ -429,6 +431,7 @@ function on_select(data) {
         clusters.add(data.points[i].curveNumber);
         current_selected_cells.push(data.points[i].text);
     }
+    // TODO: this uses uncurl clusters, not the currently selected cell labels
     // find cluster lengths
     var cluster_lengths = [];
     all_selected_clusters = [];
@@ -446,7 +449,7 @@ function on_select(data) {
     $("#update-area").append("Number of selected cells: " + current_selected_cells.length);
     // update custom criteria cell selection
     set_selection_target_to_selected_cells();
-};
+}
 
 // function for handling selections on a gene scatter plot
 // send it to the bottom view
@@ -461,7 +464,7 @@ function on_gene_select(data) {
     }
     // push gene names to the box
     $('#top-genes-view').val(gene_names.join('\n'));
-};
+}
 
 // function for handling clicks on the gene scatter plot
 // select all genes within that cluster and send them to the query box.
@@ -471,7 +474,7 @@ function on_gene_click(data) {
     if (!data) {
         return false;
     }
-};
+}
 
 // Gets basic cell info - read counts and gene counts
 function get_cell_info() {
@@ -510,7 +513,7 @@ function get_cell_info() {
         $("#update-area").append("Median gene count for cluster: " + results.cluster_genes + "<br>");
         $("#update-area").append("Total nonzero gene count for cluster: " + results.total_gene_count + "<br>");
     });
-};
+}
 
 function split_or_merge_cluster(split_or_merge, cells_or_clusters) {
     if (currently_merging) {
@@ -562,7 +565,7 @@ function split_or_merge_cluster(split_or_merge, cells_or_clusters) {
             //location.reload(true);
         }
     });
-};
+}
 
 // re-run pipeline
 function delete_rerun() {
@@ -571,7 +574,7 @@ function delete_rerun() {
         return false;
     }
     window.location.href = window.location.pathname + "/delete_rerun";
-};
+}
 
 // copies data to a new user_id
 function copy_data() {
@@ -593,7 +596,7 @@ function copy_data() {
             $('#update-area').append('New results page: <a href="/user/' + new_user_id + '/view">' + new_user_id + '</a>');
         }
     });
-};
+}
 
 
 // Starts a new uncurl sub-analysis...
@@ -614,6 +617,7 @@ function subset_cells(is_cells) {
         data: {
             'is_cells': is_cells ? 1 : 0,
             'cell_ids': cell_ids.join(','),
+            'color_map': $('#cell-color').val(),
         },
         method: 'POST'
     }).done(function(data) {
@@ -626,7 +630,7 @@ function subset_cells(is_cells) {
             $('#update-area').append('New results page: <a href="/state_estimation/results/' + new_user_id + '">' + new_user_id + '</a>');
         }
     });
-};
+}
 
 function toggle_reanalyze_area(value) {
     if (value == 'reanalyze') {
@@ -636,7 +640,7 @@ function toggle_reanalyze_area(value) {
         $('#reanalyze-area').toggle(false);
         $('#recluster_area').toggle(true);
     }
-};
+}
 
 // toggles visibility of the bottom-left gene query view
 // 'toggle' is a jquery method that changes the visibility of the element.
@@ -651,7 +655,7 @@ function toggle_query_visibility() {
             $('#'+views[i]).toggle(false);
         }
     }
-};
+}
 
 // re-runs the clustering process, perhaps with a different algorithm.
 function rerun_clustering() {
@@ -682,7 +686,7 @@ function rerun_clustering() {
             update_scatterplot();
         }
     });
-};
+}
 
 function submit_db_query() {
     var form_data = $('#cell_search_form').serializeArray();
@@ -709,7 +713,7 @@ function submit_db_query() {
         var results = JSON.parse(data);
         set_enrichr_results(results, 'cell_search');
     });
-};
+}
 
 // called whenever cell color is changed.
 function on_cell_color_change() {
@@ -748,7 +752,7 @@ function on_cell_color_change() {
         // and sends a json query to get the custom label schemes.
         get_custom_colormap();
     }
-};
+}
 
 function on_top_or_bulk_change() {
     var option = $('#top-or-bulk').val();
