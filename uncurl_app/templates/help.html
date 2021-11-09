@@ -38,7 +38,7 @@
         <li>Distribution: For UMI or count-valued data, Poisson usually is best. For normalized counts (FPKM, RPKM,...), you might want to use log-normal. If the data has already been log-transformed, Gaussian might be preferable. Default: Poisson.</li>
         <li>Fraction of genes to include: As a preprocessing step, Uncurl selects a subset of genes for inference using variance-based selection: binning the data into 5 bins by mean expression level, and selecting the top <i>k</i> fraction of genes by variance. By default, this is 0.2.</li>
         <li>Fraction of cells to include for visualization: If there is a large number of cells, then the number of cells can be subsampled for the dimensionality reduction, to reduce computational and data transfer requirements. By default, this sets it so that the number of cells retained is at most about 10000. Set this to 1.0 to include all cells.</li>
-        <li>Normalize cells by read count: If this is set to true, then for all cells, the read counts will be divided by the total read count for that cell, and then multiplied by the median read count for all cells. This is only used for UNCURL, not for differential expression. Default: true.</li>
+        <li>Normalize cells by read count: If this is set to true, then for all cells, the read counts will be divided by the total read count for that cell, and then multiplied by the median read count for all cells. Default: true.</li>
     </ul>
 
     <h3 id="user_interface">User interface</h3>
@@ -48,16 +48,11 @@
         <figcaption class="figure-caption text-center">Visualization: scatterplot of means + barplot</figcaption>
     </figure>
 
-    <p>After Uncurl has finished running, you will be redirected to a page that looks like the one above. The graph on the left is a scatterplot that shows a dimensionally reduced view of the cells or cluster means. The graph on the right shows the top genes for the selected cluster, or relationships between clusters.</p>
+    <p>After UNCURL has finished running, you will be redirected to a page that looks like the one above. The graph on the left is a scatterplot that shows a dimensionally reduced view of the cells or cluster means. The graph on the right shows the top genes for the selected cluster, or relationships between clusters.</p>
 
     <p>To change the scatterplot view, click on the radio buttons above the plot, circled in red. The default view shows a scatterplot of all of the cells in the uploaded dataset.</p>
 
     <p>To change the cluster being shown on the barplot, click on any cell or cluster mean.</p>
-
-    <figure class="figure">
-        <img src="{{ url_for('static', filename='scatterplot_3.png') }}" style="width: 600px;" class="figure-img center-block" alt="Scatterplot + barplot">
-        <figcaption class="figure-caption text-center">Visualization: scatterplot of all cells + barplot</figcaption>
-    </figure>
 
     <p>To change the color scheme, use the "Label scheme" dropdown. This also allows you to upload a new color scheme for visualization.</p>
 
@@ -88,10 +83,10 @@
     <p>You can select different views for the barplot by selecting them in the dropdown on the top right of the page. There are a number of different barplot views:</p>
 
     <ul>
-        <li><b>Top genes (1-vs-rest fold change)</b> - </li>
-        <li><b>Top genes (p-value of fold change)</b> - </li>
-        <li><b>Pairwise fold change</b> - </li>
-        <li><b>Pairwise p-value</b> - </li>
+        <li><b>Top genes (1-vs-rest fold change)</b> - The default view. This shows the genes for the selected cluster that have the highest fold change compared to the rest of the cells.</li>
+        <li><b>Top genes (p-value of fold change)</b> - This shows the genes for the selected cluster that have the lowest p-value of the fold change, based on a t-test.</li>
+        <li><b>Pairwise fold change</b> - This allows the user to test the differential expression between two selected clusters, showing the genes with the highest fold-change between cluster 1 and cluster 2.</li>
+        <li><b>Pairwise p-value</b> - Same as above, but for the genes with the lowest p-value of the t-test.</li>
     </ul>
 
     <h3>Cell labels</h3>
@@ -99,7 +94,13 @@
     <p>The cell labels dropdown, below the scatterplot, allows the user to change the color scheme used for the scatterplot.</p>
 
     <ul>
-        <li></li>
+        <li><b>Cluster</b> - colors the cells based on the inferred clusters.</li>
+        <li><b>Entropy</b> - colors the cell based on</li>
+        <li><b>Gene</b> - colors the cells based on the expression level for a specified gene or genes.</li>
+        <li><b>Cluster weights</b> - </li>
+        <li><b>Read counts</b> - </li>
+        <li><b>Upload cell labels</b> - </li>
+        <li><b>Custom cell selection</b> - </li>
     </ul>
 
     
