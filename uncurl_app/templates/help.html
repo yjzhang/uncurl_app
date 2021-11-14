@@ -13,7 +13,9 @@
         <figcaption class="figure-caption text-center">Upload screen</figcaption>
     </figure>
 
-    <p>To upload a new dataset, select a data file containing a gene expression matrix. This file can be a sparse matrix file in Matrix Market format (.mtx, as produced by scipy.io.mmwrite) or a dense matrix as a space or tab-delimited file (as produced by np.savetxt). The file should not contain any headers or column names. Make sure to indicate whether the file is genes-by-cells or cells-by-genes. The input file may be gzipped.</p>
+    <p>To upload a new dataset, select a data file containing a gene expression matrix. This file can be a sparse matrix file in Matrix Market format (.mtx, as produced by scipy.io.mmwrite) or a dense matrix as a space or tab-delimited file (as produced by np.savetxt). The file should not contain any headers or column names (e.g. gene names or barcodes). Make sure to indicate whether the file is genes-by-cells or cells-by-genes. The input file may be gzipped.</p>
+
+    <p>Multiple datasets can be uploaded together; these datasets will be combined. In order to upload multiple datasets to be combined, click on the TODO</p>
 
     <h3 id="running_uncurl">Running uncurl</h3>
 
@@ -32,8 +34,8 @@
 
     <ul>
         <li>Number of clusters: If the number of cell types is known, use the number of cell types here. Otherwise, this can be set to 0, which automatically infers the number of clusters using a gap score metric. Alternatively, setting this to between 10 and 20 usually produces reasonable results (clusters can be merged or split later on).</li>
-        <li>Visualization method: How to create a scatterplot of cells using the output of Uncurl. One of MDS, PCA, tSNE, or UMAP. Default: tSNE.</li>
         <li>Baseline visualization method: How to create a scatterplot of cells without using Uncurl. One of PCA, tSNE, or UMAP. Default: tSNE.</li>
+        <li>Visualization method: How to create a scatterplot of cells using the output of Uncurl. One of MDS, PCA, tSNE, or UMAP. Default: tSNE.</li>
         <li>Remove cells with read counts greater/less than: This should be self-explanatory. Cells removed this way will not be used in the downstream processing. The default is to remove the top and bottom 5% of cells by total read count. If you want to include all cells, set the first number to 0 and the second number to a very high number.</li>
         <li>Distribution: For UMI or count-valued data, Poisson usually is best. For normalized counts (FPKM, RPKM,...), you might want to use log-normal. If the data has already been log-transformed, Gaussian might be preferable. Default: Poisson.</li>
         <li>Fraction of genes to include: As a preprocessing step, Uncurl selects a subset of genes for inference using variance-based selection: binning the data into 5 bins by mean expression level, and selecting the top <i>k</i> fraction of genes by variance. By default, this is 0.2.</li>
@@ -70,7 +72,10 @@
     <h3>Scatterplot views</h3>
 
     <!-- TODO: describe all of the different views present in the scatterplot right now. -->
-    <p></p>
+    <p>The Scatterplot is the main</p>
+    <ul>
+        <li></li>
+    </ul>
 
     <h3>Barplot views</h3>
 
@@ -84,7 +89,14 @@
 
     <h4>CellMeSH</h4>
 
-    <p>CellMeSH can be used to help identify the cell type of a given cluster.</p>
+    <p>CellMeSH is the default database that can be used to help identify the cell type of a given cluster. To use CellMeSH, click on a cluster</p>
+
+    <p>To use CellMeSH:</p>
+    
+    <ol>
+        <li>Click on a cell on the scatterplot.</li>
+        <li>TODO</li>
+    </ol>
 
 
     <h4>Enrichr</h4>
@@ -96,9 +108,10 @@
     <p></p>
 
 
-    <h3>New cell labels</h3>
+    <h3>New cell labels and custom label sets</h3>
 
     <p>New labels for each cell can be uploaded by selecting "New color track" from the "Label scheme" dropdown.</p>
+
 
     <!-- TODO: insert picture here -->
 
@@ -106,10 +119,16 @@
 
     <p>Using the scatterplot, the user can merge or split existing clusters, or create a new cluster from selected cells.</p>
 
-    <p>To merge multiple clusters:</p>
+    <p>To <b>merge</b> multiple clusters:</p>
 
     <ol>
-        <li></li>
+        <li>Mouse over to the top right corner of the screen, and select either the "Box Select" or "Lasso Select" tool.</li>
+        <li>Draw a group </li>
+    </ol>
+
+    <p>To <b>split</b> a cluster:</p>
+    <ol>
+        <li>Click on a cluster</li>
     </ol>
 
     <!-- TODO: describe the exact steps for splitting -->
