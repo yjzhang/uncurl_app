@@ -897,6 +897,8 @@ def update_barplot_result(user_id, top_or_bulk, input_value, num_genes,
             color_to_index, index_to_color = color_track_map(color_track)
             all_selected_clusters = [index_to_color[c] for c in all_selected_clusters]
             return violin_plot_data(gene_data, color_track, selected_gene, use_all_clusters=use_all_clusters, selected_clusters=all_selected_clusters)
+    elif top_or_bulk == 'gene_gene':
+        pass
     else:
         return 'Error: '
 
@@ -1801,6 +1803,7 @@ def rerun_uncurl(user_id):
     new_user_id = str(uuid.uuid4())
     new_path = user_id_to_path(new_user_id, use_secondary=False)
 
+
     #path = sca.data_dir
     #shutil.copytree(path, user_id_to_path(new_user_id))
     #import subprocess
@@ -1810,6 +1813,10 @@ def rerun_uncurl(user_id):
     if is_cells:
         data_subset = sca.get_data_subset(cell_ids)
     else:
+        # TODO: make sure that the colormap matches...
+        colormap = request.form['color_map']
+        if colormap is not None and colormap not in ['cluster', 'gene', 'entropy', 'weights']:
+            pass
         data_subset = sca.get_clusters_subset(cell_ids)
 
     new_data_path = os.path.join(new_path, 'data.mtx')

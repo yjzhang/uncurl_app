@@ -4,8 +4,6 @@
 
 {% block head %}
 
-<!-- TODO: have an option for serving static files?-->
-
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>-->
 <script src="{{ url_for('static', filename='popper.min.js') }}"></script>
 
@@ -48,12 +46,12 @@
         <div class="top-left" id="left-hand-panel-1" style="display:table; width: 750px;">
             <!-- controls for which types of plots to show -->
             <div id="plot-type-options">
+                <label for="Baseline" data-toggle="tooltip" title="Scatterplot visualization of cells before processing with UNCURL.">Pre-processed cells</label>
+                <label for="Cells" data-toggle="tooltip" title="Scatterplot visualization of cells after processing with UNCURL.">Post-processed cells</label>
                 <input type="radio" id="Means" value="Means" name="scatter-type"onclick="toggle_scatterplot_type();">
                 <label for="Means" data-toggle="tooltip" title="Scatterplot of the cluster archetypes, plotted by MDS.">Cluster means</label>
                 <input type="radio" id="Cells" value="Cells" name="scatter-type" onclick="toggle_scatterplot_type();">
-                <label for="Cells" data-toggle="tooltip" title="Scatterplot visualization of cells after processing with UNCURL.">Post-processed cells</label>
                 <input type="radio" id="Baseline" value="Baseline" checked="checked" name="scatter-type" onclick="toggle_scatterplot_type();">
-                <label for="Baseline" data-toggle="tooltip" title="Scatterplot visualization of cells before processing with UNCURL.">Pre-processed cells</label>
 
                 <input type="radio" id="Cluster_heatmap" value="Cluster_heatmap" name="scatter-type" onclick="toggle_scatterplot_type();">
                 <label for="Cluster_heatmap" data-toggle="tooltip" title="Heatmap comparing two colormaps/cell label sets">Label heatmap</label>
@@ -68,11 +66,14 @@
                 <input type="radio" id="Gene_heatmap" value="Gene_heatmap" name="scatter-type" onclick="toggle_scatterplot_type();">
                 <label for="Gene_heatmap" data-toggle="tooltip" title="Gene correlation heatmap.">Gene heatmap</label>
 
+                <!-- TODO: disable more complicated plotting options that are mostly unused? -->
+                <!--
                 <input type="radio" id="Diffcorr_heatmap" value="Diffcorr_heatmap" name="scatter-type" onclick="toggle_scatterplot_type();">
                 <label for="Diffcorr_heatmap">Differential gene correlation heatmap</label>
 
                 <input type="radio" id="Correlation_heatmap" value="Correlation_heatmap" name="scatter-type" onclick="toggle_scatterplot_type();">
                 <label for="Correlation_heatmap" data-toggle="tooltip" title="Heatmap showing correlation between clusters">Cluster correlation heatmap</label>
+                -->
             </div>
 
 
@@ -339,7 +340,6 @@
                 <option value="top_pairwise">Pairwise fold change</option>
                 <option value="pval_pairwise">Pairwise p-value</option>
                 <option value="volcano_pairwise">Pairwise volcano plot</option>
-                <option value="sep">Most similar clusters (separation score)</option>
                 <option value="violin">Violin plots for a gene</option>
                 <option value="top_gene_expression">Highly expressed genes</option>
                 <option value="double_pairs_comparison">Double-pair comparison</option>

@@ -117,16 +117,17 @@ def state_estimation_input():
     # save request.form
     with open(os.path.join(base_path, 'inputs.json'), 'w') as f:
         f.write(json.dumps(request.form))
-    # TODO: if file is large, start a new thread. otherwise just
-    # run the thing
     request_file = request.files
     request_form = request.form
+    # use batch effect correction button 
+    use_batch_correction = False
+    if 'use_batch_correction' in request.form:
+        use_batch_correction = request.form['use_batch_correction']
     data_paths, gene_paths, output_filenames, init, shapes = load_upload_data(request_file, request_form, base_path)
-    # TODO: deal with init
     P = Process(target=state_estimation_preproc, args=(user_id, base_path, data_paths, gene_paths, output_filenames, init,
-        shapes))
+        shapes,
+        use_batch_correction))
     P.start()
-    #state_estimation_preproc(user_id, path)
     return redirect(url_for('views.state_estimation_result', user_id=user_id))
 
 @views.route('/state_estimation/results/<user_id>/start', methods=['POST'])
@@ -264,8 +265,10 @@ def data_download(x, user_id):
             test_or_user=x,
             files=files)
 
-def state_estimation_preproc(user_id, base_path, data_paths, gene_paths, output_filenames, init=None,
-        shapes=['gene_cell']):
+def state_estimation_preproc(user_id, base_path, data_paths, gene_paths, output_filenames,
+        init=None,
+        shapes=['gene_cell'],
+        use_batch_correction=False):
     # TODO: update for multiple data/genes
     """
     Preprocessing for state estimation - generates summary statistics,
@@ -275,7 +278,7 @@ def state_estimation_preproc(user_id, base_path, data_paths, gene_paths, output_
     if base_path is None:
         base_path = os.path.join(current_app.config['USER_DATA_DIR'], user_id)
     try:
-        summary = Summary(data_paths, gene_paths, base_path, shapes=shapes, dataset_names=output_filenames)
+        summary = Summary(data_paths, gene_paths, base_path, shapes=shapes, dataset_names=output_filenames, use_batch_correction=use_batch_correction)
         read_count_hist_data, gene_count_hist_data, gene_mean_hist_data = summary.load_plotly_json()
         summary.preprocessing_params()
     except:
