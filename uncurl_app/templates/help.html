@@ -106,7 +106,7 @@
         <li><b>Cluster weights</b> - colors the cells based</li>
         <li><b>Read counts</b> - colors the cells based on read counts.</li>
         <li><b>Upload cell labels</b> - This allows the user to upload custom cell labels. The uploaded file should have a line for every cell uploaded, and each line should have a cluster name or ID. After uploading the cell labels, this dropdown will be updated to include the name of the uploaded file as one of the options.</li>
-        <li><b>Custom cell selection</b> - This allows the user to create custom cell selections based on various features.</li>
+        <li><b>Custom cell selection</b> - This allows the user to create custom cell selections based on various features. The user may select cells based on combinations of existing clusters, gene expression, or uploaded cell labels.</li>
     </ul>
 
     
@@ -116,13 +116,13 @@
 
     <h4>CellMeSH</h4>
 
-    <p>CellMeSH is the default database that can be used to help identify the cell type of a given cluster. To use CellMeSH, click on a cluster</p>
+    <p>CellMeSH is the default database that can be used to help identify the cell type of a given cluster.</p>
 
-    <p>To use CellMeSH:</p>
+    <p>To use CellMeSH to identify the cell type of a cluster:</p>
     
     <ol>
         <li>Click on a cell on the scatterplot.</li>
-        <li>TODO</li>
+        <li>On the very bottom of the screen, click "Submit CellMesH query". Then, the </li>
     </ol>
 
 
@@ -135,11 +135,6 @@
     <p></p>
 
 
-    <h3>New cell labels and custom label sets</h3>
-
-    <p>New labels for each cell can be uploaded by selecting "New color track" from the "Label scheme" dropdown.</p>
-
-
     <!-- TODO: insert picture here -->
 
     <h3>Merging, splitting, re-analysis</h3>
@@ -150,12 +145,14 @@
 
     <ol>
         <li>Mouse over to the top right corner of the screen, and select either the "Box Select" or "Lasso Select" tool.</li>
-        <li>Draw a group </li>
+        <li>Draw a border around the clusters that should be merged. You should see a text box below the scatterplot that mentions the selected clusters.</li>
+        <li>Click on the "Recluster" button below the scatterplot, and then click "Merge clusters".</li>
     </ol>
 
     <p>To <b>split</b> a cluster:</p>
     <ol>
-        <li>Click on a cluster</li>
+        <li>Click on a cell belonging to the cluster that should be split.</li>
+        <li>Click on the "Recluster" button, and then click "Split clusters".</li>
     </ol>
 
     <!-- TODO: describe the exact steps for splitting -->
