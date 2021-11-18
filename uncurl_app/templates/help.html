@@ -64,9 +64,11 @@
 
     <h3>Interacting with the plot</h3>
 
-    <p>Double click on a cluster name to see only that cluster. Single click on a cluster name to toggle its visibility.</p>
+    <p>Double click on a cluster name to see only that cluster. Single click on a cluster name in the legend to toggle its visibility.</p>
 
     <p>Mousing over the top right of the plot will show a control panel. This allows you to zoom in/out, select cells, or save the plot.</p>
+
+    </hr>
 
     <h3>Scatterplot views</h3>
 
@@ -77,10 +79,10 @@
         <li><b>Pre-processed cells</b> - This is the default view, which shows each cell as a dot on a 2D plane. The underlying data comes from a tSNE or other dimensionality reduction method.</li>
         <li><b>Post-processed cells</b> - This is the same as the previous, but uses the post-UNCURL data as input into the dimensionality reduction.</li>
         <li><b>Cluster means</b> - This shows the mean position of each cluster as a point.</li>
-        <li><b>Label heatmap</b> - This view shows the relationship between two different label sets.</li>
-        <li><b>Dendrogram heatmap</b> - </li>
+        <li><b>Label heatmap</b> - This view shows the relationship between two different label sets. The colors represent the overlap between cells.</li>
+        <li><b>Dendrogram heatmap</b> - This shows a dendrogram of the selected genes for the clusters.</li>
         <li><b>Gene</b> - This shows each gene as a dot. The underlying data comes from a umap treating each gene as a data point.</li>
-        <li><b>Gene heatmap</b> - </li>
+        <li><b>Gene heatmap</b> - This shows the correlations among a set of genes.</li>
     </ul>
 
     <h3>Barplot views</h3>
@@ -109,6 +111,7 @@
         <li><b>Custom cell selection</b> - This allows the user to create custom cell selections based on various features. The user may select cells based on combinations of existing clusters, gene expression, or uploaded cell labels.</li>
     </ul>
 
+    </hr>
     
     <h3>Gene set databases</h3>
 
@@ -116,15 +119,16 @@
 
     <h4>CellMeSH</h4>
 
-    <p>CellMeSH is the default database that can be used to help identify the cell type of a given cluster.</p>
+    <p>CellMeSH is the default database that can be used to help identify the cell type of a given cluster. CellMeSH currently includes human and mouse genes/cell types.</p>
 
     <p>To use CellMeSH to identify the cell type of a cluster:</p>
     
     <ol>
-        <li>Click on a cell on the scatterplot.</li>
-        <li>On the very bottom of the screen, click "Submit CellMesH query". Then, the </li>
+        <li>Click on a cell on the scatterplot. The set of genes used in the cell type query are the same genes that are shown on the barplot. Changing the barplot view will change the genes that are used for querying.</li>
+        <li>On the very bottom of the screen, click "Submit CellMesH query". Then, a list of cell types will be shown, ordered by descending similarity to the query.</li>
     </ol>
 
+    <p>Other gene set databases can be queried in the same way as CellMesh.</p>
 
     <h4>Enrichr</h4>
     
@@ -132,10 +136,20 @@
 
     <h4>CellMarker</h4>
 
+    <p>A copy of the <a href="http://biocc.hrbmu.edu.cn/CellMarker/">CellMarker</a> database can be used for cell type identification/gene set querying.</p>
+
+    <h4>Gene Ontology</h4>
+
+    <p></p>
+
+    <h4>KEGG</h4>
+
     <p></p>
 
 
     <!-- TODO: insert picture here -->
+
+    </hr>
 
     <h3>Merging, splitting, re-analysis</h3>
 
@@ -147,16 +161,24 @@
         <li>Mouse over to the top right corner of the screen, and select either the "Box Select" or "Lasso Select" tool.</li>
         <li>Draw a border around the clusters that should be merged. You should see a text box below the scatterplot that mentions the selected clusters.</li>
         <li>Click on the "Recluster" button below the scatterplot, and then click "Merge clusters".</li>
+        <li>Wait for the process to finish. It might take around the same time as the original data upload.</li>
     </ol>
 
     <p>To <b>split</b> a cluster:</p>
     <ol>
         <li>Click on a cell belonging to the cluster that should be split.</li>
         <li>Click on the "Recluster" button, and then click "Split clusters".</li>
+        <li>Wait for the process to finish. It might take around the same time as the original data upload.</li>
     </ol>
 
-    <!-- TODO: describe the exact steps for splitting -->
+    <p>To <b>delete</b> a group of cells or a cluster:</p>
 
+    <p>To assign a group of cells to a new cluster:</p>
+
+
+    <h3>Experimental Features</h3>
+
+    <p>These features are not supported.</p>
 
 </div>
 
