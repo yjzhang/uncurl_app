@@ -83,10 +83,15 @@ def generate_analysis_resubmit(sca,
         split_or_merge (str): either 'split' or 'merge'
         clusters_to_change (list): list of cluster numbers. If splitting, only the first cluster will be used. If merging, all the clusters will be merged.
     """
-    # TODO: what if there's an error?
     sca.recluster(split_or_merge, clusters_to_change)
     sca.run_post_analysis()
     sca.save_json_reset()
+
+def restore_history(sca):
+    """
+    """
+    # TODO: restores the history...
+    pass
 
 def get_progress(path):
     """

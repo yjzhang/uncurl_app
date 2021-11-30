@@ -1485,6 +1485,18 @@ def db_query(user_id):
         return 'Error: ' + str(e)
 
 
+@interaction_views.route('/user/<user_id>/view/history')
+def get_history(user_id):
+    """
+    Gets the history log
+    """
+    sca = get_sca(user_id)
+    if not hasattr(sca, 'log'):
+        return '[]'
+    log = sca.log
+    log_action_dates = [[x[0], x[2]] for x in log]
+    return json.dumps(log_action_dates)
+
 
 @interaction_views.route('/user/<user_id>/view/split_or_merge_cluster', methods=['POST'])
 def split_or_merge_cluster(user_id):
