@@ -25,7 +25,7 @@ function add_custom_colormap() {
             select.append('<option value="create_new_label">New label</option>');
         }
     });
-};
+}
 
 // set the form to the given list of criteria
 function set_criteria(criteria, label_name) {
@@ -120,15 +120,15 @@ function get_custom_colormap() {
             }
         }
     });
-};
+}
 
 // TODO: this needs to submit a query to the server
 function delete_custom_label() {
-};
+}
 
 function delete_criterion(criterion_id) {
     $('#custom_selection_criterion-'+String(criterion_id)).remove();
-};
+}
 
 // add a new criterion for a label
 function add_custom_criterion(and_or) {
@@ -142,7 +142,7 @@ function add_custom_criterion(and_or) {
     template = template.replace(/\"or\"/g, '"' + and_or + '"');
     template = template.replace(/\"and\"/g, '"' + and_or + '"');
     $('#all_criteria').append(template);
-};
+}
 
 // submit label updates to server
 function submit_label() {
@@ -179,7 +179,7 @@ function submit_label() {
             update_scatterplot();
         }
     });
-};
+}
 
 // either create a new label, or set the label's criteria list to the correct list for that label.
 function update_custom_label() {
@@ -235,7 +235,7 @@ function update_custom_label() {
             }
         });
     }
-};
+}
 
 // change the available options
 function update_custom_criterion(criterion_id) {
@@ -284,7 +284,7 @@ function update_custom_criterion(criterion_id) {
         $('#selection_target-'+ criterion_id).attr('list', selection_type);
         $('#selection_value-'+criterion_id).toggle(false);
     }
-};
+}
 
 // for all criteria, if selection_type is 'selection', then the selection_target
 // is set to the current selected cells.
@@ -297,7 +297,7 @@ function set_selection_target_to_selected_cells() {
             $('#selection_target-'+i).val(String(current_selected_cells));
         }
     }
-};
+}
 
 // gets available options for the colormap
 function get_colormap_values(colormap) {
@@ -322,4 +322,4 @@ function get_colormap_values(colormap) {
             dl.appendTo('body');
         }
     });
-};
+}

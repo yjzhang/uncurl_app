@@ -149,7 +149,12 @@ function update_barplot_genes() {
 
 // saves the scatterplot as an svg
 function download_scatterplot_svg() {
-    var plot = $('#means-scatter-plot')[0];
+    var plot = JSON.parse(JSON.stringify(current_scatterplot_data));
+    for (var i = 0; i < plot.data.length; i++) {
+        if (plot.data[i].type == 'scattergl') {
+            plot.data[i].type = 'scatter';
+        }
+    }
     Plotly.downloadImage(plot, {format: 'svg'});
 }
 
@@ -775,6 +780,34 @@ function on_top_or_bulk_change() {
             update_barplot(currently_selected_cluster);
         }
     }
+}
+
+function get_history() {
+    // TODO: get history...
+    //
+    $.ajax({url: window.location.pathname + '/history',
+        method: 'GET'
+    }).done(function(data) {
+        if (data.startsWith('Error')) {
+            $("#update-area").empty();
+            $("#update-area").append(data);
+            return false;
+        }
+        var results = JSON.parse(data);
+        $("#history_pane").empty();
+        var tab = $('<table>');
+        var el;
+        for (var i = 0; i < results.length; i++) {
+            var x = results[i];
+            el = $('<tr>');
+            var td1 = $('<td>').text(results[0]);
+            el.append(td1);
+            var td2 = $('<td>').text(results[1]);
+            el.append(td2);
+            tab.append(el);
+        }
+        $('#history_pane').append(tab);
+    });
 }
 
 

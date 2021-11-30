@@ -46,12 +46,12 @@
         <div class="top-left" id="left-hand-panel-1" style="display:table; width: 750px;">
             <!-- controls for which types of plots to show -->
             <div id="plot-type-options">
+                <input type="radio" id="Baseline" value="Baseline" checked="checked" name="scatter-type" onclick="toggle_scatterplot_type();">
                 <label for="Baseline" data-toggle="tooltip" title="Scatterplot visualization of cells before processing with UNCURL.">Pre-processed cells</label>
+                <input type="radio" id="Cells" value="Cells" name="scatter-type" onclick="toggle_scatterplot_type();">
                 <label for="Cells" data-toggle="tooltip" title="Scatterplot visualization of cells after processing with UNCURL.">Post-processed cells</label>
                 <input type="radio" id="Means" value="Means" name="scatter-type"onclick="toggle_scatterplot_type();">
                 <label for="Means" data-toggle="tooltip" title="Scatterplot of the cluster archetypes, plotted by MDS.">Cluster means</label>
-                <input type="radio" id="Cells" value="Cells" name="scatter-type" onclick="toggle_scatterplot_type();">
-                <input type="radio" id="Baseline" value="Baseline" checked="checked" name="scatter-type" onclick="toggle_scatterplot_type();">
 
                 <input type="radio" id="Cluster_heatmap" value="Cluster_heatmap" name="scatter-type" onclick="toggle_scatterplot_type();">
                 <label for="Cluster_heatmap" data-toggle="tooltip" title="Heatmap comparing two colormaps/cell label sets">Label heatmap</label>
@@ -411,6 +411,7 @@
             <ul class="nav nav-tabs">
                 <li class="active"><a data-toggle="tab" href="#db_gene_query_pane">Gene set query</a></li>
                 <li><a data-toggle="tab" href="#cell_query_pane">Cell similarity search</a></li>
+                <li><a data-toggle="tab" href="#history_pane" onclick="get_history();">History</a></li>
             </ul>
             <div class="tab-content" id="bottom-panel" style="margin-top: 20px; width: 1000px;">
                 <!-- tabbed navigation -->
@@ -611,12 +612,15 @@
                     <div id="cell_search_results">
                     </div>
                 </div>
+
+                <div id="history_pane" class="tab-pane fade">
+                    History
+                    <!-- TODO -->
+                </div>
             </div>
         </div>
 
     </div>
-
-    <p>Results</p>
 
     <!-- TODO: display properties in this window... -->
     <div id="data_properties"></div>
