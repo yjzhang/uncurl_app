@@ -1,8 +1,40 @@
 {% extends "base.html" %}
 
+{% block head %}
+{{super()}}
+<style>
+.toc_container {
+    background: #f9f9f9;
+    display: table;
+    padding: 20px;
+    margin-bottom: 1em;
+    width: auto;
+}
+.toc_container li{
+    margin-bottom: 0.5em;
+}
+</style>
+{% endblock %}
+
+
 {% block content %}
 <div class="container container-main" role="main">
     <h2>Help</h2>
+
+    <div class="toc_container">
+    <h3 class="toc_title">Table of contents</h3>
+    <ol class="toc_list">
+        <li><a href="#uploading_datasets">Uploading datasets</a></li>
+        <li><a href="#running_uncurl">Running uncurl</a></li>
+        <li><a href="#user_interface">User interface</a></li>
+        <li><a href="#scatterplot_views">Scatterplot views</a></li>
+        <li><a href="#barplot_views">Barplot views</a></li>
+        <li><a href="#cell_labels">Cell labels</a></li>
+        <li><a href="#gene_set_databases">Gene set databases</a></li>
+        <li><a href="#reanalysis">Merging and splitting clusters, re-analysis</a></li>
+        <li><a href="#experimental">Experimental features</a></li>
+    </ol>
+    </div>
 
     <!--TODO: take updated screenshots... -->
 
@@ -50,7 +82,7 @@
 
     <figure class="figure">
         <img src="{{ url_for('static', filename='scatterplot_1.png') }}" style="width: 900px;" class="figure-img center-block" alt="Scatterplot + barplot">
-        <figcaption class="figure-caption text-center">Visualization: scatterplot of means + barplot</figcaption>
+        <figcaption class="figure-caption text-center">The default UNCURL-App isualization: scatterplot + barplot</figcaption>
     </figure>
     </br>
 
@@ -62,7 +94,6 @@
 
     <p>To change the color scheme, use the "Label scheme" dropdown. This also allows you to upload a new color scheme for visualization.</p>
 
-    <h3>Interacting with the plot</h3>
 
     <p>Double click on a cluster name to see only that cluster. Single click on a cluster name in the legend to toggle its visibility.</p>
 
@@ -70,9 +101,8 @@
 
     </hr>
 
-    <h3>Scatterplot views</h3>
+    <h3 id="scatterplot_views">Scatterplot views</h3>
 
-    <!-- TODO: describe all of the different views present in the scatterplot right now. -->
     <p>You can select different views for the main scatterplot by clicking on the radio buttons above. There are a number of different scatterplot views:</p>
 
     <ul>
@@ -85,19 +115,21 @@
         <li><b>Gene heatmap</b> - This shows the correlations among a set of genes.</li>
     </ul>
 
-    <h3>Barplot views</h3>
+    <h3 id="barplot_views">Barplot views</h3>
 
-    <!-- TODO: describe all the different views present in the barplot right now. -->
     <p>You can select different views for the barplot by selecting them in the dropdown on the top right of the page. There are a number of different barplot views:</p>
 
     <ul>
         <li><b>Top genes (1-vs-rest fold change)</b> - The default view. This shows the genes for the selected cluster that have the highest fold change compared to the rest of the cells. Click on a cell on the scatterplot, and the corresponding cluster will be shown here.</li>
         <li><b>Top genes (p-value of fold change)</b> - This shows the genes for the selected cluster that have the lowest p-value of the fold change, based on a t-test. Again, clicking on a cell from the scatterplot will show the results for the cell's cluster here.</li>
         <li><b>Pairwise fold change</b> - This allows the user to test the differential expression between two selected clusters, showing the genes with the highest fold-change between cluster 1 and cluster 2.</li>
-        <li><b>Pairwise p-value</b> - Same as above, but for the genes with the lowest p-value of the t-test.</li>
+        <li><b>Pairwise p-value</b> - Same as above, but for the genes with the lowest p-value (or FDR) of the t-test.</li>
+        <li><b>Pairwise volcano plot</b> - Comparing two clusters, this shows the p-value (or FDR) of each gene plotted against the fold change between the two clusters.</li>
+        <li><b>Violin plots for a gene</b> - This shows violin plots of the expression values a given gene (or genes) for all clusters.</li>
+        <li><b>Highly expressed genes</b> - This shows the most highly expressed genes in the selected cluster, based on average gene expression levels.</li>
     </ul>
 
-    <h3>Cell labels</h3>
+    <h3 id="cell_labels">Cell labels</h3>
 
     <p>The cell labels dropdown, below the scatterplot, allows the user to change the color scheme used for the scatterplot. If a set of categorical cell labels is uploaded or created, UNCURL-App will automatically calculate differential expression for those cell labels, which will be shown on the barplot. Here are the options for cell labels:</p>
 
@@ -113,7 +145,9 @@
 
     </hr>
     
-    <h3>Gene set databases</h3>
+    <h3 id="gene_set_databases">Gene set databases</h3>
+
+    <!-- TODO: picture of gene set query view -->
 
     <p>UNCURL-App currently contains interfaces to three gene set databases: Enrichr, CellMarker, and CellMeSH. These databases can be used to aid in identifying cell types corresponding to clusters.</p>
 
@@ -130,6 +164,10 @@
 
     <p>Other gene set databases can be queried in the same way as CellMesh.</p>
 
+    <h4>CellMeSH-Anatomy</h4>
+
+    <p>This is the same as the CellMeSH database, but it allows queries for tissue types and organs rather than just cell types.</p>
+
     <h4>Enrichr</h4>
     
     <p>This is an interface to the Enrichr tool (http://amp.pharm.mssm.edu/Enrichr/). This does not include all gene set libraries present in Enrichr, just the ones that might be helpful in identifying cell types.</p>
@@ -140,18 +178,16 @@
 
     <h4>Gene Ontology</h4>
 
-    <p></p>
+    <p>This is an interface to a subset of <a href="http://geneontology.org/">Gene Ontology</a>, allowing the user to identify GO terms that have a significant overlap with the query.</p>
 
     <h4>KEGG</h4>
 
-    <p></p>
+    <p>This is an interface to a subset of the <a href="https://www.genome.jp/kegg/pathway.html">KEGG Pathway Database</a>.</p>
 
-
-    <!-- TODO: insert picture here -->
 
     </hr>
 
-    <h3>Merging, splitting, re-analysis</h3>
+    <h3 id="reanalysis">Merging, splitting, re-analysis</h3>
 
     <p>Using the scatterplot, the user can merge or split existing clusters, or create a new cluster from selected cells.</p>
 
@@ -171,14 +207,37 @@
         <li>Wait for the process to finish. It might take around the same time as the original data upload.</li>
     </ol>
 
-    <p>To <b>delete</b> a group of cells or a cluster:</p>
+    <p>To <b>delete</b> a group of cells:</p>
+    <ol>
+        <li>Mouse over to the top right corner of the screen, and select either the "Box Select" or "Lasso Select" tool.</li>
+        <li>Draw a border around the cells that should be deleted. You should see a text box below the scatterplot that mentions the selected clusters and number of cells.</li>
+        <li>Click on the "Recluster" button below the scatterplot, and then click "Delete cells".</li>
+        <li>Wait for the process to finish. It might take around the same time as the original data upload.</li>
+    </ol>
 
-    <p>To assign a group of cells to a new cluster:</p>
+    <p>To assign a group of cells to a <b>new cluster</b>:</p>
+    <ol>
+        <li>Mouse over to the top right corner of the screen, and select either the "Box Select" or "Lasso Select" tool.</li>
+        <li>Draw a border around the cells that should be reassigned.</li>
+        <li>Click on the "Recluster" button below the scatterplot, and then click "Create new cluster".</li>
+        <li>Wait for the process to finish. It might take around the same time as the original data upload.</li>
+    </ol>
+
+    <p>To re-run UNCURL-App on a subset of cells or clusters:</p>
+    <ol>
+        <li>Mouse over to the top right corner of the screen, and select either the "Box Select" or "Lasso Select" tool.</li>
+        <li>Draw a border around the cells or clusters that should be reassigned.</li>
+        <li>Click on the "Reanalyze" button below the scatterplot. Then, click either "Sub-select cells" or "Sub-select clusters".</li>
+    </ol>
 
 
-    <h3>Experimental Features</h3>
+    <h3 id="experimental">Experimental Features</h3>
 
     <p>These features are not supported.</p>
+
+    <h4>Cell similarity search</h4>
+
+    <p>This queries for the selected cluster using annotated RNA-seq libraries. Currently this is not available on the online server.</p>
 
 </div>
 
