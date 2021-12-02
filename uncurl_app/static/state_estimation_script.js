@@ -510,7 +510,7 @@ function get_cell_info() {
         for (var i = 0; i < selected_cells.length; i++) {
             cell_string += "cell " + String(selected_cells[i]) + " (" + String(results.gene_counts[i])
                 +  " genes, " + String(results.read_counts[i]) + " reads), ";
-        };
+        }
         $("#update-area").empty();
         $("#update-area").append("Selected cells: " + cell_string + "<br>");
         $("#update-area").append("Selected clusters: " + selection_string + "<br>");
@@ -782,6 +782,26 @@ function on_top_or_bulk_change() {
     }
 }
 
+// this function creates a restore_history function for the action_id.
+// Used as an event.
+function create_restore_history_function(action_id) {
+    return function() {
+        $('.overlay').show();
+        $.ajax({url: window.location.pathname + '/restore_history/' + action_id,
+            method: 'GET'
+        }).done(function(data) {
+            $('.overlay').hide();
+            if (data.startsWith('Error')) {
+                $("#update-area").empty();
+                $("#update-area").append(data);
+                return false;
+            }
+            // TODO: refresh the screen/reload the page?
+            window.location.reload();
+        });
+    };
+}
+
 function get_history() {
     // TODO: get history...
     //
@@ -797,13 +817,24 @@ function get_history() {
         $("#history_pane").empty();
         var tab = $('<table>');
         var el;
+        // TODO: link for "restoring", don't need ids (entry 1)
         for (var i = 0; i < results.length; i++) {
             var x = results[i];
             el = $('<tr>');
-            var td1 = $('<td>').text(results[0]);
-            el.append(td1);
-            var td2 = $('<td>').text(results[1]);
-            el.append(td2);
+            var action = $('<td>').text(x[0]);
+            el.append(action);
+            var date = $('<td>').text(x[2]);
+            el.append(date);
+            var is_restorable = x[3];
+            var id = x[1];
+            if (is_restorable) {
+                var restore_link = $('<button>');
+                restore_link = restore_link.text('Restore previous');
+                restore_link.click(create_restore_history(id));
+                var restore_entry = $('<td>');
+                restore_entry.append(restore_link);
+                el.append(restore_entry);
+            }
             tab.append(el);
         }
         $('#history_pane').append(tab);

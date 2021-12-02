@@ -1472,6 +1472,7 @@ def db_query(user_id):
             means = np.array(data_labels.mean(1)).flatten()
         except Exception as e:
             text = traceback.format_exc()
+            print(str(e))
             print(text)
             means = sca.cluster_means[:, int(cell_label)]
     # TODO: cache db query
@@ -1496,6 +1497,25 @@ def get_history(user_id):
     log = sca.log
     log_action_dates = [[x[0], x[2]] for x in log]
     return json.dumps(log_action_dates)
+
+
+@interaction_views.route('/user/<user_id>/view/restore_history/<action_id>')
+def restore_history(user_id, action_id):
+    """
+    Restores the history...
+    """
+    sca = get_sca(user_id)
+    if not hasattr(sca, 'log'):
+        return 'Error: history not available'
+    try:
+        result = sca.restore_prev(action_id)
+        if isinstance(result, str):
+            return result
+        return 1
+    except Exception as e:
+        text = traceback.format_exc()
+        print(text)
+        return 'Error: ' + str(e)
 
 
 @interaction_views.route('/user/<user_id>/view/split_or_merge_cluster', methods=['POST'])
@@ -1537,32 +1557,40 @@ def split_or_merge_cluster(user_id):
             generate_analysis.generate_analysis_resubmit(sca,
                     'split', selected_clusters)
             return 'Finished splitting selected cluster: ' + str(selected_clusters[0])
-        except:
-            return 'Error in splitting clusters.'
+        except Exception as e:
+            text = traceback.format_exc()
+            print(text)
+            return 'Error in splitting clusters: ' + str(e)
     # merge clusters
     elif  split_or_merge == 'merge':
         try:
             generate_analysis.generate_analysis_resubmit(sca,
                     'merge', selected_clusters)
             return 'Finished merging selected clusters: ' + ' '.join(map(str, selected_clusters))
-        except:
-            return 'Error in merging clusters.'
+        except Exception as e:
+            text = traceback.format_exc()
+            print(text)
+            return 'Error in merging clusters: ' + str(e)
     # create new cluster from selected cells
     elif split_or_merge == 'new':
         try:
             generate_analysis.generate_analysis_resubmit(sca,
                     'new', selected_clusters)
             return 'Finished creating new cluster from selected cells: ' + ' '.join(map(str, selected_clusters))
-        except:
-            return 'Error in creating new cluster.'
+        except Exception as e:
+            text = traceback.format_exc()
+            print(text)
+            return 'Error in creating new cluster: ' + str(e)
     # delete selected cells
     elif split_or_merge == 'delete':
         try:
             generate_analysis.generate_analysis_resubmit(sca,
                     'delete', selected_clusters)
             return 'Finished deleting selected cells: ' + ' '.join(map(str, selected_clusters))
-        except:
-            return 'Error in deleting selected cells.'
+        except Exception as e:
+            text = traceback.format_exc()
+            print(text)
+            return 'Error in deleting cells: ' + str(e)
 
 
 @interaction_views.route('/user/<user_id>/view/upload_color_track', methods=['POST'])

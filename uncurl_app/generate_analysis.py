@@ -66,7 +66,7 @@ def generate_uncurl_analysis(data, output_dir,
         text = traceback.format_exc()
         with open(os.path.join(output_dir, 'error.txt'), 'w') as f:
             f.write(text)
-        return
+        return 'Error: ' + str(e)
     sca.save_json_reset()
     print('done with generate_analysis')
 
@@ -87,11 +87,6 @@ def generate_analysis_resubmit(sca,
     sca.run_post_analysis()
     sca.save_json_reset()
 
-def restore_history(sca):
-    """
-    """
-    # TODO: restores the history...
-    pass
 
 def get_progress(path):
     """
