@@ -32,6 +32,10 @@
         <li><a href="#cell_labels">Cell labels</a></li>
         <li><a href="#gene_set_databases">Gene set databases</a></li>
         <li><a href="#reanalysis">Merging and splitting clusters, re-analysis</a></li>
+        <ol class="toc_list">
+            <li><a href="#history">History</a></li>
+            <li><a href="#known_issues">Known issues</a></li>
+        </ol>
         <li><a href="#experimental">Experimental features</a></li>
     </ol>
     </div>
@@ -59,7 +63,7 @@
 
     <p>After uploading the data, you will eventually be redirected to a view that looks like the one above. On the top, there are two plots. The plot on the left shows the distribution of total read counts per cell. The plot on the right shows the relationship between mean and variance for all genes.</p>
 
-    <h4>Uncurl options</h4>
+    <h4 id="uncurl_options">Uncurl options</h4>
 
     <figure class="figure">
         <img src="{{ url_for('static', filename='uncurl_params.png') }}" style="width: 500px;" class="figure-img center-block" alt="Uncurl parameters">
@@ -188,7 +192,6 @@
 
     <p>This is an interface to a subset of the <a href="https://www.genome.jp/kegg/pathway.html">KEGG Pathway Database</a>.</p>
 
-
     </hr>
 
     <h3 id="reanalysis">Merging, splitting, re-analysis</h3>
@@ -198,8 +201,6 @@
         <figcaption class="figure-caption text-center">Reclustering - In this example, two clusters have been selected, and can be merged.</figcaption>
     </figure>
     </br>
-
-
 
     <p>Using the scatterplot, the user can merge or split existing clusters, or create a new cluster from selected cells.</p>
 
@@ -246,7 +247,11 @@
 
     <p>Every reclustering action generates a log entry. Clicking on the "History" tab, below the scatterplot, shows the log of previous actions, from oldest to newest. Selecting "Restore previous" will restore the clustering analysis to the state before the selected action.</p>
 
-    <h3 id="experimental">Experimental Features</h3>
+    <h4 id="known_issues">Known issues</h4>
+
+    <p>Sometimes, after starting a re-clustering operation, the page will be stuck on the loading screen for much longer than expected. There is a good chance that refreshing the page would solve the issue, so if the re-clustering takes longer than the original data upload process, just refresh the page..</p>
+
+    <h3 id="experimental">Experimental features</h3>
 
     <p>These features are not supported.</p>
 

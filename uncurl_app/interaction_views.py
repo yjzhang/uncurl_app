@@ -1505,6 +1505,8 @@ def restore_history(user_id, action_id):
     """
     Restores the history...
     """
+    if user_id.startswith('test_'):
+        return 'Error: test datasets cannot be modified. Copy the dataset if you wish to modify it.'
     sca = get_sca(user_id)
     if not hasattr(sca, 'log'):
         return 'Error: history not available'
