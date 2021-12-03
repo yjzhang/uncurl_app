@@ -672,6 +672,7 @@ function rerun_clustering() {
     var clustering_method = $('#clustering_method_select').val();
     console.log(clustering_method);
     $("#update-area").empty();
+    $('.overlay').show();
     $("#update-area").append('Re-clustering + recalculating differential expression... <img src="/static/ajax-loader.gif"/>');
     $.ajax({url: window.location.pathname + "/recluster",
         data: {
@@ -679,6 +680,7 @@ function rerun_clustering() {
         },
         method: 'POST'
     }).done(function(data) {
+        $('.overlay').hide();
         if (data.startsWith('Error')) {
             $('#update-area').empty();
             $('#update-area').append(data);
