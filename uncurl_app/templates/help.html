@@ -147,7 +147,11 @@
     
     <h3 id="gene_set_databases">Gene set databases</h3>
 
-    <!-- TODO: picture of gene set query view -->
+    <figure class="figure">
+        <img src="{{ url_for('static', filename='cellmesh.png') }}" style="width: 500px;" class="figure-img center-block" alt="Cellmesh view">
+        <figcaption class="figure-caption text-center">The CellMeSH query view</figcaption>
+    </figure>
+    </br>
 
     <p>UNCURL-App currently contains interfaces to three gene set databases: Enrichr, CellMarker, and CellMeSH. These databases can be used to aid in identifying cell types corresponding to clusters.</p>
 
@@ -188,6 +192,14 @@
     </hr>
 
     <h3 id="reanalysis">Merging, splitting, re-analysis</h3>
+
+    <figure class="figure">
+        <img src="{{ url_for('static', filename='recluster.png') }}" style="width: 600px;" class="figure-img center-block" alt="Reclustering">
+        <figcaption class="figure-caption text-center">Reclustering - In this example, two clusters have been selected, and can be merged.</figcaption>
+    </figure>
+    </br>
+
+
 
     <p>Using the scatterplot, the user can merge or split existing clusters, or create a new cluster from selected cells.</p>
 
@@ -230,6 +242,9 @@
         <li>Click on the "Reanalyze" button below the scatterplot. Then, click either "Sub-select cells" or "Sub-select clusters".</li>
     </ol>
 
+    <h4 id="history">History</h4>
+
+    <p>Every reclustering action generates a log entry. Clicking on the "History" tab, below the scatterplot, shows the log of previous actions, from oldest to newest. Selecting "Restore previous" will restore the clustering analysis to the state before the selected action.</p>
 
     <h3 id="experimental">Experimental Features</h3>
 
