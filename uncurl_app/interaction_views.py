@@ -1495,8 +1495,9 @@ def get_history(user_id):
     if not hasattr(sca, 'log'):
         return '[]'
     log = sca.log
-    log_action_dates = [[x[0], x[2]] for x in log]
-    return json.dumps(log_action_dates)
+    print('log:', log)
+    print('log_f:', sca.log_f)
+    return json.dumps(log)
 
 
 @interaction_views.route('/user/<user_id>/view/restore_history/<action_id>')
@@ -1511,7 +1512,7 @@ def restore_history(user_id, action_id):
         result = sca.restore_prev(action_id)
         if isinstance(result, str):
             return result
-        return 1
+        return 'Finished restoring previous state.'
     except Exception as e:
         text = traceback.format_exc()
         print(text)

@@ -83,7 +83,7 @@ def generate_analysis_resubmit(sca,
         split_or_merge (str): either 'split' or 'merge'
         clusters_to_change (list): list of cluster numbers. If splitting, only the first cluster will be used. If merging, all the clusters will be merged.
     """
-    sca.recluster(split_or_merge, clusters_to_change)
+    sca.recluster(split_or_merge, clusters_to_change, write_log_entry=True)
     sca.run_post_analysis()
     sca.save_json_reset()
 

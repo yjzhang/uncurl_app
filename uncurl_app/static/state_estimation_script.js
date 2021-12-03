@@ -568,6 +568,7 @@ function split_or_merge_cluster(split_or_merge, cells_or_clusters) {
             update_scatterplot();
             update_barplot(0);
             //location.reload(true);
+            get_history();
         }
     });
 }
@@ -786,6 +787,10 @@ function on_top_or_bulk_change() {
 // Used as an event.
 function create_restore_history_function(action_id) {
     return function() {
+        var result = window.confirm("Warning: this operation might take a while, and changes could be lost. Are you sure you wish to run this operation?");
+        if (result == false) {
+            return false;
+        }
         $('.overlay').show();
         $.ajax({url: window.location.pathname + '/restore_history/' + action_id,
             method: 'GET'
@@ -803,8 +808,8 @@ function create_restore_history_function(action_id) {
 }
 
 function get_history() {
-    // TODO: get history...
-    //
+    // fills the history pane
+    console.log('get_history');
     $.ajax({url: window.location.pathname + '/history',
         method: 'GET'
     }).done(function(data) {
@@ -816,7 +821,8 @@ function get_history() {
         var results = JSON.parse(data);
         $("#history_pane").empty();
         var tab = $('<table>');
-        var el;
+        var el = $('<tr><td>Action</td><td>Time</td><td>Restore</td></tr>');
+        tab.append(el);
         // TODO: link for "restoring", don't need ids (entry 1)
         for (var i = 0; i < results.length; i++) {
             var x = results[i];
@@ -830,7 +836,7 @@ function get_history() {
             if (is_restorable) {
                 var restore_link = $('<button>');
                 restore_link = restore_link.text('Restore previous');
-                restore_link.click(create_restore_history(id));
+                restore_link.click(create_restore_history_function(id));
                 var restore_entry = $('<td>');
                 restore_entry.append(restore_link);
                 el.append(restore_entry);
