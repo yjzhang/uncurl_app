@@ -198,13 +198,5 @@ class UncurlAppTest(unittest.TestCase):
         # TODO: test other options
 
 
-    def test_helper_functions(self):
-        current_task, time_remaining = generate_analysis.get_progress('test_data/10x_400_new')
-        print(current_task)
-        print(time_remaining)
-
-    # TODO: test submitting a file?
-
-
 if __name__ == '__main__':
     unittest.main()
