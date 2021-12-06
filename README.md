@@ -1,7 +1,7 @@
-Flask web app for UNCURL
+UNCURL-App
 =======================
 
-Try it out: the current url is at http://uncurl-app.yjzhang.com:8888/
+Try it out: the current url is at <https://uncurl.cs.washington.edu>
 
 ## Installation
 
@@ -29,7 +29,7 @@ To run the server:
 
 This exposes the given port, and then the uncurl-app website can be visited in the browser at http://your-ip-address:port. To stop the server, run `sudo killall gunicorn` in another terminal.
 
-Alternatively, we have built reasonably up-to-date images at ayuezhang27/uncurl-app. To run the server using these images (does not require cloning this repository):
+Alternatively, we have built reasonably up-to-date images at [ayuezhang27/uncurl-app](https://hub.docker.com/repository/docker/ayuezhang27/uncurl-app). To run the server using these images (does not require cloning this repository):
 
     docker pull ayuezhang27/uncurl-app
     docker run -p 8888:8888 -p 6379:6379  ayuezhang27/uncurl-app
@@ -52,7 +52,9 @@ Pushing to docker-hub:
 
 ## Usage
 
-See [user_guide.md](https://github.com/yjzhang/uncurl_app/blob/master/user_guide.md), or http://uncurl-app.yjzhang.com:8888/help
+See <http://uncurl.cs.washington.edu/help>
+
+In order to change the file upload size limits when running locally, set the `MAX_CONTENT_LENGTH` environment variable to the desired value (in bytes). 
 
 
 ## Command-line usage

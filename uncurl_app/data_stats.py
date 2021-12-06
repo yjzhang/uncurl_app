@@ -16,8 +16,10 @@ class Summary(object):
     def __init__(self, data_paths, gene_paths, base_path, shapes=['gene_cell'], data=None, dataset_names=None, use_batch_correction=False):
         """
         Args:
-            data_path (str): path to data file
+            data_paths (list of str): list of paths to data files
+            gene_paths (list of str): list of paths to gene files
             base_path (str): path to data dir
+            shapes (list of str): list of either gene_cell or cell_gene
         """
         # deal with multiple paths
         if data is None:
@@ -45,6 +47,8 @@ class Summary(object):
                     is_gz = data_path.endswith('gz')
                     data_path_new = data_path
                     # convert data shape
+                    # TODO: try to automatically infer the shape (if genes.txt is present)
+                    # The problem is inefficiency - we don't want to have to update the dataset twice.
                     if shapes[i] == 'cell_gene':
                         try:
                             data = scipy.io.mmread(data_path)
