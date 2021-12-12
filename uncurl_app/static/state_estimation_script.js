@@ -723,6 +723,33 @@ function submit_db_query() {
     });
 }
 
+function submit_cell_search(db, method) {
+    var form_data = $('#cell_search_form').serializeArray();
+    var data = {};
+    $(form_data).each(function(index, obj){
+        data[obj.name] = obj.value;
+    });
+    var cell_color = $('#cell-color').val();
+    data.cell_color = cell_color;
+    $("#update-area").empty();
+    $('#update-area').append('Cell search query <img src="/static/ajax-loader.gif"/>');
+    $.ajax({url: window.location.pathname + '/cell_search_query',
+        data: data,
+        method: 'POST'
+    }).done(function(data) {
+        if (data.startsWith('Error')) {
+            $("#update-area").empty();
+            $("#update-area").append(data);
+            return false;
+        }
+        // set results from cell search...
+        $("#update-area").empty();
+        $("#update-area").append('Completed cell search query');
+        var results = JSON.parse(data);
+        set_enrichr_results(results, 'cell_search');
+    });
+}
+
 // called whenever cell color is changed.
 function on_cell_color_change() {
     var cell_color = $("#cell-color").val();

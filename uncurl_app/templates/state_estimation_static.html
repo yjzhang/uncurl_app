@@ -170,6 +170,7 @@
                     <!-- view to show each cluster's W values --> 
                     <option value="weights">Cluster weights</option>
                     <option value="read_counts">Read counts</option>
+                    <option value="neural_network_classifier">Neural network classifier</option>
                     {% for track in color_tracks %}
                     <option value="{{ track }}">{{ track }}</option>
                     {% endfor %}
@@ -592,6 +593,10 @@
                     <div id="cell_search_view">
                         <form id="cell_search_form">
                             <div class="form-inline">
+                                <button class="btn btn-default" title="Create a new set of cell labels using a neural network classifier trained on the Tabula Muris dataset." data-toggle="tooltip" onclick="submit_cell_search('tm', 'nn');">Run Tabula Muris NN query</button>
+                            </div>
+                            <div class="form-inline">
+
                                 <label for="cell_search_db">Database:</label>
                                 <select class="form-control" id="cell_search_db" name="cell_search_db">
                                     <option value='tm_means' selected>Tabula Muris</option>
@@ -601,6 +606,7 @@
                                 <label for="method">Method:</label>
                                 <select class="form-control" id="method" name="method">
                                     <option value='spearman' selected>Spearman</option>
+                                    <option value='nn' selected>NN</option>
                                 </select>
                                 <label for="cell_search_cluster">Cluster:</option>
                                 <select class="form-control" id="cell_search_cluster" name="cell_search_cluster">

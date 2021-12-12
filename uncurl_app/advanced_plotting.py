@@ -38,7 +38,7 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
     if normalize_row:
         data = data/data.sum(1, keepdims=True)
     if order == 'coclustering':
-        from sklearn.cluster.bicluster import SpectralCoclustering
+        from sklearn.cluster import SpectralCoclustering
         spec = SpectralCoclustering(int(max(len(cluster1_values)/1.5, len(cluster2_values)/1.5, 2)))
         spec.fit(data + 1e-8)
         row_labels = spec.row_labels_

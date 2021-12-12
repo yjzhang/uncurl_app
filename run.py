@@ -1,5 +1,6 @@
 import os
 os.environ['TEST_DATA_DIR'] = '/cse/web/research/uncurl/uncurl_test'
+os.environ['USER_DATA_DIR'] = '/cse/web/research/uncurl/tmp/uncurl'
 
 from uncurl_app import create_app
 from uncurl_app import cache

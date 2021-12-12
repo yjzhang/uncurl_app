@@ -1102,16 +1102,11 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
                     mode='entropy', color_vals=read_counts)
         elif cell_color_value == 'neural_network_classifier':
             # TODO: get NN results
+            from mouse_cell_query import nn_query
+            cell_names, results, class_names = nn_query.predict_using_default_classifier(sca.data_sampled_all_genes.T, sca.gene_names, normalize=True)
+            sca.add_color_track('neural_network_classifier', cell_names, is_discrete=True)
             color_track, is_discrete = get_sca_color_track(user_id, cell_color_value)
-            # set cell class...
-            if color_track is None:
-                from mouse_cell_query import nn_query
-                cell_names, results, class_names = nn_query.predict_using_default_classifier(sca.data.T, sca.genes)
-                sca.add_color_track('neural_network_classifier', cell_names, is_discrete=True)
-                color_track, is_discrete = get_sca_color_track(user_id, cell_color_value)
-                return scatterplot_data(dim_red, color_track)
-            else:
-                return scatterplot_data(dim_red, color_track)
+            return scatterplot_data(dim_red, color_track)
         else:
             # try to get color track
             # TODO: get color values as well
