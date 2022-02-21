@@ -16,9 +16,7 @@ from .data_stats import Summary
 
 views = Blueprint('views', __name__, template_folder='templates')
 
-# TODO: allow this to upload multiple files with multiple genes
 def load_upload_data(request_files, request_form, path=None):
-    # TODO: should we merge the datasets here... or merge them in a downstream step?
     data_paths = []
     gene_paths = []
     shapes = []
@@ -49,7 +47,7 @@ def load_upload_data(request_files, request_form, path=None):
                 f.save(data_path)
             shape = request_form['data_shape-{0}'.format(input_id)]
             shapes.append(shape)
-            # TODO: try to find gene names
+            # try to find gene names
             data_paths.append(data_path)
             try:
                 gene_file = request_files['genenames-{0}'.format(input_id)]
