@@ -52,6 +52,18 @@ def create_app(config_filename=None):
     @app.route('/')
     def index():
         return render_template('index.html')
+    # handle errors
+    from werkzeug.exceptions import HTTPException
+    import traceback
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        # pass through HTTP errors
+        print(e)
+        text = traceback.format_exc()
+        if isinstance(e, HTTPException):
+            return e
+        # now you're handling non-HTTP exceptions only
+        return render_template("error.html", msg=str(e) + '\n\n' + text), 500
     return app
 
 def create_app_split_seq(data_dir='./', config_filename=None):
@@ -95,6 +107,7 @@ def create_app_split_seq(data_dir='./', config_filename=None):
     @app.route('/index')
     def index():
         return render_template('index.html')
+
     bp2 = Blueprint('new_index', __name__)
     @bp2.route('/')
     def index_redirect():

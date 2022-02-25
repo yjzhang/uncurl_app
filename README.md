@@ -1,7 +1,7 @@
 UNCURL-App
 =======================
 
-Try it out: the current url is at <https://uncurl.cs.washington.edu>
+Try it out: the current url is at <https://uncurl.cs.washington.edu>. Alternatively, try <https://uncurl-test.cs.washington.edu>.
 
 ## Installation
 
