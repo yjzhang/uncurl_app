@@ -67,6 +67,14 @@ def load_upload_data(request_files, request_form, path=None):
 def load_gene_names(f, path=None, index=1):
     gene_filename = secure_filename(f.filename)
     gene_output_path = os.path.join(path, 'gene_names_{0}.txt'.format(index))
+    if gene_filename.endswith('.gz'):
+        # gunzip the file
+        import subprocess
+        base_file_path = os.path.join(path, gene_filename)
+        f.save(base_file_path)
+        subprocess.call(['gunzip', base_file_path])
+        f = open(base_file_path)
+        gene_filename = gene_filename[:-3]
     if gene_filename.endswith('genes.csv'):
         import pandas as pd
         data = pd.read_csv(f)
