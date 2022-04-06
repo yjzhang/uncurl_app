@@ -9,6 +9,7 @@ uncurl-seq
 gunicorn
 colorlover
 plotly==4.3.0
+git+git://github.com/yjzhang/uncurl_python.git
 git+git://github.com/yjzhang/simplex_sample.git
 git+git://github.com/yjzhang/uncurl_analysis.git@c45817d
 git+git://github.com/yjzhang/cellmarker_python.git
