@@ -11,7 +11,7 @@ colorlover
 plotly==4.3.0
 git+https://github.com/yjzhang/uncurl_python.git
 git+https://github.com/yjzhang/simplex_sample.git
-git+https://github.com/yjzhang/uncurl_analysis.git@933438e
+git+https://github.com/yjzhang/uncurl_analysis.git@58d00e2
 git+https://github.com/yjzhang/cellmarker_python.git
 git+https://github.com/yjzhang/gene_name_mapper.git
 git+https://github.com/yjzhang/cellmesh.git
