@@ -9,10 +9,10 @@ uncurl-seq
 gunicorn
 colorlover
 plotly==4.3.0
-git+git://github.com/yjzhang/uncurl_python.git
-git+git://github.com/yjzhang/simplex_sample.git
-git+git://github.com/yjzhang/uncurl_analysis.git@933438e
-git+git://github.com/yjzhang/cellmarker_python.git
-git+git://github.com/yjzhang/gene_name_mapper.git
-git+git://github.com/yjzhang/cellmesh.git
-git+git://github.com/yjzhang/kegg_query.git
+git+https://github.com/yjzhang/uncurl_python.git
+git+https://github.com/yjzhang/simplex_sample.git
+git+https://github.com/yjzhang/uncurl_analysis.git@933438e
+git+https://github.com/yjzhang/cellmarker_python.git
+git+https://github.com/yjzhang/gene_name_mapper.git
+git+https://github.com/yjzhang/cellmesh.git
+git+https://github.com/yjzhang/kegg_query.git
