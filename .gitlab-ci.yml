@@ -4,7 +4,6 @@ stages:
 deploy_test:
   stage: deploy
   script:
-    - docker-compose restart 
     - docker-compose build
     - COMPOSE_HTTP_TIMEOUT=500 docker-compose up -d --verbose
   tags:
@@ -15,7 +14,6 @@ deploy_test:
 deploy_prod:
   stage: deploy
   script:
-    - docker-compose restart 
     - docker-compose build
     - COMPOSE_HTTP_TIMEOUT=500 docker-compose up -d --verbose
   tags:
