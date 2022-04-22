@@ -3,6 +3,8 @@ UNCURL-App
 
 Try it out: the current url is at <https://uncurl.cs.washington.edu>. Alternatively, try <https://uncurl-test.cs.washington.edu>.
 
+### Note: the server is currently down due to host issues. To use uncurl-app, consider using the docker image: [ayuezhang27/uncurl-app](https://hub.docker.com/repository/docker/ayuezhang27/uncurl-app) 
+
 ## Installation
 
 Requirements: see `requirements.txt`. To install requirements, run `pip install -r requirements.txt`
