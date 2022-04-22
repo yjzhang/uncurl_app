@@ -2,7 +2,7 @@ flask
 flask_bootstrap
 Flask-Caching
 scipy
-numpy
+numpy==1.19.4
 scikit-learn
 redis
 uncurl-seq

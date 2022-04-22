@@ -3,7 +3,7 @@ from multiprocessing.dummy import Process
 import os
 import uuid
 
-from flask import Markup, render_template, request, redirect, send_from_directory, url_for, Blueprint, current_app
+from flask import render_template, request, redirect, send_from_directory, url_for, Blueprint, current_app
 from werkzeug.utils import secure_filename
 
 import numpy as np
