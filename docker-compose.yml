@@ -9,4 +9,5 @@ services:
       - /cse/web/research/uncurl/uncurl_test:/uncurl_test
     environment:
       - TEST_DATA_DIR=/uncurl_test
+      - MAX_CONTENT_LENGTH=262144000
     restart: always

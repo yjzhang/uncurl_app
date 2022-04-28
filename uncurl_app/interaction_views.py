@@ -1079,6 +1079,7 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
             gene_data = get_gene_data(user_id, gene_name, use_mw)
             if len(gene_data)==0:
                 return 'Error: gene not found'
+            # TODO: change colorscale so that zero=gray? mixed continuous/discrete color scale
             return scatterplot_data(dim_red, sca.labels,
                     mode='entropy', color_vals=gene_data)
         elif cell_color_value == 'cluster':

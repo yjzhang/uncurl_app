@@ -111,6 +111,7 @@ def get_progress(path):
     if k == 0:
         k = 15
     # calculate time remaining using genes and cells
+    # TODO: loading_factor/loading_total_time?
     # wow this is really arbitrary but better than nothing???
     uncurl_factor = 120.0/(8000.0*3000.0*8)
     uncurl_total_time = k*genes*frac*cells*uncurl_factor

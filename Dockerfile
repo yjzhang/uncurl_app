@@ -17,4 +17,6 @@ EXPOSE 8888
 
 ENV NAME World
 
+ENV MAX_CONTENT_LENGTH 9999999999
+
 CMD ["sh", "start_gunicorn_docker.sh"]

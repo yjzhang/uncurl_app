@@ -32,7 +32,7 @@ function set_criteria(criteria, label_name) {
     console.log('set_criteria');
     console.log(criteria);
     console.log(label_name);
-    // TODO: if label_name is not an option in label_select, add it.
+    // if label_name is not an option in label_select, add it.
     var selection = $('#label_select option[value=\"'+label_name+'\"]');
     if (selection.length == 0) {
         // add label to selection
