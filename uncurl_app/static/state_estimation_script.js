@@ -536,10 +536,12 @@ function split_or_merge_cluster(split_or_merge, cells_or_clusters) {
     }
     if (all_selected_clusters.length == 0) {
         window.alert('Warning: no selected clusters.');
+        $('.overlay').hide();
         return false;
     }
     if (split_or_merge == "merge" && all_selected_clusters.length == 1) {
         window.alert('Warning: cannot merge a single cluster.');
+        $('.overlay').hide();
         return false;
     }
     // lengths of each of the selected clusters
@@ -580,6 +582,37 @@ function delete_rerun() {
         return false;
     }
     window.location.href = window.location.pathname + "/delete_rerun";
+}
+
+
+// re-run pipeline
+function run_batch_correction() {
+    var cell_color = $("#cell-color").val();
+    var result = window.confirm("Do you wish to run batch effect correction on the colormap '" + cell_color + "'? This will re-run the entire pipeline, deleting the current dataset.");
+    if (result == false) {
+        return false;
+    }
+    $('.overlay').show();
+    $.ajax({url: window.location.pathname + "/run_batch_correction",
+        method: 'POST',
+        data: {'colormap': cell_color,},
+    }).done(function(data) {
+        $('.overlay').hide();
+        if (data.startsWith('Error')) {
+            $('#update-area').empty();
+            $('#update-area').append(data);
+        } else {
+            $('#update-area').empty();
+            $('#update-area').append(data);
+            // reload page?
+            cache.barplots = {};
+            cache.scatterplots = {};
+            update_scatterplot();
+            update_barplot(0);
+            //location.reload(true);
+            get_history();
+        }
+    });
 }
 
 // copies data to a new user_id

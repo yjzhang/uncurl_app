@@ -1807,7 +1807,7 @@ def recluster(user_id):
     """
     Re-clusters - re-runs the labeling method...
     """
-    print('reclustering')
+    print('reclustering ', user_id)
     if user_id.startswith('test_'):
         return 'Error: test datasets cannot be modified. Copy the dataset if you wish to modify it.'
     sca = get_sca(user_id)
@@ -1819,6 +1819,33 @@ def recluster(user_id):
         print(text)
         return 'Error: ' + str(e)
     # clear caches?
+    cache.delete_memoized(get_sca_top_genes, user_id)
+    cache.delete_memoized(get_sca_top_1vr, user_id)
+    cache.delete_memoized(get_sca_pvals, user_id)
+    cache.delete_memoized(get_sca_pval_1vr, user_id)
+    cache.delete_memoized(update_barplot_result)
+    cache.delete_memoized(update_scatterplot_result)
+    cache.delete_memoized(heatmap_data)
+    cache.delete_memoized(dendrogram_data)
+    return 'success'
+
+@interaction_views.route('/user/<user_id>/view/run_batch_correction', methods=['POST'])
+def run_batch_correction(user_id):
+    """
+    Runs batch effect correction on the provided color map
+    """
+    # TODO
+    print('run_batch_correction ', user_id)
+    sca = get_sca(user_id)
+    data_form = request.form.copy()
+    try:
+        colormap = data_form['colormap']
+        sca.run_batch_effect_correction(colormap)
+    except Exception as e:
+        text = traceback.format_exc()
+        print(text)
+        return 'Error: ' + str(e)
+    # clear caches
     cache.delete_memoized(get_sca_top_genes, user_id)
     cache.delete_memoized(get_sca_top_1vr, user_id)
     cache.delete_memoized(get_sca_pvals, user_id)
