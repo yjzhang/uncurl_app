@@ -119,8 +119,8 @@ class Summary(object):
         params: min_reads (bottom 10th percentile), max_reads
         (top 10th percentile), frac (0.2), nbins (5)
         """
-        # cell_frac is set so that there will be a max of 10000 points
-        cell_frac = min(1.0, 10000.0/self.cells)
+        # cell_frac is set so that there will be a max of 25000 points
+        cell_frac = min(1.0, 25000.0/self.cells)
         cell_frac = round(cell_frac, 2)
         top_05 = int(self.cells/20) # 5%
         preproc_params = {'min_reads': int(self.sorted_read_counts[top_05]),
