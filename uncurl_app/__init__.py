@@ -42,7 +42,14 @@ def create_app(config_filename=None):
 
     app.config['CACHE_TYPE'] = 'redis'
 
-    app.config['SHOW_ALL_RESULTS'] = False
+    if 'SHOW_ALL_RESULTS' in os.environ:
+        show_all = os.environ['SHOW_ALL_RESULTS']
+        if !show_all or show_all.lower() == 'false' or show_all == '0':
+            app.config['SHOW_ALL_RESULTS'] = False
+        else:
+            app.config['SHOW_ALL_RESULTS'] = True
+    else:
+        app.config['SHOW_ALL_RESULTS'] = False
 
     # register blueprints
     app.register_blueprint(interaction_views.interaction_views)

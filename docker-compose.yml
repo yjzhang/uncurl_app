@@ -10,4 +10,5 @@ services:
     environment:
       - TEST_DATA_DIR=/uncurl_test
       - MAX_CONTENT_LENGTH=262144000
+      - SHOW_ALL_RESULTS=false
     restart: always
