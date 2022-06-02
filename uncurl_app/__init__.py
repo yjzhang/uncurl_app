@@ -44,7 +44,7 @@ def create_app(config_filename=None):
 
     if 'SHOW_ALL_RESULTS' in os.environ:
         show_all = os.environ['SHOW_ALL_RESULTS']
-        if !show_all or show_all.lower() == 'false' or show_all == '0':
+        if not show_all or show_all.lower() == 'false' or show_all == '0':
             app.config['SHOW_ALL_RESULTS'] = False
         else:
             app.config['SHOW_ALL_RESULTS'] = True
