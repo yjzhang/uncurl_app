@@ -1,4 +1,5 @@
 import os
+# TODO: user should change this (default should be test_data)
 os.environ['TEST_DATA_DIR'] = '/cse/web/research/uncurl/uncurl_test'
 
 from uncurl_app import create_app

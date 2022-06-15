@@ -1,0 +1,19 @@
+- connect to GO - DONE
+- support for interactive relabeling - DONE
+- bulk datasets - download bulk datasets, look for evidence that it's a legit thing..., identify cell types associated with bulk datasets
+    - start with mouse datasets?
+- custom color scheme - DONE
+
+- Paper mining/bio-NLP for a "literature network score"
+    - there are a lot of papers that do similar things already but maybe not exactly the same thing we want...
+
+- taking a subset of the data based on user selection, and re-run uncurl on that subset - DONE
+
+- integrate with lineage analysis tools - visualize lineage somehow?
+- better batch effect correction (models that work on larger datasets, sparse datasets)
+- gene set visualization
+- building a dataset of test files...
+
+
+- plugin architecture (in uncurl_analysis) - won't do
+- QualNorm initialization - have an option to provide a initial input file - won't do
