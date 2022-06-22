@@ -1,5 +1,7 @@
 #!/bin/bash
 
+./cleanup.sh
+
 killall -9 redis-server
 nohup redis-server > nohup_redis.out &
 
