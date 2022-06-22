@@ -1102,7 +1102,7 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
                     colorscale='Viridis',
                     mode='entropy', color_vals=read_counts)
         elif cell_color_value == 'neural_network_classifier':
-            # TODO: get NN results
+            # get NN results
             color_track, is_discrete = get_sca_color_track(user_id, cell_color_value)
             # set cell class...
             if color_track is None:
@@ -1113,9 +1113,13 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
                 return scatterplot_data(dim_red, color_track)
             else:
                 return scatterplot_data(dim_red, color_track)
+        elif cell_color_value == 'gene_set':
+            # TODO: get a gene set from cellmesh/cellmarker/go/kegg
+            # TODO: more params
+            pass
         else:
             # try to get color track
-            # TODO: get color values as well
+            # get color values as well
             color_track, is_discrete, color = get_sca_color_track(user_id, cell_color_value, return_color=True)
             print('scatterplot retrieved color:', color)
             if color_track is None:
