@@ -54,7 +54,9 @@ def load_upload_data(request_files, request_form, path=None):
                 print(gene_file)
                 gene_output_file = load_gene_names(gene_file, path, input_id)
                 gene_paths.append(gene_output_file)
-            except:
+            except Exception as e:
+                print(e)
+                print('failed to get gene names')
                 gene_paths.append(None)
             data_name = request_form['data_name-{0}'.format(input_id)]
             if len(data_name) == 0:
@@ -67,17 +69,13 @@ def load_upload_data(request_files, request_form, path=None):
 def load_gene_names(f, path=None, index=1):
     gene_filename = secure_filename(f.filename)
     gene_output_path = os.path.join(path, 'gene_names_{0}.txt'.format(index))
+    compression = None
     if gene_filename.endswith('.gz'):
-        # gunzip the file
-        import subprocess
-        base_file_path = os.path.join(path, gene_filename)
-        f.save(base_file_path)
-        subprocess.call(['gunzip', base_file_path])
-        f = open(base_file_path)
-        gene_filename = gene_filename[:-3]
-    if gene_filename.endswith('genes.csv'):
+        compression = 'gzip'
+    if gene_filename.endswith('genes.csv') or gene_filename.endswith('genes.csv.gz'):
+        print('processing genes.csv')
         import pandas as pd
-        data = pd.read_csv(f)
+        data = pd.read_csv(f, compression=compression)
         try:
             gene_names = data['gene_name']
             gene_names.to_csv(gene_output_path, header=None, index=None)
@@ -85,9 +83,10 @@ def load_gene_names(f, path=None, index=1):
             print(e)
             f.seek(0)
             f.save(gene_output_path)
-    elif gene_filename.endswith('features.tsv'):
+    elif gene_filename.endswith('features.tsv') or gene_filename.endswith('features.tsv.gz'):
+        print('processing features.tsv')
         import pandas as pd
-        data = pd.read_csv(f, sep='\t', header=None)
+        data = pd.read_csv(f, sep='\t', header=None, compression=compression)
         try:
             gene_names = data[1]
             gene_names.to_csv(gene_output_path, header=None, index=None)
@@ -95,6 +94,15 @@ def load_gene_names(f, path=None, index=1):
             print(e)
             f.seek(0)
             f.save(gene_output_path)
+    elif gene_filename.endswith('.gz'):
+        # gunzip the file
+        import subprocess
+        base_file_path = os.path.join(path, gene_filename)
+        f.save(base_file_path)
+        subprocess.call(['gunzip', base_file_path])
+        f = open(base_file_path)
+        gene_filename = gene_filename[:-3]
+        f.save(gene_output_path)
     else:
         f.save(gene_output_path)
     return gene_output_path

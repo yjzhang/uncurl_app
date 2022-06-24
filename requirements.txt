@@ -2,13 +2,13 @@ flask
 flask_bootstrap
 Flask-Caching
 scipy
-numpy==1.19.4
+numpy
 scikit-learn
 redis
 uncurl-seq
 gunicorn
 colorlover
-plotly==4.3.0
+plotly
 git+https://github.com/yjzhang/uncurl_python.git
 git+https://github.com/yjzhang/simplex_sample.git
 git+https://github.com/yjzhang/uncurl_analysis.git@0fb0ad5
