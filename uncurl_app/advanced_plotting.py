@@ -65,7 +65,7 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
             'type': 'heatmap',
         }],
         'layout': {
-            'title': 'Normalized mutual information between clusters: ' + str(nmi),
+            'title': 'Cluster heatmap <br><sup>Normalized mutual information between clusters: ' + str(nmi) + '</sup>',
             'xaxis': {'title': cluster_2_name, 'automargin': True,
                 'type': 'category', 'tickmode': 'linear', 'dtick': 1},
             'yaxis': {'title': cluster_1_name, 'automargin': True,
@@ -142,7 +142,7 @@ def gene_similarity(data_sampled_all_genes, all_gene_names, gene_names_left, gen
     if sparse.issparse(data_subset_1):
         data_subset_1 = data_subset_1.toarray()
         data_subset_2 = data_subset_2.toarray()
-    # TODO: have different methods for calculating the correlation matrix
+    # have different methods for calculating the correlation matrix
     correlations = np.zeros((len(gene_indices_left), len(gene_indices_top)))
     if method == 'pearson':
         for i in range(len(gene_indices_left)):
@@ -167,6 +167,7 @@ def gene_similarity(data_sampled_all_genes, all_gene_names, gene_names_left, gen
             'type': 'heatmap',
         }],
         'layout': {
+            'title': 'Gene correlation heatmap',
             'xaxis': {'title': 'gene set 2', 'automargin': True,
                 'tickmode': 'linear', 'dtick': 1},
             'yaxis': {'title': 'gene set 1', 'automargin': True,
