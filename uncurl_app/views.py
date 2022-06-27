@@ -352,6 +352,8 @@ def state_estimation_thread(user_id, gene_names=None, init_path=None, path=None,
         dist_type = 'nb'
     elif dist_type == 'Log-Normal':
         dist_type = 'lognorm'
+    elif 'None' in dist_type:
+        dist_type = 'none'
     uncurl_args = config['UNCURL_ARGS']
     if dist_type != 'Poisson':
         uncurl_args = config['NMF_ARGS']

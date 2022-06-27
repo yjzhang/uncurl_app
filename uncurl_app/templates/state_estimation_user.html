@@ -131,11 +131,12 @@ window.onload = function() {
                 </div>
 
                 <div class="form-group">
-                    <label for="disttype" data-toggle="tooltip" title="Distribution for use with UNCURL - usually, the Poisson distribution is best for count (UMI) data.">Distribution type:</label>
+                    <label for="disttype" data-toggle="tooltip" title="Distribution for use with UNCURL - usually, the Poisson distribution is best for count (UMI) data. If None is selected, then only tSVD + k-means is used.">Distribution type:</label>
                     <select id="disttype" name="disttype">
                         <option selected>Poisson</option>
                         <option>Log-Normal</option>
                         <option>Gaussian</option>
+                        <option>None</option>
                     </select>
                 </div>
 
