@@ -18,7 +18,7 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
     Args:
         cluster1 (array): array of strings
         cluster2 (array): array of strings
-        order (str): 'coclustering' or 'alphabetical'. Default: 'coclustering'
+        order (str): 'coclustering' or 'none'. Default: 'coclustering'
         normalize_row (bool): whether or not to normalize by row (so that each row sums to 1). Default: True
     """
     if not isinstance(cluster1[0], str):
@@ -34,9 +34,11 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
         c1 = cluster1[i]
         c2 = cluster2[i]
         data[c1_indices[c1], c2_indices[c2]] += 1
-    # create heatmap json
+    if len(cluster1_values) <= 6 or len(cluster2_values) <= 6:
+        order = 'none'
     if normalize_row:
         data = data/data.sum(1, keepdims=True)
+    # create heatmap json
     if order == 'coclustering':
         from sklearn.cluster import SpectralCoclustering
         spec = SpectralCoclustering(int(max(len(cluster1_values)/1.5, len(cluster2_values)/1.5, 2)))
@@ -52,7 +54,7 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
     else:
         row_labels = np.array(cluster1_values)
         column_labels = np.array(cluster2_values)
-    # TODO: show some statistic of the similarity between the clusters.
+    # show some statistic of the similarity between the clusters.
     nmi = normalized_mutual_info_score(cluster1, cluster2)
     output = {
         'data': [{
@@ -65,9 +67,9 @@ def cluster_heatmap(cluster1, cluster2, cluster_1_name, cluster_2_name, order='c
         'layout': {
             'title': 'Normalized mutual information between clusters: ' + str(nmi),
             'xaxis': {'title': cluster_2_name, 'automargin': True,
-                'type': 'category'},
+                'type': 'category', 'tickmode': 'linear', 'dtick': 1},
             'yaxis': {'title': cluster_1_name, 'automargin': True,
-                'type': 'category'},
+                'type': 'category', 'tickmode': 'linear', 'dtick': 1},
             'font': {'size': 16},
             'height': 550,
             'width': 700,
@@ -146,6 +148,13 @@ def gene_similarity(data_sampled_all_genes, all_gene_names, gene_names_left, gen
         for i in range(len(gene_indices_left)):
             for j in range(len(gene_indices_top)):
                 correlations[i, j] = scipy.stats.pearsonr(data_subset_1[i], data_subset_2[j])[0]
+    elif method == 'spearman':
+        for i in range(len(gene_indices_left)):
+            for j in range(len(gene_indices_top)):
+                correlations[i, j] = scipy.stats.spearmanr(data_subset_1[i], data_subset_2[j])[0]
+    elif method == 'cosine':
+        import sklearn.metrics.pairwise
+        correlations = sklearn.metrics.pairwise.cosine_similarity(data_subset_1, data_subset_2)
     correlations[np.isnan(correlations)] = 0.0
     output = {
         'data': [{
@@ -158,8 +167,10 @@ def gene_similarity(data_sampled_all_genes, all_gene_names, gene_names_left, gen
             'type': 'heatmap',
         }],
         'layout': {
-            'xaxis': {'title': 'gene set 2', 'automargin': True},
-            'yaxis': {'title': 'gene set 1', 'automargin': True},
+            'xaxis': {'title': 'gene set 2', 'automargin': True,
+                'tickmode': 'linear', 'dtick': 1},
+            'yaxis': {'title': 'gene set 1', 'automargin': True,
+                'tickmode': 'linear', 'dtick': 1},
             'font': {'size': 14},
             'height': max(550, 150+len(gene_indices_left)*20),
             'width': max(700, 150+len(gene_indices_top)*20),
