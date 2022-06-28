@@ -48,6 +48,8 @@ def generate_report(user_id):
         cellmesh_results_clusters[cluster_id] = cellmesh_results
     import numpy as np
     new_labels = np.array([str(x) + ' ' +  cellmesh_results_clusters[x][1][1] for x in sca.labels])
+    # add labels as colormap
+    sca.add_color_track('Cell type report', new_labels, is_discrete=True)
     scatterplot = scatterplot_data(sca.baseline_vis, new_labels)
     return render_template('report.html',
             user_id=user_id,
