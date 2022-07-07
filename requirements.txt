@@ -5,13 +5,13 @@ scipy
 numpy
 scikit-learn
 redis
-uncurl-seq
+uncurl-seq>=0.2.16
 gunicorn
 colorlover
 plotly
 git+https://github.com/yjzhang/uncurl_python.git
 git+https://github.com/yjzhang/simplex_sample.git
-git+https://github.com/yjzhang/uncurl_analysis.git@0fb0ad5
+git+https://github.com/yjzhang/uncurl_analysis.git@a64425c
 git+https://github.com/yjzhang/cellmarker_python.git
 git+https://github.com/yjzhang/gene_name_mapper.git
 git+https://github.com/yjzhang/cellmesh.git
