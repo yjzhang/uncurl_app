@@ -36,7 +36,7 @@ class Summary(object):
                     raise Exception('data not found')
                 self.is_gz = is_gz
                 if gene_paths is None:
-                    gene_path = os.path.join(base_path, 'genes.txt')
+                    gene_path = os.path.join(base_path, 'gene_names.txt')
                 else:
                     gene_path = gene_paths[0]
             else:
@@ -47,7 +47,7 @@ class Summary(object):
                     is_gz = data_path.endswith('gz')
                     data_path_new = data_path
                     # convert data shape
-                    # TODO: try to automatically infer the shape (if genes.txt is present)
+                    # TODO: try to automatically infer the shape (if gene_names.txt is present)
                     # The problem is inefficiency - we don't want to have to update the dataset twice.
                     if shapes[i] == 'cell_gene':
                         try:
