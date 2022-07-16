@@ -113,6 +113,7 @@
                 <button class="btn btn-default" id="dendrogram_names_submit" onclick="update_scatterplot()">Submit</button>
             </div>
 
+            <!-- controls for gene heatmap -->
             <div id="gene-heatmap-options-area" style="display:none;" class="form-inline align-items-center">
                 <div class="form-group">
                     <div class="form-inline">
@@ -120,11 +121,12 @@
                         <textarea class="form-control" id="heatmap_genes_1" cols="10" rows="3" name="heatmap_genes_1"></textarea>
                         <label for="heatmap_genes_2" data-toggle="tooltip" title="If empty, uses the top 5 genes for each cluster.">Selected genes 2:</label>
                         <textarea class="form-control" id="heatmap_genes_2" cols="10" rows="3" name="heatmap_genes_2"></textarea>
-                        <!-- TODO: select cluster, populate label/cluster options here with labels from updating the gene set -->
+                        <!-- populate label/cluster options here with labels from updating the gene set -->
                         <label for="gene_heatmap_cluster">Selected cluster:</label>
                         <select class="form-control" id="gene_heatmap_cluster" name="gene_heatmap_cluster">
                             <option value="all" selected>All cells</option>
                         </select>
+                        <!-- TODO: correlation option? -->
                         <button class="btn btn-default" id="gene_heatmap_submit" onclick="update_scatterplot()">Submit</button>
                     </div>
                 </div>
@@ -167,6 +169,7 @@
                     <option value="cluster" selected>Cluster</option>
                     <option value="entropy">Entropy</option>
                     <option value="gene">Gene</option>
+                    <!-- <option value="gene_set">Gene Set</option> -->
                     <!-- view to show each cluster's W values --> 
                     <option value="weights">Cluster weights</option>
                     <option value="read_counts">Read counts</option>
@@ -199,6 +202,12 @@
                         <option value="1">Post-processed</option>
                 </select>
                 <button class="btn btn-default" id="gene_name_submit" onclick="update_scatterplot()">Submit</button>
+            </div>
+
+            <!-- TODO: gene set control area - copy the code for
+                 cellmesh/etc? 
+                 Or, just copy the code from db_query_genes? -->
+            <div id="gene-set-area" style="display:none;">
             </div>
 
             <div id="color-track-upload-area" style="display:none; width: 700px;">

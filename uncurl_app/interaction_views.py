@@ -1116,6 +1116,7 @@ def update_scatterplot_result(user_id, plot_type, cell_color_value, data_form):
         elif cell_color_value == 'gene_set':
             # TODO: get a gene set from cellmesh/cellmarker/go/kegg
             # TODO: more params
+            # TODO: color based on weighted average of gene expression levels for genes within the target gene set (weighted based on tfidf for cellmesh), divided by total expression level for the cell.
             pass
         else:
             # try to get color track
