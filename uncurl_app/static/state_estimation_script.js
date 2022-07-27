@@ -49,7 +49,6 @@ function bind_click() {
         selection_string = "cluster " + String(cluster) + 
             " (" + String(l) + " cells), ";
         // set update area...
-        //$("#update-area").empty();
         $("#update-area").append("\nselected clusters: " + selection_string);
     });
 }
@@ -91,7 +90,7 @@ function update_barplot(cluster_number) {
     console.log(data);
     var key = JSON.stringify(data);
     $("#update-area").empty();
-    $("#update-area").append('Updating barplot <img src="/static/ajax-loader.gif"/>');
+    $("#update-area").append('<span id="update_barplot">Updating barplot <img src="/static/ajax-loader.gif"/></span>');
     if (cache.barplots.hasOwnProperty(key)) {
         update_barplot_is_running = false;
         data = cache.barplots[key];
@@ -105,7 +104,7 @@ function update_barplot(cluster_number) {
             var view = $('#top-genes')[0];
             view.on('plotly_selected', on_gene_select);
         }
-        $("#update-area").empty();
+        $('#update_barplot').remove();
         $("#update-area").append('Barplot updated');
         return true;
     }
@@ -115,7 +114,7 @@ function update_barplot(cluster_number) {
     }).done(function(return_data) {
         update_barplot_is_running = false;
         if (return_data.startsWith('Error')) {
-            $("#update-area").empty();
+            $('#update_barplot').remove();
             $("#update-area").append(return_data);
             return false;
         }
@@ -137,7 +136,7 @@ function update_barplot(cluster_number) {
             var view = $('#top-genes')[0];
             view.on('plotly_selected', on_gene_select);
         }
-        $("#update-area").empty();
+        $('#update_barplot').remove();
         $("#update-area").append('Barplot updated');
     });
     return true;
